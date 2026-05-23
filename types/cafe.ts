@@ -145,7 +145,7 @@ export interface NavItem {
 }
 
 export interface ShellProps {
-  children: ReactNode;
+  children?: ReactNode;
   title?: string;
   subtitle?: string;
 }
