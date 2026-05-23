@@ -30,7 +30,7 @@ export default function Header({ title = "Smart Cafe", subtitle = "QR Ordering S
           >
             <Bell size={19} />
           </button>
-            <Link href="http://localhost:3000/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-saffron px-5 py-3 font-semibold text-espresso transition hover:bg-[#f0b556]"
+            <Link href="https://restaurant-menu-for-smart-cafe-qr-o.vercel.app/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-saffron px-5 py-3 font-semibold text-espresso transition hover:bg-[#f0b556]"
               >
                 View Storefront
                 <ArrowRight size={18} aria-hidden="true" />
