@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ClipboardList, Home, QrCode, Soup, Utensils } from "lucide-react";
+import { ChevronDown, ClipboardList, Home, ListOrdered, QrCode, Settings, Soup, Utensils,FileUser  } from "lucide-react";
 import type { NavItem } from "@/types/cafe";
 
 const navItems: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
-  { href: "/menu/1", label: "Order", icon: Utensils },
+  { href: "/menu/1", label: "Order", icon: ListOrdered },
   { href: "/cart", label: "Cart", icon: ClipboardList },
   { href: "/admin/orders", label: "Orders", icon: Soup },
   { href: "/admin/qr", label: "QR Codes", icon: QrCode },
@@ -21,6 +21,9 @@ const navItems: NavItem[] = [
       { href: "/admin/category_master", label: "Category", icon: Utensils },
     ],
   },
+  { href: "/admin/customers", label: "Customers", icon: FileUser  },
+  { href: "/admin/setting", label: "Settings", icon: Settings },
+  
 ];
 
 export default function Sidebar() {
