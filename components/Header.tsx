@@ -1,49 +1,120 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bell, Coffee, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  Bell,
+  UserRound,
+  LogOut,
+  Settings,
+} from "lucide-react";
+import Image from "next/image";
+import logo from "@/public/assets/logo.png";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
 }
 
-export default function Header({ title = "Smart Cafe", subtitle = "QR Ordering System" }: HeaderProps) {
+const company_name = "Macchiato Cafe";
+const location = "Valachery, Chennai, India";
+
+export default function Header({
+  title = "Smart Cafe",
+  subtitle = "QR Ordering System",
+}: HeaderProps) {
+  const [currentTime, setCurrentTime] = useState<string>("");
+  const [openProfile, setOpenProfile] = useState(false);
+
+  // Demo user data
+  const profileOwner = "Kavin Kumar";
+  const profileRole = "Cafe Admin";
+
+  useEffect(() => {
+    const format = (d: Date) =>
+      d.toString().replace(" GMT+0530 (India Standard Time)", "");
+
+    setCurrentTime(format(new Date()));
+
+    const interval = setInterval(
+      () => setCurrentTime(format(new Date())),
+      1000
+    );
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-espresso/80 px-4 py-3 backdrop-blur-xl sm:px-6">
+    <header
+      className="sticky top-0 z-30 border-b border-white/10 bg-espresso/80 px-4 py-3 backdrop-blur-xl sm:px-6"
+      style={{ padding: "4px", marginBottom: "-16px" }}
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+        {/* LEFT SIDE */}
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-saffron text-espresso shadow-soft">
-            <Coffee size={24} aria-hidden="true" />
+          <div className="flex shrink-0 items-center justify-center rounded-lg bg-saffron text-espresso shadow-soft">
+            <Image src={logo} alt="Logo" width={60} height={60} />
           </div>
+
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-semibold text-crema sm:text-xl">{title}</h1>
-            <p className="truncate text-sm text-crema/62">{subtitle}</p>
+            <h1 className="truncate text-lg font-semibold text-crema sm:text-xl">
+              {company_name}
+            </h1>
+
+            <p className="truncate text-sm text-crema/62">{location}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* RIGHT SIDE */}
+        <div className="flex items-center gap-4 relative">
+          {/* TIME */}
+          {currentTime && (
+            <p className="hidden text-sm text-crema/62 lg:block">
+              {currentTime}
+            </p>
+          )}
+
+          {/* PROFILE BUTTON */}
           <button
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-crema transition hover:bg-white/14"
-            title="Notifications"
-            aria-label="Notifications"
+            onClick={() => setOpenProfile(!openProfile)}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-crema transition hover:bg-white/10"
           >
-            <Bell size={19} />
+            <UserRound size={20} />
           </button>
-            <Link href="https://restaurant-menu-for-smart-cafe-qr-o.vercel.app/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-saffron px-5 py-3 font-semibold text-espresso transition hover:bg-[#f0b556]"
-              >
-                View Storefront
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-          <div className="hidden items-center gap-3 rounded-lg border border-white/10 bg-white/8 px-3 py-2 sm:flex">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-moss text-white">
-              <UserRound size={17} aria-hidden="true" />
+
+          {/* PROFILE CARD */}
+          {openProfile && (
+            <div className="absolute right-0 top-14 w-72 rounded-2xl border border-white/10 bg-[#1c1c1c] p-4 shadow-2xl backdrop-blur-xl">
+              {/* TOP */}
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-saffron text-black font-bold">
+                  K
+                </div>
+
+                <div>
+                  <h2 className="text-base font-semibold text-white">
+                    {profileOwner}
+                  </h2>
+
+                  <p className="text-sm text-white/60">{profileRole}</p>
+                </div>
+              </div>
+
+              {/* MENU */}
+              <div className="mt-4 space-y-2">
+                <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-white/80 transition hover:bg-white/10">
+                  <Settings size={18} />
+                  Settings
+                </button>
+
+                <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10">
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
             </div>
-            <div className="leading-tight">
-              <p className="text-sm font-medium text-crema">Cafe Admin</p>
-              <p className="text-xs text-crema/58">Live counter</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </header>

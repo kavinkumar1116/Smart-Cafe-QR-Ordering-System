@@ -2,6 +2,35 @@ CREATE DATABASE cafe_qr_db;
 
 -- Run the statements below inside cafe_qr_db.
 
+
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  is_available BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS menu_items (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  price NUMERIC(10, 2) NOT NULL,
+  category INT REFERENCES categories(id),
+  image_url TEXT,
+  is_available BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  is_available BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS menu_items (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -28,6 +57,8 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_mobile VARCHAR(30) NOT NULL,
   status VARCHAR(50) DEFAULT 'Pending',
   payment_status VARCHAR(50) DEFAULT 'Pending',
+  billing_method VARCHAR(50),
+  order_type VARCHAR(50),
   total_amount NUMERIC(10, 2) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -39,6 +70,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   quantity INT NOT NULL,
   price_at_time NUMERIC(10, 2) NOT NULL
 );
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_method VARCHAR(50);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(50);
 
 INSERT INTO cafe_tables (table_number)
 VALUES (1), (2), (3), (4)

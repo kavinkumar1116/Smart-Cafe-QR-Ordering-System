@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db";
 import { demoMenuItems, demoOrders, makePublicOrder } from "@/lib/demo-store";
 import { getErrorMessage } from "@/lib/api";
 import { makeOrderCode } from "@/lib/format";
 import { calcGrandTotal, calcTax } from "@/lib/order-math";
-import type { CafeOrder, OrderItem } from "@/types/cafe";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { createOrder, fetchMenuItems, fetchOrderById } from "@/lib/supabase/crud";
+import type { CafeOrder, OrderItem, OrderMode, PaymentStatus } from "@/types/cafe";
 
 interface IncomingOrderItem {
   id?: number | string;
@@ -16,6 +17,8 @@ interface CreateOrderRequest {
   table_id?: number | string;
   customer_name?: string;
   customer_mobile?: string;
+  payment_status?: PaymentStatus;
+  order_type?: OrderMode;
   items?: IncomingOrderItem[];
 }
 
@@ -44,7 +47,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    if (!pool) {
+    if (!isSupabaseConfigured()) {
       const order = demoOrders.find((entry) => String(entry.id) === String(id) || entry.order_id === id);
       if (!order) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -52,29 +55,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ order: makePublicOrder(order) });
     }
 
-    const orderResult = await pool.query(
-      `SELECT id, order_id, table_id, customer_name, customer_mobile, status, payment_status, total_amount, created_at
-       FROM orders
-       WHERE id = $1 OR order_id = $2
-       LIMIT 1`,
-      [Number(id) || 0, id]
-    );
+    const order = await fetchOrderById(id);
 
-    if (orderResult.rowCount === 0) {
+    if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const order = orderResult.rows[0];
-    const itemsResult = await pool.query(
-      `SELECT oi.id, oi.menu_item_id, oi.quantity, oi.price_at_time, mi.name, mi.category
-       FROM order_items oi
-       JOIN menu_items mi ON mi.id = oi.menu_item_id
-       WHERE oi.order_id = $1
-       ORDER BY oi.id`,
-      [order.id]
-    );
-
-    return NextResponse.json({ order: { ...order, items: itemsResult.rows } });
+    return NextResponse.json({ order });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to load order", detail: getErrorMessage(error) },
@@ -89,6 +76,8 @@ export async function POST(request: Request) {
     const tableId = Number(body.table_id);
     const customerName = String(body.customer_name || "").trim();
     const customerMobile = String(body.customer_mobile || "").trim();
+    const paymentStatus: PaymentStatus = body.payment_status === "Paid" ? "Paid" : "Pending";
+    const orderType: OrderMode = body.order_type === "Takeaway" ? "Takeaway" : "Dine-In";
     const items = normalizeItems(body.items);
 
     if (!tableId || !customerName || !customerMobile || items.length === 0) {
@@ -98,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!pool) {
+    if (!isSupabaseConfigured()) {
       const enrichedItems: OrderItem[] = items.map((item) => {
         const menuItem = demoMenuItems.find((entry) => entry.id === item.menu_item_id);
         return {
@@ -123,7 +112,8 @@ export async function POST(request: Request) {
         customer_name: customerName,
         customer_mobile: customerMobile,
         status: "Pending",
-        payment_status: "Pending",
+        payment_status: paymentStatus,
+        order_type: orderType,
         total_amount: grandTotal,
         created_at: new Date().toISOString(),
         items: enrichedItems,
@@ -132,53 +122,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ order: makePublicOrder(order) }, { status: 201 });
     }
 
-    const client = await pool.connect();
-    try {
-      await client.query("BEGIN");
+    const menuItems = await fetchMenuItems();
+    const priceMap = new Map(
+      menuItems
+        .filter((menuItem) => menuItem.is_available)
+        .map((menuItem) => [menuItem.id, Number(menuItem.price)])
+    );
+    const ids = items.map((item) => item.menu_item_id);
 
-      const ids = items.map((item) => item.menu_item_id);
-      const menuResult = await client.query(
-        "SELECT id, price FROM menu_items WHERE id = ANY($1::int[]) AND is_available = true",
-        [ids]
-      );
-      const priceMap = new Map<number, number>(menuResult.rows.map((row) => [Number(row.id), Number(row.price)]));
-
-      if (priceMap.size !== ids.length) {
-        throw new Error("Some selected items are no longer available");
-      }
-
-      const subtotal = items.reduce(
-        (sum, item) => sum + (priceMap.get(item.menu_item_id) || 0) * item.quantity,
-        0
-      );
-      const tax = calcTax(subtotal);
-      const total = calcGrandTotal(subtotal, tax);
-
-      const orderResult = await client.query(
-        `INSERT INTO orders (order_id, table_id, customer_name, customer_mobile, status, payment_status, total_amount)
-         VALUES ($1, $2, $3, $4, 'Pending', 'Pending', $5)
-         RETURNING id, order_id, table_id, customer_name, customer_mobile, status, payment_status, total_amount, created_at`,
-        [makeOrderCode(), tableId, customerName, customerMobile, total]
-      );
-
-      const order = orderResult.rows[0];
-
-      for (const item of items) {
-        await client.query(
-          `INSERT INTO order_items (order_id, menu_item_id, quantity, price_at_time)
-           VALUES ($1, $2, $3, $4)`,
-          [order.id, item.menu_item_id, item.quantity, priceMap.get(item.menu_item_id)]
-        );
-      }
-
-      await client.query("COMMIT");
-      return NextResponse.json({ order }, { status: 201 });
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
-    } finally {
-      client.release();
+    if (ids.some((id) => !priceMap.has(id))) {
+      throw new Error("Some selected items are no longer available");
     }
+
+    const subtotal = items.reduce(
+      (sum, item) => sum + (priceMap.get(item.menu_item_id) || 0) * item.quantity,
+      0
+    );
+    const tax = calcTax(subtotal);
+    const total = calcGrandTotal(subtotal, tax);
+
+    const order = await createOrder(
+      {
+        order_id: makeOrderCode(),
+        table_id: tableId,
+        customer_name: customerName,
+        customer_mobile: customerMobile,
+        status: "Pending",
+        payment_status: paymentStatus,
+        order_type: orderType,
+        total_amount: total,
+      },
+      items.map((item) => ({
+        menu_item_id: item.menu_item_id,
+        quantity: item.quantity,
+        price_at_time: priceMap.get(item.menu_item_id) || 0,
+      }))
+    );
+
+    return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to create order", detail: getErrorMessage(error) },

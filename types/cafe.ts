@@ -3,8 +3,19 @@ import type { ReactNode } from "react";
 
 export type OrderStatus = "Pending" | "Preparing" | "Ready" | "Served" | "Cancelled";
 export type PaymentStatus = "Pending" | "Paid";
+export type BillingMethod = "UPI" | "Cash";
 export type OrderMode = "Dine-In" | "Takeaway" | "Delivery";
 export type NumericValue = number | string;
+
+
+export interface Category {
+  id: number;
+  name: string;  
+  image_url: string;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface MenuItem {
   id: number;
@@ -14,6 +25,8 @@ export interface MenuItem {
   category: string;
   image_url: string;
   is_available: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CartItem {
@@ -49,6 +62,8 @@ export interface CafeOrder {
   customer_mobile: string;
   status: OrderStatus;
   payment_status: PaymentStatus;
+  billing_method?: BillingMethod | null;
+  order_type?: OrderMode | null;
   total_amount: NumericValue;
   created_at: string;
   items?: OrderItem[];

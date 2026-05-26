@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
-import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { CatIcon, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
-import type { CategoryForm, MenuItem, MenuResponse } from "@/types/cafe";
+import type { Category, CategoryForm} from "@/types/cafe"; 
+import noImageFound from "@/public/assets/no-image.png";
 
 const emptyForm: CategoryForm = {
   id: null,
@@ -14,15 +16,15 @@ const emptyForm: CategoryForm = {
   is_available: true,
 };
 
-export default function AdminCategoryManager() {
-  const [items, setItems] = useState<MenuItem[]>([]);
+export default function AdminCategoryManager() { 
   const [form, setForm] = useState<CategoryForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [CategoriesList, setCategoriesList] = useState<Category[]>([]);
 
   async function loadItems() {
-    const response = await fetch("/api/admin/menu", { cache: "no-store" });
-    const data = (await response.json()) as MenuResponse;
-    setItems(data.items || []);
+    const response = await fetch("/api/admin/category", { cache: "no-store" });
+    const data = (await response.json());
+    setCategoriesList(data.items || []);
   }
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export default function AdminCategoryManager() {
     event.preventDefault();
     setSaving(true);
     const method = form.id ? "PUT" : "POST";
-    const response = await fetch("/api/admin/menu", {
+    const response = await fetch("/api/admin/category", {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -46,7 +48,7 @@ export default function AdminCategoryManager() {
   }
 
   async function deleteItem(id: number): Promise<void> {
-    await fetch(`/api/admin/menu?id=${id}`, { method: "DELETE" });
+    await fetch(`/api/admin/category?id=${id}`, { method: "DELETE" });
     loadItems();
   }
 
@@ -78,12 +80,6 @@ export default function AdminCategoryManager() {
               placeholder="Category name"
               className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none placeholder:text-crema/35 focus:border-saffron"
             />
-            <input
-              value={form.image_url}
-              onChange={(event) => setForm((current) => ({ ...current, image_url: event.target.value }))}
-              placeholder="Image URL"
-              className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none placeholder:text-crema/35 focus:border-saffron"
-            />
             <label className="flex items-center justify-between rounded-lg border border-white/10 bg-white/8 px-3 py-3 text-crema/72">
               <span>Available</span>
               <input
@@ -105,24 +101,17 @@ export default function AdminCategoryManager() {
         </form>
 
         <section className="space-y-4">
-          {items.map((item) => (
+          {CategoriesList.map((item) => (
             <article key={item.id} className="rounded-lg border border-white/10 bg-white/8 p-4">
               <div className="grid gap-4 md:grid-cols-[120px_1fr_auto] md:items-center">
-                <img
-                  src={item.image_url || "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80"}
-                  alt={item.name}
-                  className="h-28 w-full rounded-lg object-cover md:w-28"
-                />
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-semibold text-crema">{item.name}</h3>
-                    <span className="rounded-lg bg-white/10 px-2 py-1 text-xs text-crema/62">{item.category}</span>
+                    <span className="rounded-lg bg-white/10 px-2 py-1 text-xs text-crema/62">{item.name}</span>
                     <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${item.is_available ? "bg-moss/25 text-crema" : "bg-berry/25 text-crema"}`}>
                       {item.is_available ? "Available" : "Hidden"}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-crema/58">{item.description}</p>
-                  <p className="mt-2 font-semibold text-saffron">{formatCurrency(item.price)}</p>
                 </div>
                 <div className="flex gap-2 md:flex-col">
                   <button
