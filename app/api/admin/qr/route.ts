@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
-import pool from "@/lib/db";
 import { getErrorMessage } from "@/lib/api";
 import { demoTables } from "@/lib/demo-store";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { fetchTables } from "@/lib/supabase/crud";
 import type { CafeTable } from "@/types/cafe";
 
 export async function GET(request: Request) {
@@ -12,13 +13,7 @@ export async function GET(request: Request) {
       request.headers.get("origin") ||
       "http://localhost:3000";
 
-    let tables: CafeTable[] = demoTables;
-    if (pool) {
-      const { rows } = await pool.query(
-        "SELECT id, table_number, qr_code_url FROM cafe_tables ORDER BY table_number"
-      );
-      tables = rows;
-    }
+    const tables: CafeTable[] = isSupabaseConfigured() ? await fetchTables() : demoTables;
 
     const qrCodes = await Promise.all(
       tables.map(async (table) => {
