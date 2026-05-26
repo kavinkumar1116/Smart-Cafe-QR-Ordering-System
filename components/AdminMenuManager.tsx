@@ -1,18 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
 import type { AdminMenuForm, MenuItem, MenuResponse } from "@/types/cafe";
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 const emptyForm: AdminMenuForm = {
   id: null,
   name: "",
   description: "",
   price: "",
-  category: "Coffee",
+  category: "",
   image_url: "",
   is_available: true,
 };
@@ -21,7 +33,9 @@ export default function AdminMenuManager() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [form, setForm] = useState<AdminMenuForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]); 
 
+  
   async function loadItems() {
     const response = await fetch("/api/admin/menu", { cache: "no-store" });
     const data = (await response.json()) as MenuResponse;
@@ -30,6 +44,16 @@ export default function AdminMenuManager() {
 
   useEffect(() => {
     loadItems();
+  }, []);
+
+    async function loadCategories() {
+    const response = await fetch("/api/admin/category", { cache: "no-store" });
+    const data = (await response.json()) as { items: Category[] };
+    setCategories(data.items || []);
+  }
+
+  useEffect(() => {
+    loadCategories();
   }, []);
 
   async function saveItem(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -96,12 +120,30 @@ export default function AdminMenuManager() {
                 inputMode="numeric"
                 className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none placeholder:text-crema/35 focus:border-saffron"
               />
-              <input
+              <Select
                 value={form.category}
-                onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-                placeholder="Category"
-                className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none placeholder:text-crema/35 focus:border-saffron"
-              />
+                onValueChange={(value) =>
+                  setForm((current) => ({
+                    ...current,
+                    category: value,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <input
               value={form.image_url}
@@ -141,9 +183,9 @@ export default function AdminMenuManager() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-semibold text-crema">{item.name}</h3>
-                    <span className="rounded-lg bg-white/10 px-2 py-1 text-xs text-crema/62">{item.category}</span>
-                    <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${item.is_available ? "bg-moss/25 text-crema" : "bg-berry/25 text-crema"}`}>
-                      {item.is_available ? "Available" : "Hidden"}
+                    <span className="rounded-lg bg-white/10 px-2 py-1 text-xs text-crema/62">{categories.find((c) => c.id === parseInt(item.category))?.name || "Unknown Category"}</span>
+                    <span className={`rounded-lg px-2 py-1 text-xs font-semibold ${item.is_available ? "bg-moss/25 text-crema" : "bg-green/250 text-crema"}`}>  
+                      {item.is_available ? "Available" : "Not Available"}
                     </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-crema/58">{item.description}</p>

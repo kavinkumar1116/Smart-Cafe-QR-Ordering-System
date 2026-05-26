@@ -9,9 +9,8 @@ import type { NavItem } from "@/types/cafe";
 const navItems: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
-  { href: "/menu/1", label: "Order", icon: ListOrdered },
-  { href: "/cart", label: "Cart", icon: ClipboardList },
-  { href: "/admin/orders", label: "Orders", icon: Soup },
+  { href: "/order", label: "Order", icon: ListOrdered },
+  { href: "/admin/orders_list", label: "Orders List", icon: Soup },
   { href: "/admin/qr", label: "QR Codes", icon: QrCode },
   {
     label: "Menu",

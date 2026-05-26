@@ -1,6 +1,8 @@
 import type { CafeOrder, CafeTable, MenuItem } from "@/types/cafe";
 
-export const demoMenuItems: MenuItem[] = [
+const demoMenuTimestamp = new Date().toISOString();
+
+const defaultDemoMenuItems = [
   {
     id: 1,
     name: "Velvet Cappuccino",
@@ -55,7 +57,13 @@ export const demoMenuItems: MenuItem[] = [
     image_url: "https://images.unsplash.com/photo-1562376552-0d160a2f238d?auto=format&fit=crop&w=900&q=80",
     is_available: true,
   },
-];
+] satisfies Array<Omit<MenuItem, "created_at" | "updated_at">>;
+
+export const demoMenuItems: MenuItem[] = defaultDemoMenuItems.map((item) => ({
+  ...item,
+  created_at: demoMenuTimestamp,
+  updated_at: demoMenuTimestamp,
+}));
 
 export const demoTables: CafeTable[] = [
   { id: 1, table_number: 1, qr_code_url: null },
@@ -75,6 +83,8 @@ export function makePublicOrder(order: CafeOrder): CafeOrder {
     customer_mobile: order.customer_mobile,
     status: order.status,
     payment_status: order.payment_status,
+    billing_method: order.billing_method,
+    order_type: order.order_type,
     total_amount: Number(order.total_amount),
     created_at: order.created_at,
     items: order.items,

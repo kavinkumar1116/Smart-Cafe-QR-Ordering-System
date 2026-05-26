@@ -1,27 +1,25 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db";
 import { getErrorMessage } from "@/lib/api";
 import { demoOrders, makePublicOrder } from "@/lib/demo-store";
-import type { OrderStatus, PaymentStatus } from "@/types/cafe";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { fetchOrders, updateOrderStatus } from "@/lib/supabase/crud";
+import type { BillingMethod, OrderStatus, PaymentStatus } from "@/types/cafe";
 
 interface UpdateOrderRequest {
   id?: number | string;
   status?: OrderStatus;
   payment_status?: PaymentStatus;
+  billing_method?: BillingMethod;
 }
 
 export async function GET() {
   try {
-    if (!pool) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json({ orders: demoOrders.map(makePublicOrder) });
     }
 
-    const { rows } = await pool.query(
-      `SELECT id, order_id, table_id, customer_name, customer_mobile, status, payment_status, total_amount, created_at
-       FROM orders
-       ORDER BY created_at DESC`
-    );
-    return NextResponse.json({ orders: rows });
+    const orders = await fetchOrders();
+    return NextResponse.json({ orders });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to load admin orders", detail: getErrorMessage(error) },
@@ -36,35 +34,30 @@ export async function PATCH(request: Request) {
     const id = Number(body.id);
     const status = body.status;
     const paymentStatus = body.payment_status;
+    const billingMethod = body.billing_method;
 
     if (!id) {
       return NextResponse.json({ error: "Order id is required" }, { status: 400 });
     }
 
-    if (!pool) {
+    if (!isSupabaseConfigured()) {
       const order = demoOrders.find((entry) => entry.id === id);
       if (!order) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
       if (status) order.status = status;
       if (paymentStatus) order.payment_status = paymentStatus;
+      if (billingMethod) order.billing_method = billingMethod;
       return NextResponse.json({ order: makePublicOrder(order) });
     }
 
-    const { rows } = await pool.query(
-      `UPDATE orders
-       SET status = COALESCE($2, status),
-           payment_status = COALESCE($3, payment_status)
-       WHERE id = $1
-       RETURNING id, order_id, table_id, customer_name, customer_mobile, status, payment_status, total_amount, created_at`,
-      [id, status || null, paymentStatus || null]
-    );
+    const order = await updateOrderStatus(id, status, paymentStatus, billingMethod);
 
-    if (rows.length === 0) {
+    if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ order: rows[0] });
+    return NextResponse.json({ order });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to update order", detail: getErrorMessage(error) },
