@@ -9,8 +9,8 @@ let browserClient: ReturnType<typeof createClient<Database>> | null = null;
 export function createBrowserSupabaseClient() {
   if (browserClient) return browserClient;
 
-  const { url, publishableKey } = getSupabaseConfig();
-  browserClient = createClient<Database>(url, publishableKey);
+  const { url, publishableKey, anonKey } = getSupabaseConfig();
+  browserClient = createClient<Database>(url, publishableKey || anonKey);
 
   return browserClient;
 }
