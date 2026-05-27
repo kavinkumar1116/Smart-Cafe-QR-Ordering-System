@@ -6,7 +6,7 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(supabaseUrl && supabasePublishableKey);
 }
 
-export function getSupabaseConfig(): { url: string; publishableKey: string; anonKey: string } {
+export function getSupabaseConfig(): { url: string; anonKey: string } {
   if (!supabaseUrl || !supabasePublishableKey) {
     throw new Error(
       "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY."
@@ -15,7 +15,6 @@ export function getSupabaseConfig(): { url: string; publishableKey: string; anon
 
   return {
     url: supabaseUrl,
-    publishableKey: supabasePublishableKey,
     anonKey: supabasePublishableKey,
   };
 }
