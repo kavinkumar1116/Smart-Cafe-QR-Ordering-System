@@ -1,9 +1,9 @@
 import AppShell from "@/components/AppShell";
-import AdminOrders from "@/components/AdminOrders";
+import AdminOrders from "@/components/AdminCustomer";
 
 export default function AdminOrdersPage() {
   return (
-    <AppShell title="Admin Orders" subtitle="Manage live cafe orders">
+    <AppShell title="Admin Customers" subtitle="Manage customer information">
       <AdminOrders />
     </AppShell>
   );
