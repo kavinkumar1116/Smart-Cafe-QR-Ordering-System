@@ -3,23 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LockKeyhole, LogIn } from "lucide-react";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { FormEvent } from "react";
-
-const AUTH_KEY = "smart-cafe-admin";
 
 export default function AdminLogin() {
   const router = useRouter();
-  const [form, setForm] = useState({ username: "admin", password: "1234" });
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (form.username === "admin" && form.password === "1234") {
-      localStorage.setItem(AUTH_KEY, "true");
-      router.push("/admin/orders");
+    setError("");
+    setLoading(true);
+
+    const supabase = createBrowserSupabaseClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: form.email.trim(),
+      password: form.password,
+    });
+
+    setLoading(false);
+
+    if (!signInError) {
+      router.push("/");
       return;
     }
-    setError("Invalid admin credentials.");
+
+    setError(signInError.message || "Invalid admin credentials.");
   }
 
   return (
@@ -35,10 +46,12 @@ export default function AdminLogin() {
 
         <div className="mt-6 space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm text-crema/70">Username</span>
+            <span className="mb-2 block text-sm text-crema/70">Email</span>
             <input
-              value={form.username}
-              onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
+              value={form.email}
+              type="email"
+              autoComplete="email"
+              onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
               className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none focus:border-saffron"
             />
           </label>
@@ -47,6 +60,7 @@ export default function AdminLogin() {
             <input
               value={form.password}
               type="password"
+              autoComplete="current-password"
               onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
               className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-3 text-crema outline-none focus:border-saffron"
             />
@@ -55,9 +69,12 @@ export default function AdminLogin() {
 
         {error ? <p className="mt-4 rounded-lg bg-berry/20 p-3 text-sm text-crema">{error}</p> : null}
 
-        <button className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-saffron px-4 py-3 font-semibold text-espresso">
+        <button
+          disabled={loading}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-saffron px-4 py-3 font-semibold text-espresso disabled:cursor-not-allowed disabled:opacity-60"
+        >
           <LogIn size={18} aria-hidden="true" />
-          Login
+          {loading ? "Signing in..." : "Login"}
         </button>
       </form>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import {
   BarChart3,
@@ -359,10 +359,14 @@ function ActionButton({
   label,
   icon: Icon,
   tone = "secondary",
+  onClick,
+  disabled = false,
 }: {
   label: string;
   icon: LucideIcon;
   tone?: "primary" | "secondary" | "danger";
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   const toneClass =
     tone === "primary"
@@ -374,6 +378,8 @@ function ActionButton({
   return (
     <button
       type="button"
+      onClick={onClick}
+      disabled={disabled}
       className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${toneClass}`}
     >
       <Icon size={16} aria-hidden="true" />
@@ -385,6 +391,30 @@ function ActionButton({
 export default function AdminSettings() {
   const [activeSection, setActiveSection] = useState(sections[0].id);
   const [toggles, setToggles] = useState(initialToggles);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const response = await fetch("/api/admin/settings", { cache: "no-store" });
+        const data = (await response.json()) as { settings?: { toggles?: Partial<Record<ToggleKey, boolean>> }; error?: string; detail?: string };
+
+        if (!response.ok) {
+          throw new Error(data.error || data.detail || "Unable to load settings.");
+        }
+
+        setToggles((current) => ({ ...current, ...(data.settings?.toggles || {}) }));
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Unable to load settings.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadSettings();
+  }, []);
 
   const enabledCount = useMemo(
     () => Object.values(toggles).filter(Boolean).length,
@@ -393,6 +423,30 @@ export default function AdminSettings() {
 
   function flip(key: ToggleKey) {
     setToggles((current) => ({ ...current, [key]: !current[key] }));
+  }
+
+  async function saveSettings() {
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { toggles } }),
+      });
+      const data = (await response.json()) as { error?: string; detail?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error || data.detail || "Unable to save settings.");
+      }
+
+      setMessage("Settings saved.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to save settings.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -423,9 +477,16 @@ export default function AdminSettings() {
                 <p className="text-xs text-crema/48">Enabled Controls</p>
                 <p className="mt-1 text-2xl font-semibold text-crema">{enabledCount}</p>
               </div>
-              <ActionButton label="Save Settings" icon={Save} tone="primary" />
+              <ActionButton
+                label={saving ? "Saving..." : loading ? "Loading..." : "Save Settings"}
+                icon={Save}
+                tone="primary"
+                onClick={saveSettings}
+                disabled={saving || loading}
+              />
             </div>
           </div>
+          {message ? <p className="mt-4 rounded-lg bg-white/8 p-3 text-sm text-crema/70">{message}</p> : null}
         </section>
 
         <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
@@ -691,7 +752,13 @@ export default function AdminSettings() {
               <div className="flex flex-wrap gap-3">
                 <ActionButton label="Send Test Alert" icon={MessageCircle} />
                 <ActionButton label="Email Summary" icon={Mail} />
-                <ActionButton label="Save Settings" icon={CheckCircle2} tone="primary" />
+                <ActionButton
+                  label={saving ? "Saving..." : "Save Settings"}
+                  icon={CheckCircle2}
+                  tone="primary"
+                  onClick={saveSettings}
+                  disabled={saving || loading}
+                />
               </div>
             </section>
           </div>

@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock3, Minus, Plus, ReceiptText, Send, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { calcGrandTotal, calcSubtotal, calcTax, estimatePrepTimeMinutes } from "@/lib/order-math";
 import type { CartItem, CustomerDetails, OrderResponse } from "@/types/cafe";
-
-const CART_KEY = "smart-cafe-cart";
-const CUSTOMER_KEY = "smart-cafe-customer";
 
 export default function CartExperience() {
   const router = useRouter();
@@ -21,31 +18,6 @@ export default function CartExperience() {
   });
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    setCart(JSON.parse(localStorage.getItem(CART_KEY) || "[]") as CartItem[]);
-    const savedCustomer = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}") as Partial<CustomerDetails>;
-    setCustomer({
-      customer_name: savedCustomer.customer_name || "",
-      customer_mobile: savedCustomer.customer_mobile || "",
-      table_id: savedCustomer.table_id || 1,
-    });
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  }, [cart]);
-
-  useEffect(() => {
-    if (cart.length > 0) {
-      const tableId = Number(cart[0]?.table_id || 1);
-      setCustomer((current) => ({ ...current, table_id: tableId }));
-    }
-  }, [cart]);
-
-  useEffect(() => {
-    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customer));
-  }, [customer]);
 
   const subtotal = useMemo(() => calcSubtotal(cart), [cart]);
   const tax = useMemo(() => calcTax(subtotal), [subtotal]);
@@ -97,7 +69,6 @@ export default function CartExperience() {
       return;
     }
 
-    localStorage.removeItem(CART_KEY);
     setCart([]);
     if (!data.order) {
       setError("Unable to place order.");

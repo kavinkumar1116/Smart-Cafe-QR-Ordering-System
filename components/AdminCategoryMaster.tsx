@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
 import type { Category, CategoryForm } from "@/types/cafe";
@@ -20,13 +21,14 @@ export default function AdminCategoryManager() {
   const [CategoriesList, setCategoriesList] = useState<Category[]>([]);
   const [validationError, setValidationError] = useState("");
 
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     const response = await fetch("/api/admin/category", { cache: "no-store" });
     const data = await response.json();
     setCategoriesList(data.items || []);
-  }
+  }, []);
 
-  useEffect(() => { loadItems(); }, []);
+  useEffect(() => { loadItems(); }, [loadItems]);
+  useRealtimeTable({ table: "categories", onChange: loadItems });
 
   function openAdd() {
     setForm(emptyForm);

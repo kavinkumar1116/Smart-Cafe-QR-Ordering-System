@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
-import { demoMenuItems } from "@/lib/demo-store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { deleteMenuItem, fetchAdminMenuItems, insertMenuItem, updateMenuItem } from "@/lib/supabase/crud";
 import type { MenuItem } from "@/types/cafe";
@@ -10,7 +9,7 @@ type MenuItemBody = Partial<Omit<MenuItem, "id">> & { id?: number | string };
 export async function GET() {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ items: demoMenuItems });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const items = await fetchAdminMenuItems();
@@ -40,10 +39,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const now = new Date().toISOString();
-      const created = { id: Date.now(), ...item, created_at: now, updated_at: now };
-      demoMenuItems.unshift(created);
-      return NextResponse.json({ item: created }, { status: 201 });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const created = await insertMenuItem(item);
@@ -75,17 +71,7 @@ export async function PUT(request: Request) {
     };
 
     if (!isSupabaseConfigured()) {
-      const index = demoMenuItems.findIndex((entry) => entry.id === id);
-      if (index < 0) {
-        return NextResponse.json({ error: "Menu item not found" }, { status: 404 });
-      }
-      demoMenuItems[index] = {
-        ...demoMenuItems[index],
-        ...item,
-        id,
-        updated_at: new Date().toISOString(),
-      };
-      return NextResponse.json({ item: demoMenuItems[index] });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const updated = await updateMenuItem(id, item);
@@ -113,9 +99,7 @@ export async function DELETE(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const index = demoMenuItems.findIndex((entry) => entry.id === id);
-      if (index >= 0) demoMenuItems.splice(index, 1);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     await deleteMenuItem(id);
