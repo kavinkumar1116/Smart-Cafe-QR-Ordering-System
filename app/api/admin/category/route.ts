@@ -14,12 +14,10 @@ function normalizeCategory(body: CategoryBody) {
   };
 }
 
-const demoCategories: Category[] = [];
-
 export async function GET() {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ items: demoCategories });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const items = await fetchAdminCategories();
@@ -42,9 +40,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const created = { id: Date.now(), ...category, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      demoCategories.unshift(created);
-      return NextResponse.json({ item: created }, { status: 201 });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const created = await insertCategory(category);
@@ -73,18 +69,7 @@ export async function PUT(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const index = demoCategories.findIndex((entry) => entry.id === id);
-      if (index < 0) {
-        return NextResponse.json({ error: "Category not found" }, { status: 404 });
-      }
-
-      demoCategories[index] = {
-        ...demoCategories[index],
-        ...category,
-        id,
-        updated_at: new Date().toISOString(),
-      };
-      return NextResponse.json({ item: demoCategories[index] });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const updated = await updateCategory(id, category);
@@ -112,9 +97,7 @@ export async function DELETE(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const index = demoCategories.findIndex((entry) => entry.id === id);
-      if (index >= 0) demoCategories.splice(index, 1);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     await deleteCategory(id);

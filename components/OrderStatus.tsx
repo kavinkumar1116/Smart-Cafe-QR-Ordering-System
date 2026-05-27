@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Clock3, Home, ReceiptText } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { calcGrandTotal, calcTax, estimatePrepTimeMinutes } from "@/lib/order-math";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 import type { CafeOrder, OrderResponse, OrderStatus as CafeOrderStatus } from "@/types/cafe";
 
 const steps: CafeOrderStatus[] = ["Pending", "Preparing", "Ready", "Served"];
@@ -18,22 +19,23 @@ export default function OrderStatus({ id }: OrderStatusProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadOrder() {
-      const response = await fetch(`/api/orders?id=${id}`, { cache: "no-store" });
-      const data = (await response.json()) as OrderResponse;
-      if (!response.ok) {
-        setError(data.error || "Order not found");
-      } else {
-        setOrder(data.order || null);
-      }
-      setLoading(false);
+  const loadOrder = useCallback(async () => {
+    const response = await fetch(`/api/orders?id=${id}`, { cache: "no-store" });
+    const data = (await response.json()) as OrderResponse;
+    if (!response.ok) {
+      setError(data.error || "Order not found");
+    } else {
+      setOrder(data.order || null);
     }
-
-    loadOrder();
-    const interval = setInterval(loadOrder, 7000);
-    return () => clearInterval(interval);
+    setLoading(false);
   }, [id]);
+
+  useEffect(() => {
+    loadOrder();
+  }, [loadOrder]);
+
+  useRealtimeTable({ table: "orders", onChange: loadOrder });
+  useRealtimeTable({ table: "order_items", onChange: loadOrder });
 
   if (loading) {
     return <div className="glass-panel rounded-lg p-8 text-center text-crema/70">Loading order...</div>;

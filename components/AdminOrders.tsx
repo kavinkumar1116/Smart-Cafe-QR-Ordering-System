@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 import { RefreshCw, Receipt, X, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Select,
@@ -170,18 +171,19 @@ export default function AdminOrders() {
   const [receiptSaving, setReceiptSaving]   = useState(false);
   const [receiptError, setReceiptError]     = useState("");
 
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     const response = await fetch("/api/admin/orders", { cache: "no-store" });
     const data = (await response.json()) as OrdersResponse;
     setOrders(data.orders || []);
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     loadOrders();
-    const interval = setInterval(loadOrders, 6000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [loadOrders]);
+
+  useRealtimeTable({ table: "orders", onChange: loadOrders });
+  useRealtimeTable({ table: "order_items", onChange: loadOrders });
 
   async function updateOrder(id: number, patch: Partial<Pick<CafeOrder, "status" | "payment_status" | "billing_method">>) {
     const response = await fetch("/api/admin/orders", {

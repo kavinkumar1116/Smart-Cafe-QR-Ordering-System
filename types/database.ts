@@ -3,6 +3,30 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          id: number;
+          scope: string;
+          settings: Json;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          scope: string;
+          settings?: Json;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          scope?: string;
+          settings?: Json;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       cafe_tables: {
         Row: {
           id: number;
@@ -163,6 +187,190 @@ export interface Database {
             foreignKeyName: "order_items_order_id_fkey";
             columns: ["order_id"];
             referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stores: {
+        Row: {
+          id: number;
+          name: string;
+          slug: string;
+          owner_user_id: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          name: string;
+          slug: string;
+          owner_user_id?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          name?: string;
+          slug?: string;
+          owner_user_id?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      branches: {
+        Row: {
+          id: number;
+          store_id: number;
+          name: string;
+          address: string | null;
+          phone: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          store_id: number;
+          name: string;
+          address?: string | null;
+          phone?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          store_id?: number;
+          name?: string;
+          address?: string | null;
+          phone?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "branches_store_id_fkey";
+            columns: ["store_id"];
+            referencedRelation: "stores";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      subscriptions: {
+        Row: {
+          id: number;
+          store_id: number;
+          plan: string;
+          status: string;
+          current_period_end: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          store_id: number;
+          plan: string;
+          status?: string;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          store_id?: number;
+          plan?: string;
+          status?: string;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_store_id_fkey";
+            columns: ["store_id"];
+            referencedRelation: "stores";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      roles: {
+        Row: {
+          id: number;
+          store_id: number | null;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          store_id?: number | null;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          store_id?: number | null;
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      role_permissions: {
+        Row: {
+          id: number;
+          role_id: number;
+          permission: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          role_id: number;
+          permission: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          role_id?: number;
+          permission?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey";
+            columns: ["role_id"];
+            referencedRelation: "roles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_roles: {
+        Row: {
+          id: number;
+          user_id: string;
+          role_id: number;
+          store_id: number | null;
+          branch_id: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          role_id: number;
+          store_id?: number | null;
+          branch_id?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          role_id?: number;
+          store_id?: number | null;
+          branch_id?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey";
+            columns: ["role_id"];
+            referencedRelation: "roles";
             referencedColumns: ["id"];
           },
         ];

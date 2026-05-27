@@ -7,8 +7,6 @@ import { formatCurrency } from "@/lib/format";
 import { calcSubtotal } from "@/lib/order-math";
 import type { CartItem as CartEntry, Category, MenuItem, OrderMode } from "@/types/cafe";
 
-const CART_KEY = "smart-cafe-cart";
-const CUSTOMER_KEY = "smart-cafe-customer";
 const UNCATEGORIZED = "Uncategorized";
 
 function getMenuCategory(item: MenuItem): string {
@@ -621,21 +619,8 @@ export default function Order({ tableId }: MenuExperienceProps) {
       }
     }
 
-    const savedCart = JSON.parse(localStorage.getItem(CART_KEY) || "[]") as CartEntry[];
-    const savedCustomer = JSON.parse(localStorage.getItem(CUSTOMER_KEY) || "{}") as Partial<CustomerForm>;
-
-    setCart(savedCart.filter((item) => Number(item.quantity) > 0 && Number(item.price) >= 0));
-    setCustomer({
-      customer_name: savedCustomer.customer_name || "",
-      customer_mobile: savedCustomer.customer_mobile || "",
-      order_type: savedCustomer.order_type === "Takeaway" ? "Takeaway" : "Dine-In",
-    });
     loadMenu();
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-  }, [cart]);
 
   const categoryOptions = useMemo(
     () => [
@@ -817,16 +802,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
           throw new Error(data.error || data.detail || "Unable to place order.");
         }
 
-        localStorage.setItem(
-          CUSTOMER_KEY,
-          JSON.stringify({
-            customer_name: customerName,
-            customer_mobile: customerMobile,
-            order_type: customer.order_type,
-          })
-        );
         setCart([]);
-        localStorage.removeItem(CART_KEY);
         setIsCustomerModalOpen(false);
         setOrderSuccess(`Order placed successfully${data.order?.order_id ? `: ${data.order.order_id}` : ""}.`);
       } catch (placeOrderError) {

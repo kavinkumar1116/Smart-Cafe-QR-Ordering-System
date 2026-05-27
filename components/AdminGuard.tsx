@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { ReactNode } from "react";
-
-const AUTH_KEY = "smart-cafe-admin";
 
 interface AdminGuardProps {
   children: ReactNode;
@@ -15,11 +14,31 @@ export default function AdminGuard({ children }: AdminGuardProps) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_KEY) !== "true") {
-      router.replace("/admin");
-      return;
+    let active = true;
+    const supabase = createBrowserSupabaseClient();
+
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+
+      if (!data.session) {
+        router.replace("/admin");
+        return;
+      }
+
+      setReady(true);
     }
-    setReady(true);
+
+    void checkSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) router.replace("/admin");
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, [router]);
 
   if (!ready) {

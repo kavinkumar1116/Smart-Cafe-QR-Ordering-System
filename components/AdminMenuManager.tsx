@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Pencil,
   Plus,
@@ -14,6 +14,7 @@ import type { FormEvent } from "react";
 
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 
 import {
   Select,
@@ -66,7 +67,7 @@ export default function AdminMenuManager() {
     category: "",
   });
 
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     const response = await fetch("/api/admin/menu", {
       cache: "no-store",
     });
@@ -74,9 +75,9 @@ export default function AdminMenuManager() {
     const data = (await response.json()) as MenuResponse;
 
     setItems(data.items || []);
-  }
+  }, []);
 
-  async function loadCategories() {
+  const loadCategories = useCallback(async () => {
     const response = await fetch("/api/admin/category", {
       cache: "no-store",
     });
@@ -86,12 +87,15 @@ export default function AdminMenuManager() {
     };
 
     setCategories(data.items || []);
-  }
+  }, []);
 
   useEffect(() => {
     loadItems();
     loadCategories();
-  }, []);
+  }, [loadCategories, loadItems]);
+
+  useRealtimeTable({ table: "menu_items", onChange: loadItems });
+  useRealtimeTable({ table: "categories", onChange: loadCategories });
 
   const filteredItems = useMemo(() => {
     return items.filter((item) =>

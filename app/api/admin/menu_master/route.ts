@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
-import { demoMenuItems } from "@/lib/demo-store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { fetchAdminMenuItems, insertMenuItem, updateMenuItem } from "@/lib/supabase/crud";
 import type { MenuItem } from "@/types/cafe";
@@ -21,7 +20,7 @@ function normalizeMenuItem(body: MenuItemBody) {
 export async function GET() {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ menuItems: demoMenuItems });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const menuItems = await fetchAdminMenuItems();
@@ -47,9 +46,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const created = { id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...item };
-      demoMenuItems.unshift(created);
-      return NextResponse.json({ item: created }, { status: 201 });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const created = await insertMenuItem(item);
@@ -72,21 +69,7 @@ export async function PATCH(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const item = demoMenuItems.find((entry) => entry.id === id);
-      if (!item) {
-        return NextResponse.json({ error: "Menu item not found" }, { status: 404 });
-      }
-
-      Object.assign(item, {
-        ...(body.name !== undefined ? { name: String(body.name).trim() } : {}),
-        ...(body.description !== undefined ? { description: String(body.description).trim() } : {}),
-        ...(body.price !== undefined ? { price: Number(body.price) } : {}),
-        ...(body.category !== undefined ? { category: String(body.category).trim() } : {}),
-        ...(body.image_url !== undefined ? { image_url: String(body.image_url).trim() } : {}),
-        ...(body.is_available !== undefined ? { is_available: Boolean(body.is_available) } : {}),
-      });
-
-      return NextResponse.json({ item });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const updated = await updateMenuItem(id, {
