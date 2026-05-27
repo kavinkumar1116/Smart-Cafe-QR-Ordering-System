@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { getErrorMessage } from "@/lib/api";
-import { demoTables } from "@/lib/demo-store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { fetchTables } from "@/lib/supabase/crud";
 import type { CafeTable } from "@/types/cafe";
@@ -13,7 +12,11 @@ export async function GET(request: Request) {
       request.headers.get("origin") ||
       "http://localhost:3000";
 
-    const tables: CafeTable[] = isSupabaseConfigured() ? await fetchTables() : demoTables;
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
+    }
+
+    const tables: CafeTable[] = await fetchTables();
 
     const qrCodes = await Promise.all(
       tables.map(async (table) => {

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import AdminGuard from "@/components/AdminGuard";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 
 import {
   RefreshCw,
@@ -28,7 +29,7 @@ export default function AdminOrders() {
 
   const [page, setPage] = useState(1);
 
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     const response = await fetch("/api/admin/orders", {
       cache: "no-store",
     });
@@ -38,11 +39,13 @@ export default function AdminOrders() {
     setOrders(data.orders || []);
 
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [loadOrders]);
+
+  useRealtimeTable({ table: "orders", onChange: loadOrders });
 
   // SEARCH FILTER
   const filtered = useMemo(() => {

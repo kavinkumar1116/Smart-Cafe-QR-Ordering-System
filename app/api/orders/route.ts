@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { demoMenuItems, demoOrders, makePublicOrder } from "@/lib/demo-store";
 import { getErrorMessage } from "@/lib/api";
 import { makeOrderCode } from "@/lib/format";
 import { calcGrandTotal, calcTax } from "@/lib/order-math";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createOrder, fetchMenuItems, fetchOrderById } from "@/lib/supabase/crud";
-import type { CafeOrder, OrderItem, OrderMode, PaymentStatus } from "@/types/cafe";
+import type { OrderMode, PaymentStatus } from "@/types/cafe";
 
 interface IncomingOrderItem {
   id?: number | string;
@@ -48,11 +47,7 @@ export async function GET(request: Request) {
 
   try {
     if (!isSupabaseConfigured()) {
-      const order = demoOrders.find((entry) => String(entry.id) === String(id) || entry.order_id === id);
-      if (!order) {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
-      }
-      return NextResponse.json({ order: makePublicOrder(order) });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const order = await fetchOrderById(id);
@@ -88,38 +83,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const enrichedItems: OrderItem[] = items.map((item) => {
-        const menuItem = demoMenuItems.find((entry) => entry.id === item.menu_item_id);
-        return {
-          id: item.menu_item_id,
-          menu_item_id: item.menu_item_id,
-          name: menuItem?.name || "Menu item",
-          category: menuItem?.category || "Cafe",
-          quantity: item.quantity,
-          price_at_time: Number(menuItem?.price || 0),
-        };
-      });
-      const total = enrichedItems.reduce(
-        (sum, item) => sum + Number(item.price_at_time) * item.quantity,
-        0
-      );
-      const tax = calcTax(total);
-      const grandTotal = calcGrandTotal(total, tax);
-      const order: CafeOrder = {
-        id: demoOrders.length + 1,
-        order_id: makeOrderCode(),
-        table_id: tableId,
-        customer_name: customerName,
-        customer_mobile: customerMobile,
-        status: "Pending",
-        payment_status: paymentStatus,
-        order_type: orderType,
-        total_amount: grandTotal,
-        created_at: new Date().toISOString(),
-        items: enrichedItems,
-      };
-      demoOrders.unshift(order);
-      return NextResponse.json({ order: makePublicOrder(order) }, { status: 201 });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const menuItems = await fetchMenuItems();

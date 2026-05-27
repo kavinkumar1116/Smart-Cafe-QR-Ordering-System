@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
+import { useRealtimeTable } from "@/lib/supabase/realtime";
 import {
   CheckCircle2,
   Clock3,
@@ -86,38 +87,6 @@ function getDateRange(filter: DateFilter, customRange: CustomRange): DateRange {
   }
 
   return { start: todayStart, end: endOfDay(now) };
-}
-
-function buildDemoOrders(): DashboardOrder[] {
-  const now = new Date();
-  const records = [];
-
-  for (let index = 0; index < 72; index += 1) {
-    const createdAt = new Date(now);
-    createdAt.setDate(now.getDate() - (index % 24));
-    createdAt.setHours(8 + (index % 14), (index * 11) % 60, 0, 0);
-
-    const mode: OrderMode = index % 3 === 0 ? "Dine-In" : index % 3 === 1 ? "Takeaway" : "Delivery";
-    const status = statuses[index % statuses.length];
-    const paymentStatus: PaymentStatus = status === "Cancelled" ? "Pending" : index % 4 === 0 ? "Pending" : "Paid";
-    const total = 240 + ((index * 73) % 960);
-
-    records.push({
-      id: `demo-${index}`,
-      order_id: `SC-D${1000 + index}`,
-      table_id: (index % 12) + 1,
-      customer_name: `Guest ${index + 1}`,
-      branch: branches[1 + (index % 3)],
-      mode,
-      status,
-      payment_status: paymentStatus,
-      total_amount: total,
-      customer_mobile: `90000${String(index).padStart(5, "0")}`,
-      created_at: createdAt.toISOString(),
-    });
-  }
-
-  return records;
 }
 
 function normalizeLiveOrders(orders: CafeOrder[]): DashboardOrder[] {
@@ -309,21 +278,17 @@ export default function AdminDashboard() {
   const [customRange] = useState<CustomRange>({ from: "", to: "" });
   const [search] = useState("");
 
-  useEffect(() => {
-    async function loadOrders() {
-      try {
-        const response = await fetch("/api/admin/orders", { cache: "no-store" });
-        const data = (await response.json()) as OrdersResponse;
-        setOrders([...normalizeLiveOrders(data.orders || []), ...buildDemoOrders()]);
-      } catch {
-        setOrders(buildDemoOrders());
-      }
-    }
-
-    loadOrders();
-    const interval = setInterval(loadOrders, 12000);
-    return () => clearInterval(interval);
+  const loadOrders = useCallback(async () => {
+    const response = await fetch("/api/admin/orders", { cache: "no-store" });
+    const data = (await response.json()) as OrdersResponse;
+    setOrders(normalizeLiveOrders(data.orders || []));
   }, []);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  useRealtimeTable({ table: "orders", onChange: loadOrders });
 
   const dashboardData = useMemo(() => {
     const range = getDateRange(dateFilter, customRange);

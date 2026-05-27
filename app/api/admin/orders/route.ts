@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
-import { demoOrders, makePublicOrder } from "@/lib/demo-store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { fetchOrders, updateOrderStatus } from "@/lib/supabase/crud";
 import type { BillingMethod, OrderStatus, PaymentStatus } from "@/types/cafe";
@@ -15,7 +14,7 @@ interface UpdateOrderRequest {
 export async function GET() {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ orders: demoOrders.map(makePublicOrder) });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const orders = await fetchOrders();
@@ -41,14 +40,7 @@ export async function PATCH(request: Request) {
     }
 
     if (!isSupabaseConfigured()) {
-      const order = demoOrders.find((entry) => entry.id === id);
-      if (!order) {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
-      }
-      if (status) order.status = status;
-      if (paymentStatus) order.payment_status = paymentStatus;
-      if (billingMethod) order.billing_method = billingMethod;
-      return NextResponse.json({ order: makePublicOrder(order) });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
     }
 
     const order = await updateOrderStatus(id, status, paymentStatus, billingMethod);

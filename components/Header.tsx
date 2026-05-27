@@ -11,6 +11,8 @@ import {
 import Image from "next/image";
 import logo from "@/public/assets/logo.png";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 interface HeaderProps {
   title?: string;
@@ -24,12 +26,11 @@ export default function Header({
   title = "Smart Cafe",
   subtitle = "QR Ordering System",
 }: HeaderProps) {
+  const router = useRouter();
   const [currentTime, setCurrentTime] = useState<string>("");
   const [openProfile, setOpenProfile] = useState(false);
-
-  // Demo user data
-  const profileOwner = "Kavin Kumar";
-  const profileRole = "Cafe Admin";
+  const [profileOwner, setProfileOwner] = useState("Not signed in");
+  const profileRole = "Supabase user";
 
   useEffect(() => {
     const format = (d: Date) =>
@@ -44,6 +45,24 @@ export default function Header({
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const supabase = createBrowserSupabaseClient();
+
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setProfileOwner(data.user?.email || "Not signed in");
+    }
+
+    void loadUser();
+  }, []);
+
+  async function signOut() {
+    const supabase = createBrowserSupabaseClient();
+    await supabase.auth.signOut();
+    setOpenProfile(false);
+    router.push("/admin");
+  }
 
   return (
     <header
@@ -89,7 +108,7 @@ export default function Header({
               {/* TOP */}
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-saffron text-black font-bold">
-                  K
+                  {profileOwner.charAt(0).toUpperCase()}
                 </div>
 
                 <div>
@@ -108,7 +127,10 @@ export default function Header({
                   Settings
                 </button>
 
-                <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10">
+                <button
+                  onClick={signOut}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-400 transition hover:bg-red-500/10"
+                >
                   <LogOut size={18} />
                   Logout
                 </button>
