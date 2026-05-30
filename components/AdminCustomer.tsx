@@ -56,7 +56,7 @@ export default function AdminOrders() {
         o.order_id?.toLowerCase().includes(q) ||
         o.customer_name?.toLowerCase().includes(q) ||
         o.customer_mobile?.toLowerCase().includes(q) ||
-        String(o.table_id).includes(q)
+        String(o.table_number || o.table_id).includes(q)
     );
   }, [orders, search]);
 
@@ -212,7 +212,7 @@ export default function AdminOrders() {
                       {/* TABLE */}
                       <td className="px-4 py-3 text-center">
                         <span className="rounded-md border border-saffron/30 bg-saffron/12 px-2 py-0.5 text-[11px] font-semibold text-saffron">
-                          {order.table_id}
+                          {order.table_number || order.table_id}
                         </span>
                       </td>
 

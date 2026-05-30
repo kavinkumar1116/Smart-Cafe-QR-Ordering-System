@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
@@ -15,92 +15,130 @@ import {
   Utensils,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import type {
-  CafeOrder,
-  ChartDatum,
-  CustomRange,
-  DashboardOrder,
-  DateRange,
-  DayBucket,
-  OrderMode,
-  PaymentStatus,
-  OrderStatus,
-  OrdersResponse,
-} from "@/types/cafe";
+import type { ChartDatum, CustomRange } from "@/types/cafe";
 import type { LucideIcon } from "lucide-react";
 
 type DateFilter = "Today" | "Yesterday" | "This Week" | "This Month" | "Custom Date Range";
 type StatTone = "saffron" | "moss" | "berry" | "blue";
 
-const filterOptions: DateFilter[] = ["Today", "Yesterday", "This Week", "This Month", "Custom Date Range"];
-const branches = ["All Branches", "Central Cafe", "Airport Kiosk", "Lakeview Bistro"];
-const statuses: OrderStatus[] = ["Pending", "Preparing", "Ready", "Served", "Cancelled"];
+interface DashboardMetrics {
+  totalOrders: number;
+  totalRevenue: number;
+  insideOrders: number;
+  outsideOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  customerCount: number;
+  peakSalesTime: string;
+  peakSalesAmount: number;
+}
 
-const statusColors: Record<OrderStatus, string> = {
-  Pending: "#e2a13a",
-  Preparing: "#7ba8ff",
-  Ready: "#6f8f57",
-  Served: "#36c58a",
-  Cancelled: "#a53f5b",
+interface RevenueTrendDatum extends ChartDatum {
+  date: string;
+}
+
+interface DashboardDateRange {
+  startDate: string;
+  endDate: string;
+}
+
+interface DashboardPayload {
+  metrics: DashboardMetrics;
+  charts: {
+    channelComparison: ChartDatum[];
+    hourlySales: ChartDatum[];
+    revenueTrend: RevenueTrendDatum[];
+  };
+  error?: string;
+  detail?: string;
+}
+
+const filterOptions: DateFilter[] = ["Today", "Yesterday", "This Week", "This Month", "Custom Date Range"];
+const defaultMetrics: DashboardMetrics = {
+  totalOrders: 0,
+  totalRevenue: 0,
+  insideOrders: 0,
+  outsideOrders: 0,
+  pendingOrders: 0,
+  completedOrders: 0,
+  customerCount: 0,
+  peakSalesTime: "08:00",
+  peakSalesAmount: 0,
 };
 
-function startOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
+const defaultDashboard: DashboardPayload = {
+  metrics: defaultMetrics,
+  charts: {
+    channelComparison: [
+      { label: "Dine-in", value: 0, color: "#e2a13a" },
+      { label: "Takeaway", value: 0, color: "#6f8f57" },
+      { label: "Delivery", value: 0, color: "#a53f5b" },
+    ],
+    hourlySales: Array.from({ length: 14 }, (_, index) => ({
+      label: `${String(index + 8).padStart(2, "0")}:00`,
+      value: 0,
+    })),
+    revenueTrend: [],
+  },
+};
+
+function toDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addLocalDays(date: Date, days: number): Date {
+  const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  next.setDate(next.getDate() + days);
   return next;
 }
 
-function endOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(23, 59, 59, 999);
-  return next;
+function normalizeDateInput(value: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : toDateInputValue(new Date());
 }
 
-function getDateRange(filter: DateFilter, customRange: CustomRange): DateRange {
+function getDashboardDateRange(filter: DateFilter, customRange: CustomRange): DashboardDateRange {
   const now = new Date();
-  const todayStart = startOfDay(now);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayValue = toDateInputValue(today);
 
   if (filter === "Yesterday") {
-    const yesterday = new Date(todayStart);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return { start: startOfDay(yesterday), end: endOfDay(yesterday) };
+    const yesterday = toDateInputValue(addLocalDays(today, -1));
+    return { startDate: yesterday, endDate: yesterday };
   }
 
   if (filter === "This Week") {
-    const weekStart = new Date(todayStart);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    return { start: weekStart, end: endOfDay(now) };
+    const weekStart = addLocalDays(today, -today.getDay());
+    const weekEnd = addLocalDays(weekStart, 6);
+    return { startDate: toDateInputValue(weekStart), endDate: toDateInputValue(weekEnd) };
   }
 
   if (filter === "This Month") {
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     return {
-      start: new Date(now.getFullYear(), now.getMonth(), 1),
-      end: endOfDay(now),
+      startDate: toDateInputValue(monthStart),
+      endDate: toDateInputValue(monthEnd),
     };
   }
 
   if (filter === "Custom Date Range" && customRange.from && customRange.to) {
-    return {
-      start: startOfDay(new Date(customRange.from)),
-      end: endOfDay(new Date(customRange.to)),
-    };
+    const from = normalizeDateInput(customRange.from);
+    const to = normalizeDateInput(customRange.to);
+    return from <= to ? { startDate: from, endDate: to } : { startDate: to, endDate: from };
   }
 
-  return { start: todayStart, end: endOfDay(now) };
+  return { startDate: todayValue, endDate: todayValue };
 }
 
-function normalizeLiveOrders(orders: CafeOrder[]): DashboardOrder[] {
-  return orders.map((order, index) => ({
-    ...order,
-    branch: order.branch || branches[1 + (index % 3)],
-    mode: order.mode || (Number(order.table_id) > 0 ? "Dine-In" : "Takeaway"),
-    total_amount: Number(order.total_amount || 0),
-  }));
-}
-
-function getGrowth(currentRevenue: number, previousRevenue: number): number {
-  if (!previousRevenue) return currentRevenue ? 100 : 0;
-  return ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+function getInitialCustomRange(): CustomRange {
+  const today = new Date();
+  return {
+    from: toDateInputValue(today),
+    to: toDateInputValue(today),
+  };
 }
 
 interface StatCardProps {
@@ -109,9 +147,10 @@ interface StatCardProps {
   helper: string;
   icon: LucideIcon;
   tone?: StatTone;
+  loading?: boolean;
 }
 
-function StatCard({ title, value, helper, icon: Icon, tone = "saffron" }: StatCardProps) {
+const StatCard = memo(function StatCard({ title, value, helper, icon: Icon, tone = "saffron", loading }: StatCardProps) {
   const toneClasses: Record<StatTone, string> = {
     saffron: "bg-saffron text-espresso",
     moss: "bg-moss text-white",
@@ -122,54 +161,75 @@ function StatCard({ title, value, helper, icon: Icon, tone = "saffron" }: StatCa
   return (
     <article className="rounded-lg border border-white/10 bg-white/8 p-4 shadow-soft transition hover:-translate-y-0.5 hover:bg-white/12">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm text-crema/60">{title}</p>
-          <p className="mt-2 text-2xl font-semibold text-crema">{value}</p>
+          <p className="mt-2 min-h-8 text-2xl font-semibold text-crema">
+            {loading ? <span className="block h-7 w-24 animate-pulse rounded bg-white/12" /> : value}
+          </p>
         </div>
-        <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${toneClasses[tone]}`}>
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${toneClasses[tone]}`}>
           <Icon size={21} aria-hidden="true" />
         </div>
       </div>
       <p className="mt-3 text-xs text-crema/48">{helper}</p>
     </article>
   );
-}
+});
 
 interface ChartProps<T extends ChartDatum = ChartDatum> {
   data: T[];
+  loading?: boolean;
 }
 
-function BarChart({ data }: ChartProps) {
-  const max = Math.max(...data.map((item) => item.value), 1);
-
+function EmptyChartState({ loading }: { loading?: boolean }) {
   return (
-    <div className="flex h-64 items-end gap-3">
-      {data.map((item) => (
-        <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-          <div className="flex h-52 w-full items-end rounded-lg bg-black/16 p-1">
-            <div
-              className="w-full rounded-lg bg-gradient-to-t from-saffron to-[#ffd27f] transition-all duration-500"
-              style={{ height: `${Math.max(8, (item.value / max) * 100)}%` }}
-              title={`${item.label}: ${item.value}`}
-            />
-          </div>
-          <span className="max-w-full truncate text-xs text-crema/55">{item.label}</span>
-        </div>
-      ))}
+    <div className="flex h-64 items-center justify-center rounded-lg bg-black/16 text-sm text-crema/48">
+      {loading ? "Loading analytics..." : "No data for this range"}
     </div>
   );
 }
 
-function LineChart({ data }: ChartProps<DayBucket>) {
+const BarChart = memo(function BarChart({ data, loading }: ChartProps) {
+  const max = useMemo(() => Math.max(...data.map((item) => item.value), 0), [data]);
+  if (!max) return <EmptyChartState loading={loading} />;
+
+  return (
+    <div className="flex h-64 items-end gap-2 sm:gap-3">
+      {data.map((item) => (
+        <div key={item.label} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <div className="flex h-52 w-full items-end rounded-lg bg-black/16 p-1">
+            <div
+              className="w-full rounded-lg bg-gradient-to-t from-saffron to-[#ffd27f] transition-[height] duration-500"
+              style={{ height: `${Math.max(8, (item.value / max) * 100)}%` }}
+              title={`${item.label}: ${formatCurrency(item.value)}`}
+            />
+          </div>
+          <span className="max-w-full truncate text-[11px] text-crema/55 sm:text-xs">{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const LineChart = memo(function LineChart({ data, loading }: ChartProps<RevenueTrendDatum>) {
   const width = 640;
   const height = 220;
-  const max = Math.max(...data.map((item) => item.value), 1);
-  const points = data.map((item, index) => {
-    const x = data.length === 1 ? width / 2 : (index / (data.length - 1)) * width;
-    const y = height - (item.value / max) * (height - 20) - 10;
-    return { ...item, x, y };
-  });
-  const path = points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+  const max = useMemo(() => Math.max(...data.map((item) => item.value), 0), [data]);
+  const points = useMemo(
+    () =>
+      data.map((item, index) => {
+        const x = data.length === 1 ? width / 2 : (index / Math.max(data.length - 1, 1)) * width;
+        const y = height - (item.value / Math.max(max, 1)) * (height - 20) - 10;
+        return { ...item, x, y };
+      }),
+    [data, max]
+  );
+  const path = useMemo(
+    () => points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" "),
+    [points]
+  );
+
+  if (!data.length || !max) return <EmptyChartState loading={loading} />;
 
   return (
     <div className="overflow-hidden rounded-lg bg-black/16 p-3">
@@ -204,20 +264,26 @@ function LineChart({ data }: ChartProps<DayBucket>) {
       </div>
     </div>
   );
-}
+});
 
-function PieChart({ data }: ChartProps) {
-  const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
-  const segments = data.reduce(
-    (result: { offset: number; items: Array<ChartDatum & { dash: number; offset: number }> }, item) => {
-      const dash = (item.value / total) * 100;
-      return {
-        offset: result.offset - dash,
-        items: [...result.items, { ...item, dash, offset: result.offset }],
-      };
-    },
-    { offset: 25, items: [] }
-  ).items;
+const DonutChart = memo(function DonutChart({ data, loading }: ChartProps) {
+  const total = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
+  const segments = useMemo(
+    () =>
+      data.reduce(
+        (result: { offset: number; items: Array<ChartDatum & { dash: number; offset: number }> }, item) => {
+          const dash = total ? (item.value / total) * 100 : 0;
+          return {
+            offset: result.offset - dash,
+            items: [...result.items, { ...item, dash, offset: result.offset }],
+          };
+        },
+        { offset: 25, items: [] }
+      ).items,
+    [data, total]
+  );
+
+  if (!total) return <EmptyChartState loading={loading} />;
 
   return (
     <div className="grid gap-5 sm:grid-cols-[180px_1fr] sm:items-center">
@@ -241,9 +307,9 @@ function PieChart({ data }: ChartProps) {
       <div className="space-y-3">
         {data.map((item) => (
           <div key={item.label} className="flex items-center justify-between gap-3 rounded-lg bg-white/8 px-3 py-2">
-            <span className="flex items-center gap-2 text-sm text-crema/72">
-              <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-              {item.label}
+            <span className="flex min-w-0 items-center gap-2 text-sm text-crema/72">
+              <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="truncate">{item.label}</span>
             </span>
             <span className="font-semibold text-crema">{Math.round((item.value / total) * 100)}%</span>
           </div>
@@ -251,7 +317,7 @@ function PieChart({ data }: ChartProps) {
       </div>
     </div>
   );
-}
+});
 
 interface PanelProps {
   title: string;
@@ -259,7 +325,7 @@ interface PanelProps {
   children: ReactNode;
 }
 
-function Panel({ title, subtitle, children }: PanelProps) {
+const Panel = memo(function Panel({ title, subtitle, children }: PanelProps) {
   return (
     <section className="rounded-lg border border-white/10 bg-white/8 p-4 shadow-soft sm:p-5">
       <div className="mb-5">
@@ -269,130 +335,74 @@ function Panel({ title, subtitle, children }: PanelProps) {
       {children}
     </section>
   );
-}
+});
 
 export default function AdminDashboard() {
-  const [orders, setOrders] = useState<DashboardOrder[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>("Today");
-  const [branchFilter, setBranchFilter] = useState("All Branches");
-  const [customRange] = useState<CustomRange>({ from: "", to: "" });
-  const [search] = useState("");
+  const [customRange, setCustomRange] = useState<CustomRange>(() => getInitialCustomRange());
+  const [dashboard, setDashboard] = useState<DashboardPayload>(defaultDashboard);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshVersion, setRefreshVersion] = useState(0);
 
-  const loadOrders = useCallback(async () => {
-    const response = await fetch("/api/admin/orders", { cache: "no-store" });
-    const data = (await response.json()) as OrdersResponse;
-    setOrders(normalizeLiveOrders(data.orders || []));
+  const selectedRange = useMemo(() => getDashboardDateRange(dateFilter, customRange), [customRange, dateFilter]);
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams({
+      startDate: selectedRange.startDate,
+      endDate: selectedRange.endDate,
+    });
+    return params.toString();
+  }, [selectedRange]);
+
+  const refreshDashboard = useCallback(() => {
+    setRefreshVersion((version) => version + 1);
   }, []);
 
+  useRealtimeTable({ table: "orders", onChange: refreshDashboard });
+
   useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+    const controller = new AbortController();
 
-  useRealtimeTable({ table: "orders", onChange: loadOrders });
+    async function loadDashboard() {
+      setLoading(true);
+      setError("");
 
-  const dashboardData = useMemo(() => {
-    const range = getDateRange(dateFilter, customRange);
-    const previousStart = new Date(range.start);
-    const previousEnd = new Date(range.start);
-    const span = Math.max(1, range.end.getTime() - range.start.getTime());
-    previousStart.setTime(range.start.getTime() - span);
-    previousEnd.setTime(range.start.getTime() - 1);
+      try {
+        const response = await fetch(`/api/admin/dashboard?${queryString}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const data = (await response.json()) as DashboardPayload;
 
-    const filtered = orders.filter((order) => {
-      const createdAt = new Date(order.created_at);
-      const inRange = createdAt >= range.start && createdAt <= range.end;
-      const inBranch = branchFilter === "All Branches" || order.branch === branchFilter;
-      const inSearch =
-        !search.trim() ||
-        String(order.order_id || "").toLowerCase().includes(search.toLowerCase()) ||
-        String(order.customer_mobile || "").includes(search);
-      return inRange && inBranch && inSearch;
-    });
+        if (!response.ok) {
+          throw new Error(data.detail || data.error || "Unable to load dashboard analytics");
+        }
 
-    const previous = orders.filter((order) => {
-      const createdAt = new Date(order.created_at);
-      const inRange = createdAt >= previousStart && createdAt <= previousEnd;
-      const inBranch = branchFilter === "All Branches" || order.branch === branchFilter;
-      return inRange && inBranch;
-    });
-
-    const totalRevenue = filtered.reduce((sum, order) => sum + Number(order.total_amount), 0);
-    const previousRevenue = previous.reduce((sum, order) => sum + Number(order.total_amount), 0);
-    const insideOrders = filtered.filter((order) => order.mode === "Dine-In").length;
-    const outsideOrders = filtered.filter((order) => order.mode !== "Dine-In").length;
-    const pendingOrders = filtered.filter((order) => ["Pending", "Preparing", "Ready"].includes(order.status)).length;
-    const completedOrders = filtered.filter((order) => order.status === "Served").length;
-    const customers = new Set(filtered.map((order) => order.customer_mobile || order.customer_name || order.id)).size;
-
-    const hourBuckets = Array.from({ length: 14 }, (_, index) => {
-      const hour = index + 8;
-      return { label: `${hour}:00`, value: 0 };
-    });
-    filtered.forEach((order) => {
-      const hour = new Date(order.created_at).getHours();
-      if (hour >= 8 && hour <= 21) {
-        hourBuckets[hour - 8].value += Number(order.total_amount);
+        setDashboard(data);
+      } catch (loadError) {
+        if (controller.signal.aborted) return;
+        setError(loadError instanceof Error ? loadError.message : "Unable to load dashboard analytics");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-    });
+    }
 
-    const dayBuckets = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(range.end);
-      date.setDate(range.end.getDate() - (6 - index));
-      return {
-        date,
-        label: date.toLocaleDateString("en-IN", { weekday: "short" }),
-        value: 0,
-      };
-    });
-    filtered.forEach((order) => {
-      const createdAt = startOfDay(new Date(order.created_at)).getTime();
-      const bucket = dayBuckets.find((item) => startOfDay(item.date).getTime() === createdAt);
-      if (bucket) bucket.value += Number(order.total_amount);
-    });
+    void loadDashboard();
+    return () => controller.abort();
+  }, [queryString, refreshVersion]);
 
-    const statusData = statuses.map((status) => ({
-      label: status,
-      value: filtered.filter((order) => order.status === status).length,
-      color: statusColors[status],
-    }));
-
-    const modeData = [
-      { label: "Dine-In", value: insideOrders, color: "#e2a13a" },
-      { label: "Takeaway", value: filtered.filter((order) => order.mode === "Takeaway").length, color: "#6f8f57" },
-      { label: "Delivery", value: filtered.filter((order) => order.mode === "Delivery").length, color: "#a53f5b" },
-    ];
-
-    const peak = hourBuckets.reduce((best, item) => (item.value > best.value ? item : best), hourBuckets[0]);
-
-    return {
-      filtered,
-      totalRevenue,
-      revenueGrowth: getGrowth(totalRevenue, previousRevenue),
-      insideOrders,
-      outsideOrders,
-      pendingOrders,
-      completedOrders,
-      customers,
-      hourBuckets,
-      dayBuckets,
-      statusData,
-      modeData,
-      peak,
-    };
-  }, [branchFilter, customRange, dateFilter, orders, search]);
-
-  const growthPositive = dashboardData.revenueGrowth >= 0;
+  const metrics = dashboard.metrics;
 
   return (
     <AdminGuard>
       <div className="space-y-6">
-
         <section className="rounded-lg border border-white/10 bg-white/8 p-4 shadow-soft">
-          <div className="grid gap-2 lg:grid-cols-[1.5fr_1fr_1.2fr]">
-             
+          <div className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-end">
+            <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-5">
               {filterOptions.map((filter) => (
                 <button
                   key={filter}
+                  type="button"
                   onClick={() => setDateFilter(filter)}
                   className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                     dateFilter === filter
@@ -403,48 +413,63 @@ export default function AdminDashboard() {
                   {filter}
                 </button>
               ))}
-           
+            </div>
 
-            <select
-              value={branchFilter}
-              onChange={(event) => setBranchFilter(event.target.value)}
-              className="rounded-lg border border-white/10 bg-espresso px-3 py-3 text-sm font-semibold text-crema outline-none focus:border-saffron"
-            >
-              {branches.map((branch) => (
-                <option key={branch}>{branch}</option>
-              ))}
-            </select>
+            {dateFilter === "Custom Date Range" ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-crema/45">
+                  From Date
+                  <input
+                    type="date"
+                    value={customRange.from}
+                    max={customRange.to}
+                    onChange={(event) => setCustomRange((range) => ({ ...range, from: event.target.value }))}
+                    className="rounded-lg border border-white/10 bg-espresso px-3 py-2 text-sm font-semibold text-crema outline-none focus:border-saffron"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-crema/45">
+                  To Date
+                  <input
+                    type="date"
+                    value={customRange.to}
+                    min={customRange.from}
+                    onChange={(event) => setCustomRange((range) => ({ ...range, to: event.target.value }))}
+                    className="rounded-lg border border-white/10 bg-espresso px-3 py-2 text-sm font-semibold text-crema outline-none focus:border-saffron"
+                  />
+                </label>
+              </div>
+            ) : null}
           </div>
+
+          {error ? (
+            <p className="mt-3 rounded-lg border border-berry/30 bg-berry/10 px-3 py-2 text-sm text-crema/80">{error}</p>
+          ) : null}
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Total Orders" value={dashboardData.filtered.length} helper="Orders in selected range" icon={ShoppingBag} />
-          <StatCard title="Total Revenue" value={formatCurrency(dashboardData.totalRevenue)} helper={`${growthPositive ? "+" : ""}${dashboardData.revenueGrowth.toFixed(1)}% vs previous period`} icon={CreditCard} tone="moss" />
-          <StatCard title="Inside Orders" value={dashboardData.insideOrders} helper="Dine-in table orders" icon={Utensils} tone="blue" />
-          <StatCard title="Outside Orders" value={dashboardData.outsideOrders} helper="Takeaway and delivery" icon={Truck} tone="berry" />
-          <StatCard title="Pending Orders" value={dashboardData.pendingOrders} helper="Pending, preparing, or ready" icon={Clock3} />
-          <StatCard title="Completed Orders" value={dashboardData.completedOrders} helper="Served orders" icon={CheckCircle2} tone="moss" />
-          <StatCard title="Customer Count" value={dashboardData.customers} helper="Unique customer contacts" icon={UsersRound} tone="blue" />
-          <StatCard title="Peak Sales Time" value={dashboardData.peak.label} helper={formatCurrency(dashboardData.peak.value)} icon={TrendingUp} tone="berry" />
+          <StatCard title="Total Orders" value={metrics.totalOrders} helper="Orders in selected range" icon={ShoppingBag} loading={loading} />
+          <StatCard title="Total Revenue" value={formatCurrency(metrics.totalRevenue)} helper="Gross sales in selected range" icon={CreditCard} tone="moss" loading={loading} />
+          <StatCard title="Inside Orders" value={metrics.insideOrders} helper="Dine-in order type only" icon={Utensils} tone="blue" loading={loading} />
+          <StatCard title="Outside Orders" value={metrics.outsideOrders} helper="Takeaway order type only" icon={Truck} tone="berry" loading={loading} />
+          <StatCard title="Pending Orders" value={metrics.pendingOrders} helper="Orders still pending" icon={Clock3} loading={loading} />
+          <StatCard title="Completed Orders" value={metrics.completedOrders} helper="Served or completed orders" icon={CheckCircle2} tone="moss" loading={loading} />
+          <StatCard title="Customer Count" value={metrics.customerCount} helper="Unique customer contacts" icon={UsersRound} tone="blue" loading={loading} />
+          <StatCard title="Peak Sales Time" value={metrics.peakSalesTime} helper={formatCurrency(metrics.peakSalesAmount)} icon={TrendingUp} tone="berry" loading={loading} />
         </section>
 
         <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-          <Panel title="Revenue Trend" subtitle="Seven-day revenue movement for the selected filter">
-            <LineChart data={dashboardData.dayBuckets} />
+          <Panel title="Revenue Trend" subtitle="Daily totals for the latest seven-day sales window">
+            <LineChart data={dashboard.charts.revenueTrend} loading={loading} />
           </Panel>
 
-          <Panel title="Order Status Ratio" subtitle="Current order mix by workflow status">
-            <PieChart data={dashboardData.statusData} />
+          <Panel title="Order Channel Comparison" subtitle="Dine-in, takeaway, and delivery orders">
+            <DonutChart data={dashboard.charts.channelComparison} loading={loading} />
           </Panel>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-          <Panel title="Peak Sales Timing" subtitle="Hourly sales value from opening to close">
-            <BarChart data={dashboardData.hourBuckets} />
-          </Panel>
-
-          <Panel title="Dine-In vs Takeaway" subtitle="Channel comparison across dine-in, takeaway, and delivery">
-            <PieChart data={dashboardData.modeData} />
+        <section>
+          <Panel title="Peak Sales Timing" subtitle="Sales amount grouped by hour from opening to closing">
+            <BarChart data={dashboard.charts.hourlySales} loading={loading} />
           </Panel>
         </section>
       </div>
