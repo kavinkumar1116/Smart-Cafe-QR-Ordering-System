@@ -110,9 +110,11 @@ export interface Database {
           id: number;
           order_id: string;
           table_id: number;
+          table_number: number | null;
           customer_name: string;
           customer_mobile: string;
           status: string;
+          session_status: string;
           payment_status: string;
           billing_method: string | null;
           order_type: string | null;
@@ -123,9 +125,11 @@ export interface Database {
           id?: number;
           order_id: string;
           table_id: number;
+          table_number?: number | null;
           customer_name: string;
           customer_mobile: string;
           status?: string;
+          session_status?: string;
           payment_status?: string;
           billing_method?: string | null;
           order_type?: string | null;
@@ -136,9 +140,11 @@ export interface Database {
           id?: number;
           order_id?: string;
           table_id?: number;
+          table_number?: number | null;
           customer_name?: string;
           customer_mobile?: string;
           status?: string;
+          session_status?: string;
           payment_status?: string;
           billing_method?: string | null;
           order_type?: string | null;

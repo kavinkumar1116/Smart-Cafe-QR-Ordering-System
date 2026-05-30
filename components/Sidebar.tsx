@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ClipboardList, Home, ListOrdered, QrCode, Settings, Soup, Utensils,FileUser  } from "lucide-react";
+import { Armchair, ChevronDown, Home, ListOrdered, QrCode, Settings, Soup, Utensils, FileUser } from "lucide-react";
 import type { NavItem } from "@/types/cafe";
 
 const navItems: NavItem[] = [
@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
     children: [
       { href: "/admin/menu_master", label: "Menu Items", icon: Utensils },
       { href: "/admin/category_master", label: "Category", icon: Utensils },
+      { href: "/admin/table_master", label: "Tables", icon: Armchair },
     ],
   },
   { href: "/admin/customers", label: "Customers", icon: FileUser  },

@@ -5,6 +5,7 @@ export type OrderStatus = "Pending" | "Preparing" | "Ready" | "Served" | "Cancel
 export type PaymentStatus = "Pending" | "Paid";
 export type BillingMethod = "UPI" | "Cash";
 export type OrderMode = "Dine-In" | "Takeaway" | "Delivery";
+export type SessionStatus = "OPEN" | "CLOSED";
 export type NumericValue = number | string;
 
 
@@ -43,6 +44,7 @@ export interface CustomerDetails {
   customer_name: string;
   customer_mobile: string;
   table_id: number | string;
+  table_number?: number | string;
 }
 
 export interface OrderItem {
@@ -58,9 +60,11 @@ export interface CafeOrder {
   id: number;
   order_id: string;
   table_id: number;
+  table_number?: number | null;
   customer_name: string;
   customer_mobile: string;
   status: OrderStatus;
+  session_status?: SessionStatus;
   payment_status: PaymentStatus;
   billing_method?: BillingMethod | null;
   order_type?: OrderMode | null;
@@ -81,6 +85,11 @@ export interface CafeTable {
   id: number;
   table_number: number;
   qr_code_url: string | null;
+}
+
+export interface TableForm {
+  id: number | null;
+  table_number: string;
 }
 
 export interface QrCodeRecord extends CafeTable {
