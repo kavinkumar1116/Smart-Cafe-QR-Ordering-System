@@ -1,36 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowRight,
-  Bell,
   UserRound,
   LogOut,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
-import logo from "@/public/assets/logo.png";
+import defaultLogo from "@/public/assets/logo.png";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { useCafeStore } from "@/src/store/useCafeStore";
 
-interface HeaderProps {
-  title?: string;
-  subtitle?: string;
-}
-
-const company_name = "Macchiato Cafe";
-const location = "Valachery, Chennai, India";
-
-export default function Header({
-  title = "Smart Cafe",
-  subtitle = "QR Ordering System",
-}: HeaderProps) {
+export default function Header() {
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState<string>("");
   const [openProfile, setOpenProfile] = useState(false);
   const [profileOwner, setProfileOwner] = useState("Not signed in");
   const profileRole = "Supabase user";
+
+  // Subscribe only to header fields so unrelated store updates do not rerender this component.
+  const restaurantName = useCafeStore((state) => state.restaurantName);
+  const branchName = useCafeStore((state) => state.branchName);
+  const logo = useCafeStore((state) => state.logo);
+  const setCafeProfile = useCafeStore((state) => state.setCafeProfile);
 
   useEffect(() => {
     const format = (d: Date) =>
@@ -45,6 +38,27 @@ export default function Header({
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    async function loadCafeProfile() {
+      const response = await fetch("/api/admin/settings", { cache: "no-store" });
+      const data = (await response.json()) as {
+        settings?: {
+          restaurantName?: string;
+          branchName?: string;
+          logo?: string;
+          gstNumber?: string;
+          contactNumber?: string;
+        };
+      };
+
+      if (response.ok && data.settings) {
+        setCafeProfile(data.settings);
+      }
+    }
+
+    void loadCafeProfile();
+  }, [setCafeProfile]);
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
@@ -73,15 +87,21 @@ export default function Header({
         {/* LEFT SIDE */}
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex shrink-0 items-center justify-center rounded-lg bg-saffron text-espresso shadow-soft">
-            <Image src={logo} alt="Logo" width={60} height={60} />
+            <Image
+              src={logo || defaultLogo}
+              alt="Logo"
+              width={60}
+              height={60}
+              unoptimized={Boolean(logo)}
+              className="rounded-lg object-cover"
+            />
           </div>
 
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold text-crema sm:text-xl">
-              {company_name}
+              {restaurantName}
             </h1>
-
-            <p className="truncate text-sm text-crema/62">{location}</p>
+            <p className="truncate text-sm text-crema/62">{branchName}</p>
           </div>
         </div>
 

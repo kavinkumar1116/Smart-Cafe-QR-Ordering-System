@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Search, Send, ShoppingCart, Trash2, X } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { calcSubtotal } from "@/lib/order-math";
-import type { CartItem as CartEntry, Category, MenuItem, OrderMode } from "@/types/cafe";
+import type { CafeTable, CartItem as CartEntry, Category, MenuItem, OrderMode } from "@/types/cafe";
 
 const UNCATEGORIZED = "Uncategorized";
 
@@ -62,6 +62,12 @@ interface CategoriesResponse {
 
 interface MenuMasterResponse {
   menuItems?: MenuItem[];
+  error?: string;
+  detail?: string;
+}
+
+interface TablesResponse {
+  tables?: CafeTable[];
   error?: string;
   detail?: string;
 }
@@ -126,6 +132,7 @@ interface CartSummaryProps {
 interface CustomerForm {
   customer_name: string;
   customer_mobile: string;
+  table_number: string;
   order_type: OrderMode;
 }
 
@@ -134,6 +141,7 @@ interface CustomerDetailsModalProps {
   placingOrder: boolean;
   error: string;
   customer: CustomerForm;
+  tables: CafeTable[];
   onCustomerChange: (customer: CustomerForm) => void;
   onClose: () => void;
   onConfirm: () => void;
@@ -177,7 +185,7 @@ function CategoryChips({ categories, active, onChange }: CategoryChipsProps) {
   const safeCategories = categories.filter((c): c is string => typeof c === "string");
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="flex flex-wrap gap-2">
       {safeCategories.map((category) => {
         const isActive = category === active;
 
@@ -186,7 +194,7 @@ function CategoryChips({ categories, active, onChange }: CategoryChipsProps) {
             key={category}
             type="button"
             onClick={() => onChange(category)}
-            className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               isActive
                 ? "border-saffron bg-saffron text-espresso"
                 : "border-white/10 bg-white/8 text-crema/70 hover:bg-white/12 hover:text-crema"
@@ -237,48 +245,37 @@ const ProductCard = memo(function ProductCard({
   const price = Number(item.price || 0);
 
   return (
-    <article className="flex h-[444px] flex-col overflow-hidden rounded-lg border border-white/10 bg-white/8 transition hover:-translate-y-0.5 hover:bg-white/12">
-      <div className="h-44 shrink-0 overflow-hidden bg-white/6">
-        {item.image_url ? (
-          <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-crema/45">No image</div>
-        )}
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col p-4">
-        <div className="grid min-h-[76px] grid-cols-[1fr_auto] items-start gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold uppercase text-saffron">
-              {getMenuCategory(item)}
-            </p>
-            <h3 className="mt-1 line-clamp-2 text-lg font-semibold leading-6 text-crema">
-              {item.name}
-            </h3>
-          </div>
-          <p className="shrink-0 font-semibold text-crema">{formatCurrency(price)}</p>
-        </div>
-        <p className="mt-3 h-24 overflow-hidden text-sm leading-6 text-crema/62">
-          {item.description || "Freshly prepared cafe favorite."}
-        </p>
-        <div className="mt-auto h-10">
-          {quantity > 0 ? (
-            <QuantityControl
-              quantity={quantity}
-              onDecrease={() => onChangeQuantity(item.id, -1)}
-              onIncrease={() => onChangeQuantity(item.id, 1)}
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => onAdd(item)}
-              className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-saffron px-4 text-sm font-semibold text-espresso transition hover:bg-[#efb150]"
-            >
-              Add to Cart
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
+<article className="flex flex-col overflow-hidden rounded-lg border border-white/10 bg-white/8 transition hover:-translate-y-0.5 hover:bg-white/12">
+  <div className="aspect-square overflow-hidden bg-white/6">
+    {item.image_url ? (
+      <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+    ) : (
+      <div className="flex h-full items-center justify-center text-sm text-crema/45">No image</div>
+    )}
+  </div>
+  <div className="flex flex-col gap-2 p-3">
+    <div>
+      <p className="truncate text-xs font-semibold uppercase text-saffron">{getMenuCategory(item)}</p>
+      <h3 className="truncate text-sm font-semibold text-crema">{item.name}</h3>
+      <p className="text-sm font-semibold text-saffron">{formatCurrency(price)}</p>
+    </div>
+    {quantity > 0 ? (
+      <QuantityControl
+        quantity={quantity}
+        onDecrease={() => onChangeQuantity(item.id, -1)}
+        onIncrease={() => onChangeQuantity(item.id, 1)}
+      />
+    ) : (
+      <button
+        type="button"
+        onClick={() => onAdd(item)}
+        className="h-8 w-full rounded-lg bg-saffron text-xs font-semibold text-espresso transition hover:bg-[#efb150]"
+      >
+        Add to Cart
+      </button>
+    )}
+  </div>
+</article>
   );
 });
 
@@ -290,25 +287,19 @@ const CategorySection = memo(function CategorySection({
   onChangeQuantity,
 }: CategorySectionProps) {
   return (
-    <section>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-crema">{category}</h3>
-        <span className="shrink-0 text-sm text-crema/50">
-          {items.length} item{items.length === 1 ? "" : "s"}
-        </span>
-      </div>
-      <div className="grid items-start gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-        {items.map((item) => (
-          <ProductCard
-            key={item.id}
-            item={item}
-            quantity={cartQuantities.get(item.id) || 0}
-            onAdd={onAdd}
-            onChangeQuantity={onChangeQuantity}
-          />
-        ))}
-      </div>
-    </section>
+<section>
+  <div className="grid items-start gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+    {items.map((item) => (
+      <ProductCard
+        key={item.id}
+        item={item}
+        quantity={cartQuantities.get(item.id) || 0}
+        onAdd={onAdd}
+        onChangeQuantity={onChangeQuantity}
+      />
+    ))}
+  </div>
+</section>
   );
 });
 
@@ -417,7 +408,7 @@ function CurrentCart({
   placingOrder,
 }: CurrentCartProps) {
   return (
-    <aside className="glass-panel sticky top-6 flex max-h-[calc(100vh-3rem)] min-h-[420px] flex-col rounded-lg p-5">
+    <aside className="glass-panel sticky top-6 flex max-h-[calc(90vh-3rem)] min-h-[420px] flex-col rounded-lg p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-crema">Current Cart</h3>
         <span className="rounded-lg border border-white/10 bg-white/8 px-3 py-1 text-sm font-semibold text-crema">
@@ -462,6 +453,7 @@ function CustomerDetailsModal({
   placingOrder,
   error,
   customer,
+  tables,
   onCustomerChange,
   onClose,
   onConfirm,
@@ -490,6 +482,27 @@ function CustomerDetailsModal({
 
         <div className="mt-5 space-y-4">
           <label className="block">
+            <span className="mb-2 block text-sm font-medium text-crema/70">Table Number</span>
+            <select
+              value={customer.table_number}
+              onChange={(event) =>
+                onCustomerChange({ ...customer, table_number: event.target.value })
+              }
+              disabled={placingOrder}
+              className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option className="bg-[#2d211c] text-crema" value="">
+                Select table
+              </option>
+              {tables.map((table) => (
+                <option key={table.id} className="bg-[#2d211c] text-crema" value={table.table_number}>
+                  Table {table.table_number}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
             <span className="mb-2 block text-sm font-medium text-crema/70">Customer Name</span>
             <input
               value={customer.customer_name}
@@ -506,16 +519,20 @@ function CustomerDetailsModal({
             <span className="mb-2 block text-sm font-medium text-crema/70">
               Customer Mobile Number
             </span>
-            <input
-              value={customer.customer_mobile}
-              onChange={(event) =>
-                onCustomerChange({ ...customer, customer_mobile: event.target.value })
-              }
-              disabled={placingOrder}
-              inputMode="tel"
-              className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition placeholder:text-crema/40 focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
-              placeholder="Enter mobile number"
-            />
+              <input
+                type="tel"
+                inputMode="numeric"
+                minLength={10}
+                maxLength={10}
+                value={customer.customer_mobile}
+                onChange={(event) => {
+                  const value = event.target.value.replace(/\D/g, "").slice(0, 10);
+                  onCustomerChange({ ...customer, customer_mobile: value });
+                }}
+                disabled={placingOrder}
+                className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition placeholder:text-crema/40 focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
+                placeholder="Enter mobile number"
+              />
           </label>
 
           <label className="block">
@@ -574,6 +591,7 @@ function StickyCartBar({ href, itemCount, total }: StickyCartBarProps) {
 export default function Order({ tableId }: MenuExperienceProps) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [tables, setTables] = useState<CafeTable[]>([]);
   const [category, setCategory] = useState("All");
   const [cart, setCart] = useState<CartEntry[]>([]);
   const [search, setSearch] = useState("");
@@ -586,6 +604,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
   const [customer, setCustomer] = useState<CustomerForm>({
     customer_name: "",
     customer_mobile: "",
+    table_number: "",
     order_type: "Dine-In",
   });
 
@@ -595,22 +614,37 @@ export default function Order({ tableId }: MenuExperienceProps) {
       setError("");
 
       try {
-        const [categoryResponse, menuResponse] = await Promise.all([
+        const [categoryResponse, menuResponse, tablesResponse] = await Promise.all([
           fetch("/api/admin/category"),
           fetch("/api/admin/menu_master"),
+          fetch("/api/admin/tables"),
         ]);
         const categoryData = (await categoryResponse.json()) as CategoriesResponse;
         const menuData = (await menuResponse.json()) as MenuMasterResponse;
+        const tablesData = (await tablesResponse.json()) as TablesResponse;
 
-        if (!categoryResponse.ok || !menuResponse.ok) {
+        if (!categoryResponse.ok || !menuResponse.ok || !tablesResponse.ok) {
           throw new Error(
-            categoryData.error || categoryData.detail || menuData.error || menuData.detail || "Unable to load menu."
+            categoryData.error ||
+              categoryData.detail ||
+              menuData.error ||
+              menuData.detail ||
+              tablesData.error ||
+              tablesData.detail ||
+              "Unable to load menu."
           );
         }
 
         const safeCategories = categoryData.items || [];
+        const safeTables = tablesData.tables || [];
+        const requestedTable = safeTables.find((table) => table.id === Number(tableId));
 
         setCategories(safeCategories);
+        setTables(safeTables);
+        setCustomer((current) => ({
+          ...current,
+          table_number: current.table_number || String(requestedTable?.table_number || ""),
+        }));
         setItems(normalizeMenuItems(menuData.menuItems, safeCategories));
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : "Unable to load menu.");
@@ -620,7 +654,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
     }
 
     loadMenu();
-  }, []);
+  }, [tableId]);
 
   const categoryOptions = useMemo(
     () => [
@@ -759,6 +793,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
       setOrderSuccess("");
       const customerName = customer.customer_name.trim();
       const customerMobile = customer.customer_mobile.trim();
+      const tableNumber = Number(customer.table_number);
 
       const validCart = cart.filter(
         (item) =>
@@ -773,8 +808,12 @@ export default function Order({ tableId }: MenuExperienceProps) {
         return;
       }
 
-      if (!customerName || !customerMobile) {
-        setOrderError("Customer name and mobile number are required.");
+      if (!tableNumber || !customerName || !customerMobile) {
+        setOrderError("Table number, customer name, and mobile number are required.");
+        return;
+      }
+      if (customerMobile.length !== 10) {
+        setOrderError("Mobile number must be exactly 10 digits.");
         return;
       }
 
@@ -786,6 +825,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             table_id: Number(tableId || validCart[0]?.table_id || 1),
+            table_number: tableNumber,
             customer_name: customerName,
             customer_mobile: customerMobile,
             order_type: customer.order_type,
@@ -818,14 +858,14 @@ export default function Order({ tableId }: MenuExperienceProps) {
     <div className="grid gap-6 pb-20 xl:grid-cols-[minmax(0,1fr)_360px] xl:pb-0">
       <section className="min-w-0 space-y-5">
         <div className="glass-panel rounded-lg p-4 sm:p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="mt-1 text-2xl font-semibold text-crema sm:text-3xl">Customer Order</h2>
-            </div>
-          </div>
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+            <h2 className="text-2xl font-semibold text-crema sm:text-3xl">
+              Customer Order
+            </h2>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-             <MenuSearchBar value={search} onChange={setSearch} /> 
+            <div className="w-full xl:w-[420px]">
+              <MenuSearchBar value={search} onChange={setSearch} />
+            </div>
           </div>
         </div>
 
@@ -881,6 +921,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
         placingOrder={placingOrder}
         error={orderError}
         customer={customer}
+        tables={tables}
         onCustomerChange={setCustomer}
         onClose={closeCustomerModal}
         onConfirm={placeOrder}

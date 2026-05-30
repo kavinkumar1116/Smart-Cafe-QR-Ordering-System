@@ -65,11 +65,9 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
   if (!order && !loading) return null;
 
   const items = order?.items || [];
-  const calculatedTotal = items.reduce(
-    (sum, item) => sum + Number(item.price_at_time || 0) * Number(item.quantity || 0),
-    0
-  );
-  const total = Number(order?.total_amount || calculatedTotal || 0);
+  const calculatedTotal = items.reduce((sum, item) => sum + Number(item.price_at_time || 0) * Number(item.quantity || 0), 0);
+ 
+  // const total = Number(order?.total_amount || calculatedTotal || 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4">
@@ -99,7 +97,7 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
             <div className="mt-5 grid gap-2 rounded-lg border border-white/10 bg-white/8 p-4 text-sm text-crema/70 sm:grid-cols-2">
               <p><span className="text-crema/45">Customer:</span> {order.customer_name}</p>
               <p><span className="text-crema/45">Mobile:</span> {order.customer_mobile}</p>
-              <p><span className="text-crema/45">Table:</span> {order.table_id}</p>
+              <p><span className="text-crema/45">Table:</span> {order.table_number || order.table_id}</p>
               <p><span className="text-crema/45">Date:</span> {new Date(order.created_at).toLocaleString()}</p>
             </div>
 
@@ -134,7 +132,7 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
 
             <div className="mt-4 flex items-center justify-between rounded-lg bg-white/8 p-4 text-lg font-semibold text-crema">
               <span>Total Price</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatCurrency(calculatedTotal)}</span>
             </div>
 
             {error && <p className="mt-4 rounded-lg bg-berry/20 p-3 text-sm text-crema">{error}</p>}
@@ -244,7 +242,7 @@ export default function AdminOrders() {
         o.order_id?.toLowerCase().includes(q) ||
         o.customer_name?.toLowerCase().includes(q) ||
         o.customer_mobile?.toLowerCase().includes(q) ||
-        String(o.table_id).includes(q)
+        String(o.table_number || o.table_id).includes(q)
     );
   }, [orders, search]);
 
@@ -262,7 +260,6 @@ export default function AdminOrders() {
     { label: "Contact",    width: "w-36",   align: "text-left"   },
     { label: "Table",      width: "w-16",   align: "text-center" },
     { label: "Date",       width: "w-40",   align: "text-left"   },
-    { label: "Food Status",width: "w-40",   align: "text-left"   },
     { label: "Payment",    width: "w-36",   align: "text-left"   },
     { label: "Method",     width: "w-24",   align: "text-center" },
     { label: "Receipt",    width: "w-36",   align: "text-center" },
@@ -369,7 +366,7 @@ export default function AdminOrders() {
                       {/* Table */}
                       <td className="px-4 py-3 text-center">
                         <span className="rounded-md border border-saffron/30 bg-saffron/12 px-2 py-0.5 text-[11px] font-semibold text-saffron">
-                          {order.table_id}
+                          {order.table_number || order.table_id}
                         </span>
                       </td>
 
@@ -379,42 +376,17 @@ export default function AdminOrders() {
     year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",  hour12: true, }).replace(",", "")}
                       </td>
 
-                      {/* Food Status */}
-                      <td className="px-4 py-3">
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrder(order.id, { status: value as OrderStatus })}
-                        >
-                          <SelectTrigger className="h-8 min-w-[120px] rounded-lg border border-white/10 bg-white/5 px-2.5 text-[12px] text-crema focus:border-saffron focus:ring-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border border-white/10 bg-[#1a1210] text-crema shadow-xl">
-                            {orderStatuses.map((s) => (
-                              <SelectItem key={s} value={s} className="text-[13px] text-crema/80 focus:bg-white/8 focus:text-crema">
-                                {s}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-
                       {/* Payment Status */}
-                      <td className="px-4 py-3">
-                        <Select
-                          value={order.payment_status || "Pending"}
-                          onValueChange={(value) => updateOrder(order.id, { payment_status: value as PaymentStatus })}
+                     <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex h-8 min-w-[100px] items-center justify-center rounded-full px-3 text-[12px] font-semibold text-white ${
+                            (order.payment_status || "Pending") === "Paid"
+                              ? "bg-green-600"
+                              : "bg-red-600"
+                          }`}
                         >
-                          <SelectTrigger className="h-8 min-w-[100px] rounded-lg border border-white/10 bg-white/5 px-2.5 text-[12px] text-crema focus:border-saffron focus:ring-0">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border border-white/10 bg-[#1a1210] text-crema shadow-xl">
-                            {paymentStatuses.map((s) => (
-                              <SelectItem key={s} value={s} className="text-[13px] text-crema/80 focus:bg-white/8 focus:text-crema">
-                                {s}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          {order.payment_status || "Pending"}
+                        </span>
                       </td>
 
                       {/* Payment Method */}

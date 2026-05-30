@@ -53,9 +53,11 @@ CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
   order_id VARCHAR(50) UNIQUE NOT NULL,
   table_id INT REFERENCES cafe_tables(id),
+  table_number INT,
   customer_name VARCHAR(255) NOT NULL,
   customer_mobile VARCHAR(30) NOT NULL,
   status VARCHAR(50) DEFAULT 'Pending',
+  session_status VARCHAR(20) DEFAULT 'OPEN',
   payment_status VARCHAR(50) DEFAULT 'Pending',
   billing_method VARCHAR(50),
   order_type VARCHAR(50),
@@ -73,6 +75,26 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS billing_method VARCHAR(50);
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(50);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS table_number INT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS session_status VARCHAR(20) DEFAULT 'OPEN';
+ALTER TABLE orders ALTER COLUMN session_status SET DEFAULT 'OPEN';
+
+UPDATE orders
+SET table_number = cafe_tables.table_number
+FROM cafe_tables
+WHERE orders.table_number IS NULL
+  AND orders.table_id = cafe_tables.id;
+
+UPDATE orders
+SET session_status = CASE
+  WHEN payment_status = 'Paid' THEN 'CLOSED'
+  ELSE 'OPEN'
+END
+WHERE session_status IS NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS one_open_order_session_per_table
+ON orders (table_number)
+WHERE session_status = 'OPEN';
 
 INSERT INTO cafe_tables (table_number)
 VALUES (1), (2), (3), (4)
