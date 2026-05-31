@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
+import { tenantApiFetch } from "@/lib/tenant";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
@@ -20,7 +21,7 @@ export default function AdminTableMaster() {
   const [validationError, setValidationError] = useState("");
 
   const loadTables = useCallback(async () => {
-    const response = await fetch("/api/admin/tables", { cache: "no-store" });
+    const response = await tenantApiFetch("/api/admin/tables", { cache: "no-store" });
     const data = await response.json();
     setTables(data.tables || []);
   }, []);
@@ -71,7 +72,7 @@ export default function AdminTableMaster() {
     setValidationError("");
     setSaving(true);
 
-    const response = await fetch("/api/admin/tables", {
+    const response = await tenantApiFetch("/api/admin/tables", {
       method: form.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: form.id, table_number: tableNumber }),
@@ -90,7 +91,7 @@ export default function AdminTableMaster() {
   }
 
   async function deleteItem(id: number): Promise<void> {
-    await fetch(`/api/admin/tables?id=${id}`, { method: "DELETE" });
+    await tenantApiFetch(`/api/admin/tables?id=${id}`, { method: "DELETE" });
     loadTables();
   }
 

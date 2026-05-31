@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { useCafeStore } from "@/src/store/useCafeStore";
+import { tenantApiFetch } from "@/lib/tenant";
 import {
   Building2,
   CheckCircle2,
@@ -271,7 +272,7 @@ export default function AdminSettings() {
   useEffect(() => {
     async function loadSettings() {
       try {
-        const response = await fetch("/api/admin/settings", {
+        const response = await tenantApiFetch("/api/admin/settings", {
           cache: "no-store",
         });
 
@@ -316,7 +317,7 @@ export default function AdminSettings() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await tenantApiFetch("/api/admin/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

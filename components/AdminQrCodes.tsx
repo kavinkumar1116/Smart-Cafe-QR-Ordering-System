@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
+import { tenantApiFetch } from "@/lib/tenant";
 import { Download, ExternalLink, QrCode } from "lucide-react";
 import type { QrCodeRecord, QrCodesResponse } from "@/types/cafe";
 
@@ -11,7 +12,7 @@ export default function AdminQrCodes() {
 
   useEffect(() => {
     async function loadCodes() {
-      const response = await fetch("/api/admin/qr", { cache: "no-store" });
+      const response = await tenantApiFetch("/api/admin/qr", { cache: "no-store" });
       const data = (await response.json()) as QrCodesResponse;
       setCodes(data.qrCodes || []);
       setLoading(false);

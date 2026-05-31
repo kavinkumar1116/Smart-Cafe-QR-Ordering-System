@@ -10,6 +10,7 @@ import defaultLogo from "@/public/assets/logo.png";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { tenantApiFetch } from "@/lib/tenant";
 import { useCafeStore } from "@/src/store/useCafeStore";
 
 export default function Header() {
@@ -41,7 +42,7 @@ export default function Header() {
 
   useEffect(() => {
     async function loadCafeProfile() {
-      const response = await fetch("/api/admin/settings", { cache: "no-store" });
+      const response = await tenantApiFetch("/api/admin/settings", { cache: "no-store" });
       const data = (await response.json()) as {
         settings?: {
           restaurantName?: string;

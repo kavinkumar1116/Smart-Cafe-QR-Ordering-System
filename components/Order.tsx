@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Search, Send, ShoppingCart, Trash2, X } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { calcSubtotal } from "@/lib/order-math";
+import { tenantApiFetch } from "@/lib/tenant";
 import type { CafeTable, CartItem as CartEntry, Category, MenuItem, OrderMode } from "@/types/cafe";
 
 const UNCATEGORIZED = "Uncategorized";
@@ -615,9 +616,9 @@ export default function Order({ tableId }: MenuExperienceProps) {
 
       try {
         const [categoryResponse, menuResponse, tablesResponse] = await Promise.all([
-          fetch("/api/admin/category"),
-          fetch("/api/admin/menu_master"),
-          fetch("/api/admin/tables"),
+          tenantApiFetch("/api/admin/category"),
+          tenantApiFetch("/api/admin/menu_master"),
+          tenantApiFetch("/api/admin/tables"),
         ]);
         const categoryData = (await categoryResponse.json()) as CategoriesResponse;
         const menuData = (await menuResponse.json()) as MenuMasterResponse;
@@ -820,7 +821,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
       setPlacingOrder(true);
 
       try {
-        const response = await fetch("/api/orders", {
+        const response = await tenantApiFetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

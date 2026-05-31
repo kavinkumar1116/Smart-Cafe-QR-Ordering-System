@@ -3,6 +3,7 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { formatCurrency } from "@/lib/format";
+import { tenantApiFetch } from "@/lib/tenant";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 import {
   CheckCircle2,
@@ -368,7 +369,7 @@ export default function AdminDashboard() {
       setError("");
 
       try {
-        const response = await fetch(`/api/admin/dashboard?${queryString}`, {
+        const response = await tenantApiFetch(`/api/admin/dashboard?${queryString}`, {
           cache: "no-store",
           signal: controller.signal,
         });

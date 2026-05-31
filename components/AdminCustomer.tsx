@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import AdminGuard from "@/components/AdminGuard";
+import { tenantApiFetch } from "@/lib/tenant";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 
 import {
@@ -30,7 +31,7 @@ export default function AdminOrders() {
   const [page, setPage] = useState(1);
 
   const loadOrders = useCallback(async () => {
-    const response = await fetch("/api/admin/orders", {
+    const response = await tenantApiFetch("/api/admin/orders", {
       cache: "no-store",
     });
 

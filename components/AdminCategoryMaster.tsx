@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
+import { tenantApiFetch } from "@/lib/tenant";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
 import type { Category, CategoryForm } from "@/types/cafe";
@@ -22,7 +23,7 @@ export default function AdminCategoryManager() {
   const [validationError, setValidationError] = useState("");
 
   const loadItems = useCallback(async () => {
-    const response = await fetch("/api/admin/category", { cache: "no-store" });
+    const response = await tenantApiFetch("/api/admin/category", { cache: "no-store" });
     const data = await response.json();
     setCategoriesList(data.items || []);
   }, []);
@@ -74,7 +75,7 @@ export default function AdminCategoryManager() {
     setSaving(true);
 
     const method = form.id ? "PUT" : "POST";
-    const response = await fetch("/api/admin/category", {
+    const response = await tenantApiFetch("/api/admin/category", {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, name: trimmedName }),
@@ -92,7 +93,7 @@ export default function AdminCategoryManager() {
   }
 
   async function deleteItem(id: number): Promise<void> {
-    await fetch(`/api/admin/category?id=${id}`, { method: "DELETE" });
+    await tenantApiFetch(`/api/admin/category?id=${id}`, { method: "DELETE" });
     loadItems();
   }
 

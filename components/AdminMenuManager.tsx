@@ -13,6 +13,7 @@ import {
 import type { FormEvent } from "react";
 
 import AdminGuard from "@/components/AdminGuard";
+import { tenantApiFetch } from "@/lib/tenant";
 import { formatCurrency } from "@/lib/format";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 
@@ -68,7 +69,7 @@ export default function AdminMenuManager() {
   });
 
   const loadItems = useCallback(async () => {
-    const response = await fetch("/api/admin/menu", {
+    const response = await tenantApiFetch("/api/admin/menu", {
       cache: "no-store",
     });
 
@@ -78,7 +79,7 @@ export default function AdminMenuManager() {
   }, []);
 
   const loadCategories = useCallback(async () => {
-    const response = await fetch("/api/admin/category", {
+    const response = await tenantApiFetch("/api/admin/category", {
       cache: "no-store",
     });
 
@@ -164,7 +165,7 @@ export default function AdminMenuManager() {
 
     const method = form.id ? "PUT" : "POST";
 
-    const response = await fetch("/api/admin/menu", {
+    const response = await tenantApiFetch("/api/admin/menu", {
       method,
       headers: {
         "Content-Type": "application/json",
@@ -182,7 +183,7 @@ export default function AdminMenuManager() {
   }
 
   async function deleteItem(id: number): Promise<void> {
-    await fetch(`/api/admin/menu?id=${id}`, {
+    await tenantApiFetch(`/api/admin/menu?id=${id}`, {
       method: "DELETE",
     });
 

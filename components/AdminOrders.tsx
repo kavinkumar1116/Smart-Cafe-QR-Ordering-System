@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo } from "react";
 import AdminGuard from "@/components/AdminGuard";
+import { tenantApiFetch } from "@/lib/tenant";
 import { formatCurrency } from "@/lib/format";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 import { RefreshCw, Receipt, X, Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -170,7 +171,7 @@ export default function AdminOrders() {
   const [receiptError, setReceiptError]     = useState("");
 
   const loadOrders = useCallback(async () => {
-    const response = await fetch("/api/admin/orders", { cache: "no-store" });
+    const response = await tenantApiFetch("/api/admin/orders", { cache: "no-store" });
     const data = (await response.json()) as OrdersResponse;
     setOrders(data.orders || []);
     setLoading(false);
@@ -184,7 +185,7 @@ export default function AdminOrders() {
   useRealtimeTable({ table: "order_items", onChange: loadOrders });
 
   async function updateOrder(id: number, patch: Partial<Pick<CafeOrder, "status" | "payment_status" | "billing_method">>) {
-    const response = await fetch("/api/admin/orders", {
+    const response = await tenantApiFetch("/api/admin/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...patch }),
@@ -201,7 +202,7 @@ export default function AdminOrders() {
     setReceiptOrder(order);
     setReceiptError("");
     setReceiptLoading(true);
-    const response = await fetch(`/api/orders?id=${encodeURIComponent(String(order.id))}`, { cache: "no-store" });
+    const response = await tenantApiFetch(`/api/orders?id=${encodeURIComponent(String(order.id))}`, { cache: "no-store" });
     const data = (await response.json()) as OrderResponse;
     if (response.ok && data.order) {
       setReceiptOrder(data.order);
@@ -215,7 +216,7 @@ export default function AdminOrders() {
     if (!receiptOrder) return;
     setReceiptError("");
     setReceiptSaving(true);
-    const response = await fetch("/api/admin/orders", {
+    const response = await tenantApiFetch("/api/admin/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: receiptOrder.id, billing_method: method, payment_status: "Paid" }),
