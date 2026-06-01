@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
+import { tenantApiFetch } from "@/lib/tenant";
 import { Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormEvent } from "react";
 import type { Category, CategoryForm } from "@/types/cafe";
@@ -22,7 +23,7 @@ export default function AdminCategoryManager() {
   const [validationError, setValidationError] = useState("");
 
   const loadItems = useCallback(async () => {
-    const response = await fetch("/api/admin/category", { cache: "no-store" });
+    const response = await tenantApiFetch("/api/admin/category", { cache: "no-store" });
     const data = await response.json();
     setCategoriesList(data.items || []);
   }, []);
@@ -74,7 +75,7 @@ export default function AdminCategoryManager() {
     setSaving(true);
 
     const method = form.id ? "PUT" : "POST";
-    const response = await fetch("/api/admin/category", {
+    const response = await tenantApiFetch("/api/admin/category", {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, name: trimmedName }),
@@ -92,7 +93,7 @@ export default function AdminCategoryManager() {
   }
 
   async function deleteItem(id: number): Promise<void> {
-    await fetch(`/api/admin/category?id=${id}`, { method: "DELETE" });
+    await tenantApiFetch(`/api/admin/category?id=${id}`, { method: "DELETE" });
     loadItems();
   }
 
@@ -101,13 +102,13 @@ export default function AdminCategoryManager() {
 
       {/* ── Modal ─────────────────────────────────────────────── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#1e1512] p-6 shadow-2xl shadow-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
 
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-saffron">Category</p>
-                <h3 className="mt-0.5 text-xl font-semibold text-crema">
+                <p className="text-sm font-medium text-emerald-600">Category</p>
+                <h3 className="mt-0.5 text-xl font-semibold text-slate-900">
                   {form.id ? "Edit Category" : "Add Category"}
                 </h3>
               </div>
@@ -115,7 +116,7 @@ export default function AdminCategoryManager() {
                 type="button"
                 onClick={closeModal}
                 disabled={saving}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-crema/70 transition hover:text-crema disabled:opacity-50"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
                 aria-label="Close"
               >
                 <X size={17} />
@@ -126,8 +127,8 @@ export default function AdminCategoryManager() {
 
               {/* Name field */}
               <div className="space-y-1">
-                <label className="text-[11px] font-medium uppercase tracking-widest text-crema/40">
-                  Category Name <span className="text-berry">*</span>
+                <label className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                  Category Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   value={form.name}
@@ -136,23 +137,23 @@ export default function AdminCategoryManager() {
                     setValidationError("");
                   }}
                   placeholder="e.g. Beverages"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-[13px] text-crema outline-none placeholder:text-crema/30 bg-white/5 transition focus:border-saffron ${
-                    validationError ? "border-red-500/60" : "border-white/10"
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 bg-white transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${
+                    validationError ? "border-red-500/60" : "border-slate-300"
                   }`}
                 />
                 {validationError && (
-                  <p className="text-[12px] text-red-400">{validationError}</p>
+                  <p className="text-xs text-rose-600">{validationError}</p>
                 )}
               </div>
 
               {/* Availability toggle */}
-              <label className="flex cursor-pointer items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2.5">
-                <span className="text-[13px] text-crema/70">Available</span>
+              <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                <span className="text-sm text-slate-700">Available</span>
                 <input
                   type="checkbox"
                   checked={form.is_available}
                   onChange={(e) => setForm((c) => ({ ...c, is_available: e.target.checked }))}
-                  className="h-4 w-4 accent-saffron"
+                  className="h-4 w-4 accent-emerald-600"
                 />
               </label>
 
@@ -162,14 +163,14 @@ export default function AdminCategoryManager() {
                   type="button"
                   onClick={closeModal}
                   disabled={saving}
-                  className="flex-1 rounded-lg border border-white/10 bg-white/5 py-2.5 text-[13px] font-medium text-crema/70 transition hover:bg-white/10 disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-slate-300 bg-white py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-saffron py-2.5 text-[13px] font-semibold text-espresso transition hover:bg-[#efb150] disabled:opacity-60"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                 >
                   {form.id ? <Save size={15} /> : <Plus size={15} />}
                   {saving ? "Saving..." : form.id ? "Save Changes" : "Add Category"}
@@ -185,16 +186,16 @@ export default function AdminCategoryManager() {
       <section className="space-y-5">
 
         {/* Header */}
-        <div className="glass-panel rounded-lg p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-saffron">Categories Management</p>
-              <h2 className="mt-1 text-2xl font-semibold text-crema sm:text-3xl">Categories</h2>
+              <p className="text-sm font-medium text-emerald-600">Categories Management</p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-900 sm:text-3xl">Categories</h2>
             </div>
             <button
               type="button"
               onClick={openAdd}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-saffron px-4 py-2.5 text-[13px] font-semibold text-espresso transition hover:bg-[#efb150]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
             >
               <Plus size={16} aria-hidden="true" />
               Add Category
@@ -203,17 +204,17 @@ export default function AdminCategoryManager() {
         </div>
 
         {/* Table panel */}
-        <div className="rounded-2xl border border-white/8 bg-espresso/60">
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[480px] border-collapse text-sm">
 
               {/* Sticky head */}
-              <thead className="sticky top-0 z-10">
+              <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200">
                 <tr>
                   {["SI.No", "Category Name", "Status", "Edit", "Delete"].map((col, i) => (
                     <th
                       key={col}
-                      className={`border-b border-white/8 px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-crema/40 whitespace-nowrap ${
+                      className={`border-b border-slate-200 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 whitespace-nowrap ${
                         i === 0 ? "w-16 text-center" :
                         i === 2 ? "w-28 text-center" :
                         i >= 3  ? "w-20 text-center" :
@@ -229,58 +230,58 @@ export default function AdminCategoryManager() {
               <tbody>
                 {CategoriesList.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-[13px] text-crema/40">
-                      No categories yet. Click <span className="text-saffron">Add Category</span> to create one.
+                    <td colSpan={5} className="px-6 py-16 text-center text-sm text-slate-500">
+                      No categories yet. Click <span className="font-semibold text-emerald-600">Add Category</span> to create one.
                     </td>
                   </tr>
                 ) : (
                   CategoriesList.map((item, idx) => (
                     <tr
                       key={item.id}
-                      className="border-b border-white/5 transition hover:bg-white/4 last:border-b-0"
+                      className="border-b border-slate-200 transition hover:bg-slate-50 last:border-b-0"
                     >
                       {/* SI.No */}
-                      <td className="px-5 py-3 text-center text-[13px] text-crema/35">
+                      <td className="px-6 py-4 text-center text-sm text-slate-500">
                         {idx + 1}
                       </td>
 
                       {/* Category Name */}
-                      <td className="px-5 py-3 text-[13px] font-medium text-crema">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
                         {item.name}
                       </td>
 
                       {/* Status */}
-                      <td className="px-5 py-3 text-center">
-                        <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-[11px] font-semibold ${
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
                           item.is_available
-                            ? "border-green-500/30 bg-green-500/10 text-green-400"
-                            : "border-red-500/30  bg-red-500/10  text-red-400"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
                         }`}>
                           {item.is_available ? "Active" : "Inactive"}
                         </span>
                       </td>
 
                       {/* Edit */}
-                      <td className="px-5 py-3 text-center">
+                      <td className="px-6 py-4 text-center">
                         <button
                           type="button"
                           onClick={() => openEdit(item)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-crema/60 transition hover:border-saffron/40 hover:bg-saffron/10 hover:text-saffron"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 hover:border-slate-400"
                           aria-label={`Edit ${item.name}`}
                         >
-                          <Pencil size={14} />
+                          <Pencil size={16} />
                         </button>
                       </td>
 
                       {/* Delete */}
-                      <td className="px-5 py-3 text-center">
+                      <td className="px-6 py-4 text-center">
                         <button
                           type="button"
                           onClick={() => deleteItem(item.id)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-crema/60 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                           aria-label={`Delete ${item.name}`}
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       </td>
                     </tr>
@@ -292,8 +293,8 @@ export default function AdminCategoryManager() {
 
           {/* Footer count */}
           {CategoriesList.length > 0 && (
-            <div className="border-t border-white/8 px-5 py-3">
-              <p className="text-[12px] text-crema/30">
+            <div className="border-t border-slate-200 bg-slate-50 px-6 py-3">
+              <p className="text-sm text-slate-600">
                 {CategoriesList.length} categor{CategoriesList.length !== 1 ? "ies" : "y"}
               </p>
             </div>

@@ -1,4 +1,4 @@
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus } from "@/types/cafe";
 import type { Database } from "@/types/database";
@@ -30,6 +30,10 @@ const orderSelect =
 
 function mapSupabaseError(error: PostgrestError): Error {
   return new Error(error.message || "Supabase request failed");
+}
+
+function applyTenantFilter(query: any, tenantId?: number) {
+  return tenantId ? query.eq("tenant_id", tenantId) : query;
 }
 
 function mapCategory(row: CategoryRow): Category {
@@ -87,197 +91,210 @@ export async function fetchCategories(): Promise<Category[]> {
   return (data || []).map(mapCategory);
 }
 
-export async function fetchAdminCategories(): Promise<Category[]> {
+export async function fetchAdminCategories(tenantId?: number): Promise<Category[]> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("categories").select(categorySelect).order("id", {
-    ascending: false,
-  });
+  const query = applyTenantFilter(supabase.from("categories" as any).select(categorySelect).order("id", { ascending: false }), tenantId);
 
+  const { data, error } = await query;
   if (error) throw mapSupabaseError(error);
   return (data || []).map(mapCategory);
 }
 
-export async function insertCategory(category: CategoryInsert): Promise<Category> {
+export async function insertCategory(category: CategoryInsert, tenantId?: number): Promise<Category> {
   const supabase = createServerSupabaseClient();
+  const payload = tenantId ? { ...category, tenant_id: tenantId } : category;
   const { data, error } = await supabase
-    .from("categories")
-    .insert(category)
+    .from("categories" as any)
+    .insert(payload)
     .select(categorySelect)
     .single();
 
   if (error) throw mapSupabaseError(error);
-  return mapCategory(data);
+  return mapCategory(data as unknown as CategoryRow);
 }
 
-export async function updateCategory(id: number, category: CategoryUpdate): Promise<Category | null> {
+export async function updateCategory(id: number, category: CategoryUpdate, tenantId?: number): Promise<Category | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .update(category)
-    .eq("id", id)
-    .select(categorySelect)
-    .maybeSingle();
+  const query = supabase.from("categories" as any).update(category).eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { data, error } = await query.select(categorySelect).maybeSingle();
 
   if (error) throw mapSupabaseError(error);
-  return data ? mapCategory(data) : null;
+  return data ? mapCategory(data as unknown as CategoryRow) : null;
 }
 
-export async function deleteCategory(id: number): Promise<void> {
+export async function deleteCategory(id: number, tenantId?: number): Promise<void> {
   const supabase = createServerSupabaseClient();
-  const { error } = await supabase.from("categories").delete().eq("id", id);
+  const query = supabase.from("categories" as any).delete().eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { error } = await query;
+  if (error) throw mapSupabaseError(error);
 
   if (error) throw mapSupabaseError(error);
 }
 
-export async function fetchMenuItems(): Promise<MenuItem[]> {
+export async function fetchMenuItems(tenantId?: number): Promise<MenuItem[]> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("menu_items")
-    .select(menuSelect)
-    .order("category", { ascending: true })
-    .order("name", { ascending: true });
+  const query = applyTenantFilter(
+    supabase
+      .from("menu_items" as any)
+      .select(menuSelect)
+      .order("category", { ascending: true })
+      .order("name", { ascending: true }),
+    tenantId
+  );
+
+  const { data, error } = await query;
+  if (error) throw mapSupabaseError(error);
+  return (data || []).map(mapMenuItem);
+}
+
+export async function fetchAdminMenuItems(tenantId?: number): Promise<MenuItem[]> {
+  const supabase = createServerSupabaseClient();
+  const query = applyTenantFilter(supabase.from("menu_items" as any).select(menuSelect).order("id", { ascending: false }), tenantId);
+
+  const { data, error } = await query;
 
   if (error) throw mapSupabaseError(error);
   return (data || []).map(mapMenuItem);
 }
 
-export async function fetchAdminMenuItems(): Promise<MenuItem[]> {
+export async function insertMenuItem(item: MenuItemInsert, tenantId?: number): Promise<MenuItem> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("menu_items").select(menuSelect).order("id", {
-    ascending: false,
-  });
+  const payload = tenantId ? { ...item, tenant_id: tenantId } : item;
+  const { data, error } = await supabase.from("menu_items" as any).insert(payload).select(menuSelect).single();
 
   if (error) throw mapSupabaseError(error);
-  return (data || []).map(mapMenuItem);
+  return mapMenuItem(data as unknown as MenuItemRow);
 }
 
-export async function insertMenuItem(item: MenuItemInsert): Promise<MenuItem> {
+export async function updateMenuItem(id: number, item: MenuItemUpdate, tenantId?: number): Promise<MenuItem | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("menu_items").insert(item).select(menuSelect).single();
+  const query = supabase.from("menu_items" as any).update(item).eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { data, error } = await query.select(menuSelect).maybeSingle();
 
   if (error) throw mapSupabaseError(error);
-  return mapMenuItem(data);
+  return data ? mapMenuItem(data as unknown as MenuItemRow) : null;
 }
 
-export async function updateMenuItem(id: number, item: MenuItemUpdate): Promise<MenuItem | null> {
+export async function deleteMenuItem(id: number, tenantId?: number): Promise<void> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("menu_items")
-    .update(item)
-    .eq("id", id)
-    .select(menuSelect)
-    .maybeSingle();
-
-  if (error) throw mapSupabaseError(error);
-  return data ? mapMenuItem(data) : null;
-}
-
-export async function deleteMenuItem(id: number): Promise<void> {
-  const supabase = createServerSupabaseClient();
-  const { error } = await supabase.from("menu_items").delete().eq("id", id);
+  const query = supabase.from("menu_items" as any).delete().eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { error } = await query;
 
   if (error) throw mapSupabaseError(error);
 }
 
-export async function fetchTables(): Promise<CafeTable[]> {
+export async function fetchTables(tenantId?: number): Promise<CafeTable[]> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("cafe_tables")
-    .select("id, table_number, qr_code_url")
-    .order("table_number", { ascending: true });
+  const query = applyTenantFilter(
+    supabase.from("cafe_tables" as any).select("id, table_number, qr_code_url").order("table_number", { ascending: true }),
+    tenantId
+  );
+  const { data, error } = await query;
 
   if (error) throw mapSupabaseError(error);
   return data || [];
 }
 
-export async function insertTable(table: CafeTableInsert): Promise<CafeTable> {
+export async function insertTable(table: CafeTableInsert, tenantId?: number): Promise<CafeTable> {
   const supabase = createServerSupabaseClient();
+  const payload = tenantId ? { ...table, tenant_id: tenantId } : table;
   const { data, error } = await supabase
-    .from("cafe_tables")
-    .insert(table)
+    .from("cafe_tables" as any)
+    .insert(payload)
     .select("id, table_number, qr_code_url")
     .single();
 
   if (error) throw mapSupabaseError(error);
-  return data;
+  return data as unknown as CafeTable;
 }
 
-export async function updateTable(id: number, table: CafeTableUpdate): Promise<CafeTable | null> {
+export async function updateTable(id: number, table: CafeTableUpdate, tenantId?: number): Promise<CafeTable | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("cafe_tables")
-    .update(table)
-    .eq("id", id)
-    .select("id, table_number, qr_code_url")
-    .maybeSingle();
+  const query = supabase.from("cafe_tables" as any).update(table).eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { data, error } = await query.select("id, table_number, qr_code_url").maybeSingle();
 
   if (error) throw mapSupabaseError(error);
-  return data || null;
+  return data ? (data as unknown as CafeTable) : null;
 }
 
-export async function deleteTable(id: number): Promise<void> {
+export async function deleteTable(id: number, tenantId?: number): Promise<void> {
   const supabase = createServerSupabaseClient();
-  const { error } = await supabase.from("cafe_tables").delete().eq("id", id);
+  const query = supabase.from("cafe_tables" as any).delete().eq("id", id);
+  applyTenantFilter(query, tenantId);
+  const { error } = await query;
 
   if (error) throw mapSupabaseError(error);
 }
 
-export async function fetchOrders(): Promise<CafeOrder[]> {
+export async function fetchOrders(tenantId?: number): Promise<CafeOrder[]> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("orders").select(orderSelect).order("created_at", {
-    ascending: false,
-  });
+  const query = applyTenantFilter(supabase.from("orders" as any).select(orderSelect).order("created_at", { ascending: false }), tenantId);
 
+  const { data, error } = await query;
   if (error) throw mapSupabaseError(error);
   return (data || []).map(mapOrder);
 }
 
-export async function fetchTableByNumber(tableNumber: number): Promise<CafeTable | null> {
+export async function fetchTableByNumber(tableNumber: number, tenantId?: number): Promise<CafeTable | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("cafe_tables")
-    .select("id, table_number, qr_code_url")
-    .eq("table_number", tableNumber)
-    .limit(1)
-    .maybeSingle();
+  const query = applyTenantFilter(
+    supabase
+      .from("cafe_tables" as any)
+      .select("id, table_number, qr_code_url")
+      .eq("table_number", tableNumber)
+      .limit(1),
+    tenantId
+  );
 
+  const { data, error } = await query.maybeSingle();
   if (error) throw mapSupabaseError(error);
   return data || null;
 }
 
-export async function fetchTableById(id: number): Promise<CafeTable | null> {
+export async function fetchTableById(id: number, tenantId?: number): Promise<CafeTable | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("cafe_tables")
-    .select("id, table_number, qr_code_url")
-    .eq("id", id)
-    .limit(1)
-    .maybeSingle();
+  const query = applyTenantFilter(
+    supabase
+      .from("cafe_tables" as any)
+      .select("id, table_number, qr_code_url")
+      .eq("id", id)
+      .limit(1),
+    tenantId
+  );
 
+  const { data, error } = await query.maybeSingle();
   if (error) throw mapSupabaseError(error);
   return data || null;
 }
 
-export async function fetchOpenOrderByTableNumber(tableNumber: number): Promise<CafeOrder | null> {
+export async function fetchOpenOrderByTableNumber(tableNumber: number, tenantId?: number): Promise<CafeOrder | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("orders")
-    .select(orderSelect)
-    .eq("table_number", tableNumber)
-    .eq("session_status", "OPEN")
-    .eq("payment_status", "Pending")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const query = applyTenantFilter(
+    supabase
+      .from("orders" as any)
+      .select(orderSelect)
+      .eq("table_number", tableNumber)
+      .eq("session_status", "OPEN")
+      .eq("payment_status", "Pending")
+      .order("created_at", { ascending: false })
+      .limit(1),
+    tenantId
+  );
 
+  const { data, error } = await query.maybeSingle();
   if (error) throw mapSupabaseError(error);
-  return data ? mapOrder(data) : null;
+  return data ? mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]) : null;
 }
 
-export async function fetchOrderById(id: string): Promise<CafeOrder | null> {
+export async function fetchOrderById(id: string, tenantId?: number): Promise<CafeOrder | null> {
   const supabase = createServerSupabaseClient();
   const numericId = Number(id);
-  const query = supabase.from("orders").select(orderSelect);
+const query = applyTenantFilter(supabase.from("orders" as any).select(orderSelect), tenantId);
   const { data, error } = Number.isFinite(numericId) && numericId > 0
     ? await query.or(`id.eq.${numericId},order_id.eq.${id}`).limit(1).maybeSingle()
     : await query.eq("order_id", id).limit(1).maybeSingle();
@@ -294,7 +311,7 @@ export async function fetchOrderById(id: string): Promise<CafeOrder | null> {
   if (itemsError) throw mapSupabaseError(itemsError);
 
   return {
-    ...mapOrder(data),
+    ...mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]),
     items: (items || []).map((item) => ({
       id: item.id,
       menu_item_id: item.menu_item_id,
@@ -306,61 +323,58 @@ export async function fetchOrderById(id: string): Promise<CafeOrder | null> {
   };
 }
 
-export async function createOrder(order: OrderInsert, items: PendingOrderItemInsert[]): Promise<CafeOrder> {
+export async function createOrder(order: OrderInsert, items: PendingOrderItemInsert[], tenantId?: number): Promise<CafeOrder> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("orders").insert(order).select(orderSelect).single();
+  const payload = tenantId ? { ...order, tenant_id: tenantId } : order;
+  const { data, error } = await supabase.from("orders" as any).insert(payload).select(orderSelect).single();
 
   if (error) throw mapSupabaseError(error);
 
-  const orderItems = items.map((item) => ({ ...item, order_id: data.id }));
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  const createdOrder = data as unknown as Database["public"]["Tables"]["orders"]["Row"];
+  const orderItems = items.map((item) => ({ ...item, order_id: createdOrder.id, tenant_id: tenantId }));
+  const { error: itemsError } = await supabase.from("order_items" as any).insert(orderItems);
 
   if (itemsError) throw mapSupabaseError(itemsError);
-  return mapOrder(data);
+  return mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]);
 }
 
 export async function appendOrderItems(
   orderId: number,
   items: PendingOrderItemInsert[],
-  orderPatch: OrderUpdate
+  orderPatch: OrderUpdate,
+  tenantId?: number
 ): Promise<CafeOrder | null> {
   const supabase = createServerSupabaseClient();
-  const orderItems = items.map((item) => ({ ...item, order_id: orderId }));
+  const orderItems = items.map((item) => ({ ...item, order_id: orderId, tenant_id: tenantId }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-
+  const { error: itemsError } = await supabase.from("order_items" as any).insert(orderItems);
   if (itemsError) throw mapSupabaseError(itemsError);
 
-  const { data, error } = await supabase
-    .from("orders")
-    .update(orderPatch)
-    .eq("id", orderId)
-    .select(orderSelect)
-    .maybeSingle();
+  const query = supabase.from("orders" as any).update(orderPatch).eq("id", orderId);
+  applyTenantFilter(query, tenantId);
+  const { data, error } = await query.select(orderSelect).maybeSingle();
 
   if (error) throw mapSupabaseError(error);
-  return data ? mapOrder(data) : null;
+  return data ? mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]) : null;
 }
 
 export async function updateOrderStatus(
   id: number,
   status?: OrderStatus,
   paymentStatus?: PaymentStatus,
-  billingMethod?: BillingMethod
+  billingMethod?: BillingMethod,
+  tenantId?: number
 ): Promise<CafeOrder | null> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("orders")
-    .update({
-      ...(status ? { status } : {}),
-      ...(paymentStatus ? { payment_status: paymentStatus } : {}),
-      ...(paymentStatus === "Paid" ? { session_status: "CLOSED" } : {}),
-      ...(billingMethod ? { billing_method: billingMethod } : {}),
-    })
-    .eq("id", id)
-    .select(orderSelect)
-    .maybeSingle();
+  const query = supabase.from("orders" as any).update({
+    ...(status ? { status } : {}),
+    ...(paymentStatus ? { payment_status: paymentStatus } : {}),
+    ...(paymentStatus === "Paid" ? { session_status: "CLOSED" } : {}),
+    ...(billingMethod ? { billing_method: billingMethod } : {}),
+  }).eq("id", id);
+  applyTenantFilter(query, tenantId);
 
+  const { data, error } = await query.select(orderSelect).maybeSingle();
   if (error) throw mapSupabaseError(error);
-  return data ? mapOrder(data) : null;
+  return data ? mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]) : null;
 }
