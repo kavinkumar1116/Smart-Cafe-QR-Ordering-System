@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Clock3, Minus, Plus, ReceiptText, Send, Trash2 } from "lucide-react";
+import { tenantApiFetch } from "@/lib/tenant";
 import { formatCurrency } from "@/lib/format";
 import { calcGrandTotal, calcSubtotal, calcTax, estimatePrepTimeMinutes } from "@/lib/order-math";
 import type { CartItem, CustomerDetails, OrderResponse } from "@/types/cafe";
@@ -47,7 +48,7 @@ export default function CartExperience() {
     }
 
     setPlacing(true);
-    const response = await fetch("/api/orders", {
+    const response = await tenantApiFetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { ReactNode } from "react";
 
@@ -11,7 +11,10 @@ interface AdminGuardProps {
 
 export default function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
+
+  const loginPath = getTenantAdminLoginPath(pathname);
 
   useEffect(() => {
     let active = true;
@@ -22,7 +25,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       if (!active) return;
 
       if (!data.session) {
-        router.replace("/admin");
+        router.replace(loginPath);
         return;
       }
 
@@ -32,18 +35,29 @@ export default function AdminGuard({ children }: AdminGuardProps) {
     void checkSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.replace("/admin");
+      if (!session) router.replace(loginPath);
     });
 
     return () => {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [router]);
+  }, [loginPath, router]);
 
   if (!ready) {
     return <div className="glass-panel rounded-lg p-8 text-center text-crema/70">Checking admin session...</div>;
   }
 
   return children;
+}
+
+function getTenantAdminLoginPath(pathname: string) {
+  const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
+  const decodedSegment = decodeURIComponent(firstSegment);
+
+  if (!decodedSegment || decodedSegment === "admin" || decodedSegment === "super-admin" || decodedSegment === "{tenantSlug}") {
+    return "/admin";
+  }
+
+  return `/${decodedSegment}/admin`;
 }
