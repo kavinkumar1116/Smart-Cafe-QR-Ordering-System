@@ -2,12 +2,14 @@ import AppShell from "@/components/AppShell";
 import AdminCustomer from "@/components/AdminCustomer";
 
 type TenantCustomersPageProps = {
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 };
 
-export default function TenantCustomersPage({ params }: TenantCustomersPageProps) {
+export default async function TenantCustomersPage({ params }: TenantCustomersPageProps) {
+  const { tenantSlug } = await params;
+
   return (
-    <AppShell title="Customers" subtitle={`Tenant: ${params.tenantSlug}`}>
+    <AppShell title="Customers" subtitle={`Tenant: ${tenantSlug}`}>
       <AdminCustomer />
     </AppShell>
   );

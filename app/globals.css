@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
-  background: #1e1714;
+  color-scheme: light;
+  background: #ffffff;
 }
 
 * {
@@ -20,10 +20,9 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(226, 161, 58, 0.18), transparent 28rem),
-    linear-gradient(135deg, #1e1714 0%, #2a1e19 46%, #15100e 100%);
-  color: #fff8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
 button,
@@ -33,9 +32,10 @@ textarea {
   font: inherit;
 }
 
+/* Scrollbar Styling */
 .app-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(245, 234, 223, 0.35) transparent;
+  scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
 }
 
 .app-scrollbar::-webkit-scrollbar {
@@ -43,15 +43,111 @@ textarea {
   height: 8px;
 }
 
+.app-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .app-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(245, 234, 223, 0.32);
+  background: rgba(100, 116, 139, 0.3);
   border-radius: 999px;
 }
 
+.app-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Glass Panel for modern SaaS look */
 .glass-panel {
-  border: 1px solid rgba(245, 234, 223, 0.14);
-  background: rgba(255, 248, 240, 0.08);
-  backdrop-filter: blur(18px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.glass-panel-dark {
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  background: rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(20px);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.bg-gradient-slate {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500;
+}
+
+/* Soft shadows */
+.shadow-soft-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-soft-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-soft-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-soft-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation for skeleton loading */
+@keyframes skeleton-loading {
+  0% {
+    background-color: rgba(229, 231, 235, 0.7);
+  }
+  50% {
+    background-color: rgba(209, 213, 219, 0.7);
+  }
+  100% {
+    background-color: rgba(229, 231, 235, 0.7);
+  }
+}
+
+.skeleton {
+  animation: skeleton-loading 1.5s infinite;
+}
+
+/* Badge styling */
+.badge-success {
+  @apply inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800;
+}
+
+.badge-warning {
+  @apply inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800;
+}
+
+.badge-error {
+  @apply inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800;
+}
+
+.badge-info {
+  @apply inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800;
 }
 
 @layer base {

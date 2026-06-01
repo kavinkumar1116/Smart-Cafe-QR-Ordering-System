@@ -170,13 +170,13 @@ function MenuSearchBar({ value, onChange }: MenuSearchBarProps) {
       <Search
         size={18}
         aria-hidden="true"
-        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-crema/45"
+        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
       />
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search menu"
-        className="h-12 w-full rounded-lg border border-white/10 bg-black/15 pl-11 pr-4 text-sm text-crema outline-none transition placeholder:text-crema/40 focus:border-saffron/60 focus:bg-black/20"
+        className="h-12 w-full rounded-lg border border-slate-300 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       />
     </label>
   );
@@ -197,8 +197,8 @@ function CategoryChips({ categories, active, onChange }: CategoryChipsProps) {
             onClick={() => onChange(category)}
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               isActive
-                ? "border-saffron bg-saffron text-espresso"
-                : "border-white/10 bg-white/8 text-crema/70 hover:bg-white/12 hover:text-crema"
+            ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
+            : "text-slate-700 hover:bg-slate-100"
             }`}
           >
             {category}
@@ -215,19 +215,19 @@ const QuantityControl = memo(function QuantityControl({
   onIncrease,
 }: QuantityControlProps) {
   return (
-    <div className="grid h-10 w-full grid-cols-[40px_1fr_40px] items-center rounded-lg border border-white/10 bg-black/15 p-0.5">
+    <div className="grid h-10 w-full grid-cols-[40px_1fr_40px] items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5">
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-crema transition hover:bg-white/15"
+        className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200"
         onClick={onDecrease}
         aria-label="Decrease quantity"
       >
         <Minus size={16} />
       </button>
-      <span className="text-center text-sm font-semibold text-crema">{Math.max(1, quantity)}</span>
+      <span className="text-center text-sm font-semibold text-slate-900">{Math.max(1, quantity)}</span>
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-crema transition hover:bg-white/15"
+        className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 transition hover:bg-slate-200"
         onClick={onIncrease}
         aria-label="Increase quantity"
       >
@@ -246,19 +246,21 @@ const ProductCard = memo(function ProductCard({
   const price = Number(item.price || 0);
 
   return (
-<article className="flex flex-col overflow-hidden rounded-lg border border-white/10 bg-white/8 transition hover:-translate-y-0.5 hover:bg-white/12">
-  <div className="aspect-square overflow-hidden bg-white/6">
+<article className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+  <div className="aspect-square overflow-hidden bg-slate-100">
     {item.image_url ? (
       <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
     ) : (
-      <div className="flex h-full items-center justify-center text-sm text-crema/45">No image</div>
+      <div className="flex h-full items-center justify-center text-sm text-slate-500">No image</div>
     )}
   </div>
-  <div className="flex flex-col gap-2 p-3">
-    <div>
-      <p className="truncate text-xs font-semibold uppercase text-saffron">{getMenuCategory(item)}</p>
-      <h3 className="truncate text-sm font-semibold text-crema">{item.name}</h3>
-      <p className="text-sm font-semibold text-saffron">{formatCurrency(price)}</p>
+  <div className="flex flex-col gap-3 p-4">
+    <div className="space-y-2">
+      <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+        {getMenuCategory(item)}
+      </span>
+      <h3 className="text-base font-semibold text-slate-900">{item.name}</h3>
+      <p className="text-sm font-medium text-slate-700">{formatCurrency(price)}</p>
     </div>
     {quantity > 0 ? (
       <QuantityControl
@@ -270,7 +272,7 @@ const ProductCard = memo(function ProductCard({
       <button
         type="button"
         onClick={() => onAdd(item)}
-        className="h-8 w-full rounded-lg bg-saffron text-xs font-semibold text-espresso transition hover:bg-[#efb150]"
+        className="h-10 w-full rounded-lg bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700"
       >
         Add to Cart
       </button>
@@ -308,66 +310,62 @@ function CartItem({ item, onIncrement, onDecrement, onRemove }: CartItemProps) {
   const itemTotal = Number(item.price || 0) * Math.max(0, Number(item.quantity || 0));
 
   return (
-    <div className="grid grid-cols-[58px_1fr] gap-3 rounded-lg border border-white/10 bg-white/8 p-3">
-      <div className="h-14 w-14 overflow-hidden rounded-lg bg-white/8">
+    <div className="grid grid-cols-[58px_1fr] gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="h-14 w-14 overflow-hidden rounded-lg bg-slate-100">
         {item.image_url ? (
           <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-white/6" />
+          <div className="h-full w-full bg-slate-200" />
         )}
       </div>
-<div className="min-w-0 flex-1">
-  {/* Name + Total */}
-  <div className="flex items-start justify-between gap-2 mb-1.5">
-    <p className="line-clamp-2 text-sm font-medium leading-5 text-crema">
-      {item.name}
-    </p>
-    <span className="shrink-0 text-[15px] font-semibold text-crema">
-      {formatCurrency(itemTotal)}
-    </span>
-  </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <p className="line-clamp-2 text-sm font-medium leading-5 text-slate-900">
+            {item.name}
+          </p>
+          <span className="shrink-0 text-[15px] font-semibold text-slate-900">
+            {formatCurrency(itemTotal)}
+          </span>
+        </div>
 
-  {/* Qty controls + Remove */}
-  <div className="flex items-center justify-between gap-2">
-    <div className="flex items-center gap-1.5">
-      <span className="text-xs text-crema/50">{formatCurrency(item.price)} each</span>
-      <span className="w-[3px] h-[3px] rounded-full bg-crema/20" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-500">{formatCurrency(item.price)} each</span>
+            <span className="w-[3px] h-[3px] rounded-full bg-slate-300" />
 
-      {/* Quantity stepper */}
-      <div className="flex items-center gap-1.5 rounded-lg border border-white/8 bg-white/5 px-2 py-1">
-        <button
-          type="button"
-          onClick={() => onDecrement(item.id)}
-          className="text-crema/50 hover:text-crema transition"
-          aria-label="Decrease quantity"
-        >
-          <Minus size={11} />
-        </button>
-        <span className="min-w-[14px] text-center text-[13px] font-medium text-crema">
-          {item.quantity}
-        </span>
-        <button
-          type="button"
-          onClick={() => onIncrement(item.id)}
-          className="text-crema/50 hover:text-crema transition"
-          aria-label="Increase quantity"
-        >
-          <Plus size={11} />
-        </button>
+            <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1">
+              <button
+                type="button"
+                onClick={() => onDecrement(item.id)}
+                className="text-slate-500 hover:text-slate-900 transition"
+                aria-label="Decrease quantity"
+              >
+                <Minus size={11} />
+              </button>
+              <span className="min-w-[14px] text-center text-[13px] font-medium text-slate-900">
+                {item.quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => onIncrement(item.id)}
+                className="text-slate-500 hover:text-slate-900 transition"
+                aria-label="Increase quantity"
+              >
+                <Plus size={11} />
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onRemove(item.id)}
+            className="flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-100 hover:border-rose-300"
+          >
+            <Trash2 size={13} />
+            Remove
+          </button>
+        </div>
       </div>
-    </div>
-
-    {/* Remove button */}
-    <button
-      type="button"
-      onClick={() => onRemove(item.id)}
-      className="flex items-center gap-1 rounded-lg border border-berry/25 bg-berry/10 px-2.5 py-1 text-xs font-medium text-berry transition hover:border-red-500/40 hover:bg-red-500/15 hover:text-red-400"
-    >
-      <Trash2 size={13} />
-      Remove
-    </button>
-  </div>
-</div>
     </div>
   );
 }
@@ -376,12 +374,12 @@ function CartSummary({ totalItems, grandTotal, onPlaceOrder, placingOrder }: Car
   const isEmpty = totalItems === 0;
 
   return (
-    <div className="border-t border-white/10 pt-4">
-      <div className="flex items-center justify-between text-sm text-crema/68">
+    <div className="border-t border-slate-200 pt-4">
+      <div className="flex items-center justify-between text-sm text-slate-600">
         <span>Total items</span>
-        <span className="font-semibold text-crema">{totalItems}</span>
+        <span className="font-semibold text-slate-900">{totalItems}</span>
       </div>
-      <div className="mt-3 flex items-center justify-between text-lg font-semibold text-crema">
+      <div className="mt-3 flex items-center justify-between text-lg font-semibold text-slate-900">
         <span>Grand total</span>
         <span>{formatCurrency(Number.isFinite(grandTotal) ? grandTotal : 0)}</span>
       </div>
@@ -389,7 +387,7 @@ function CartSummary({ totalItems, grandTotal, onPlaceOrder, placingOrder }: Car
         type="button"
         disabled={isEmpty || placingOrder}
         onClick={onPlaceOrder}
-        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-saffron px-4 py-3 font-semibold text-espresso transition hover:bg-[#efb150] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Send size={18} aria-hidden="true" />
         {placingOrder ? "Placing..." : "Place Order"}
@@ -411,18 +409,18 @@ function CurrentCart({
   return (
     <aside className="glass-panel sticky top-6 flex max-h-[calc(90vh-3rem)] min-h-[420px] flex-col rounded-lg p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-crema">Current Cart</h3>
-        <span className="rounded-lg border border-white/10 bg-white/8 px-3 py-1 text-sm font-semibold text-crema">
+        <h3 className="text-lg font-semibold text-slate-900">Current Cart</h3>
+        <span className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
           {totalItems}
         </span>
       </div>
 
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         {cart.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-white/15 bg-white/8 p-5 text-center">
-            <ShoppingCart className="mx-auto text-saffron" size={30} aria-hidden="true" />
-            <p className="mt-3 font-medium text-crema">Your cart is empty.</p>
-            <p className="mt-1 text-sm leading-6 text-crema/58">Add items from the menu to start an order.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+            <ShoppingCart className="mx-auto text-emerald-600" size={30} aria-hidden="true" />
+            <p className="mt-3 font-medium text-slate-900">Your cart is empty.</p>
+            <p className="mt-1 text-sm leading-6 text-slate-500">Add items from the menu to start an order.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -462,15 +460,15 @@ function CustomerDetailsModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-white/10 bg-[#2d211c] p-5 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-xl font-semibold text-crema">Customer Details</h3>
+          <h3 className="text-xl font-semibold text-slate-900">Customer Details</h3>
           <button
             type="button"
             onClick={onClose}
             disabled={placingOrder}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/8 text-crema/70 transition hover:text-crema disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Close payment options"
           >
             <X size={18} />
@@ -478,25 +476,23 @@ function CustomerDetailsModal({
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-lg bg-berry/20 p-3 text-sm text-crema">{error}</p>
+          <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800 border border-rose-200">{error}</p>
         ) : null}
 
         <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-crema/70">Table Number</span>
+            <span className="mb-2 block text-sm font-medium text-slate-600">Table Number</span>
             <select
               value={customer.table_number}
               onChange={(event) =>
                 onCustomerChange({ ...customer, table_number: event.target.value })
               }
               disabled={placingOrder}
-              className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <option className="bg-[#2d211c] text-crema" value="">
-                Select table
-              </option>
+                className="h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+              <option value="">Select table</option>
               {tables.map((table) => (
-                <option key={table.id} className="bg-[#2d211c] text-crema" value={table.table_number}>
+                <option key={table.id} value={table.table_number}>
                   Table {table.table_number}
                 </option>
               ))}
@@ -504,20 +500,20 @@ function CustomerDetailsModal({
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-crema/70">Customer Name</span>
+            <span className="mb-2 block text-sm font-medium text-slate-600">Customer Name</span>
             <input
               value={customer.customer_name}
               onChange={(event) =>
                 onCustomerChange({ ...customer, customer_name: event.target.value })
               }
               disabled={placingOrder}
-              className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition placeholder:text-crema/40 focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
               placeholder="Enter customer name"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-crema/70">
+            <span className="mb-2 block text-sm font-medium text-slate-600">
               Customer Mobile Number
             </span>
               <input
@@ -531,27 +527,23 @@ function CustomerDetailsModal({
                   onCustomerChange({ ...customer, customer_mobile: value });
                 }}
                 disabled={placingOrder}
-                className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition placeholder:text-crema/40 focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 placeholder="Enter mobile number"
               />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-crema/70">Order Type</span>
+            <span className="mb-2 block text-sm font-medium text-slate-600">Order Type</span>
             <select
               value={customer.order_type}
               onChange={(event) =>
                 onCustomerChange({ ...customer, order_type: event.target.value as OrderMode })
               }
               disabled={placingOrder}
-              className="h-12 w-full rounded-lg border border-white/10 bg-black/15 px-3 text-sm text-crema outline-none transition focus:border-saffron/60 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <option className="bg-[#2d211c] text-crema" value="Dine-In">
-                Dine-in
-              </option>
-              <option className="bg-[#2d211c] text-crema" value="Takeaway">
-                Takeaway
-              </option>
+              <option value="Dine-In">Dine-in</option>
+              <option value="Takeaway">Takeaway</option>
             </select>
           </label>
 
@@ -559,7 +551,7 @@ function CustomerDetailsModal({
             type="button"
             onClick={onConfirm}
             disabled={placingOrder}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-saffron px-4 py-3 font-semibold text-espresso transition hover:bg-[#efb150] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send size={18} aria-hidden="true" />
             {placingOrder ? "Confirming..." : "Confirm Order"}
@@ -578,7 +570,7 @@ function StickyCartBar({ href, itemCount, total }: StickyCartBarProps) {
   return (
     <Link
       href={href}
-      className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between rounded-lg bg-saffron px-4 py-3 font-semibold text-espresso shadow-2xl shadow-black/35 xl:hidden"
+      className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-between rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 xl:hidden"
     >
       <span className="inline-flex items-center gap-2">
         <ShoppingCart size={18} aria-hidden="true" />
@@ -860,7 +852,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
       <section className="min-w-0 space-y-5">
         <div className="glass-panel rounded-lg p-4 sm:p-5">
           <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <h2 className="text-2xl font-semibold text-crema sm:text-3xl">
+            <h2 className="text-2xl font-semibold sm:text-3xl">
               Customer Order
             </h2>
 
@@ -873,21 +865,21 @@ export default function Order({ tableId }: MenuExperienceProps) {
         <CategoryChips categories={categoryOptions} active={category} onChange={setCategory} />
 
         {orderSuccess ? (
-          <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/15 p-4 text-sm font-medium text-crema">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-slate-900">
             {orderSuccess}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-lg border border-white/10 bg-white/8 p-8 text-center text-crema/70">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
             Loading menu...
           </div>
         ) : error ? (
-          <div className="rounded-lg border border-berry/30 bg-berry/20 p-8 text-center text-crema">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-8 text-center text-rose-800">
             {error}
           </div>
         ) : visibleGroups.length === 0 ? (
-          <div className="rounded-lg border border-white/10 bg-white/8 p-8 text-center text-crema/70">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
             No menu items found.
           </div>
         ) : (

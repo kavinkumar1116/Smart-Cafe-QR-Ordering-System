@@ -13,14 +13,33 @@ export type TenantRecord = {
 };
 
 export async function getTenantBySlug(tenantSlug: string): Promise<TenantRecord | null> {
+  const normalizedTenantSlug = tenantSlug.trim().toLowerCase();
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("tenants" as any)
     .select("tenant_id, tenant_slug, tenant_name, owner_name, email, phone, subscription_plan, status, created_at")
-    .eq("tenant_slug", tenantSlug)
+    .eq("tenant_slug", normalizedTenantSlug)
+    .eq("status", 1)
     .limit(1)
     .maybeSingle();
- console.log("tenant lookup", { tenantSlug, data, error });
+
+  if (error) {
+    throw error;
+  }
+
+  return data as unknown as TenantRecord | null;
+}
+
+export async function getFirstActiveTenant(): Promise<TenantRecord | null> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("tenants" as any)
+    .select("tenant_id, tenant_slug, tenant_name, owner_name, email, phone, subscription_plan, status, created_at")
+    .eq("status", 1)
+    .order("tenant_id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
   if (error) {
     throw error;
   }

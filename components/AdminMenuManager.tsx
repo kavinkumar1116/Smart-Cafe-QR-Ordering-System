@@ -215,25 +215,22 @@ export default function AdminMenuManager() {
     <AdminGuard>
       <div className="space-y-5">
         {/* HEADER */}
-        <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-medium text-saffron">
+            <p className="text-sm font-medium text-emerald-600">
               Menu Management
             </p>
 
-            <h1 className="mt-1 text-2xl font-bold text-crema">
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">
               Menu Listing
             </h1>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            {/* SEARCH */}
-
-
             {/* ADD BUTTON */}
             <button
               onClick={handleAddMenu}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-saffron px-5 text-sm font-semibold text-espresso transition hover:opacity-90"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
             >
               <Plus size={18} />
               Add Menu
@@ -242,16 +239,16 @@ export default function AdminMenuManager() {
         </div>
 
         {/* TABLE */}
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
-            <p className="text-sm text-white/100">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <p className="text-sm text-slate-600">
               Total Items: {items.length}
             </p>
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-crema/40"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
 
               <input
@@ -262,43 +259,43 @@ export default function AdminMenuManager() {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-11 w-full rounded-xl border border-white/10 bg-white/10 pl-10 pr-4 text-sm text-crema outline-none placeholder:text-crema/40 focus:border-saffron sm:w-72"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 sm:w-72"
               />
             </div>
           </div>
             <table className="min-w-full border-collapse">
               
-              <thead className="sticky top-0 bg-[#1f1f1f]">
-                <tr className="border-b border-white/10">
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+              <thead className="sticky top-0 bg-slate-50 border-b border-slate-200">
+                <tr className="border-b border-slate-200">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     SI.No
                   </th>
 
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Image
                   </th>
 
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Menu Name
                   </th>
 
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Category
                   </th>
 
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Price
                   </th>
 
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Active Status
                   </th>
 
-                  <th className="px-5 py-4 text-center text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
                     Edit
                   </th>
 
-                  <th className="px-5 py-4 text-center text-sm font-semibold text-crema">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
                     Delete
                   </th>
                 </tr>
@@ -309,39 +306,39 @@ export default function AdminMenuManager() {
                   paginatedItems.map((item, index) => (
                     <tr
                       key={item.id}
-                      className="border-b border-white/5 transition hover:bg-white/5"
+                      className="border-b border-slate-200 transition hover:bg-slate-50"
                     >
-                      <td className="px-5 py-4 text-sm text-crema/80">
+                      <td className="px-6 py-4 text-sm text-slate-700">
                         {(currentPage - 1) *
                           rowsPerPage +
                           index +
                           1}
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <img
                           src={
                             item.image_url ||
                             "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80"
                           }
                           alt={item.name}
-                          className="h-14 w-14 rounded-xl object-cover"
+                          className="h-14 w-14 rounded-lg object-cover"
                         />
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-crema">
+                          <p className="font-medium text-slate-900">
                             {item.name}
                           </p>
 
-                          <p className="mt-1 line-clamp-1 text-xs text-crema/50">
+                          <p className="mt-1 line-clamp-1 text-xs text-slate-500">
                             {item.description}
                           </p>
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 text-sm text-crema/70">
+                      <td className="px-6 py-4 text-sm text-slate-700">
                         {categories.find(
                           (c) =>
                             c.id ===
@@ -349,16 +346,16 @@ export default function AdminMenuManager() {
                         )?.name || "Unknown"}
                       </td>
 
-                      <td className="px-5 py-4 text-sm font-semibold text-saffron">
+                      <td className="px-6 py-4 text-sm font-semibold text-emerald-600">
                         {formatCurrency(item.price)}
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-4">
                         <span
                           className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
                             item.is_available
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-red-500/20 text-red-400"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
                           {item.is_available
@@ -367,21 +364,21 @@ export default function AdminMenuManager() {
                         </span>
                       </td>
 
-                      <td className="px-5 py-4 text-center">
+                      <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => handleEdit(item)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-crema transition hover:bg-white/10"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 hover:border-slate-400"
                         >
                           <Pencil size={17} />
                         </button>
                       </td>
 
-                      <td className="px-5 py-4 text-center">
+                      <td className="px-6 py-4 text-center">
                         <button
                           onClick={() =>
                             deleteItem(item.id)
                           }
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 transition hover:bg-red-500/20"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                         >
                           <Trash2 size={17} />
                         </button>
@@ -392,7 +389,7 @@ export default function AdminMenuManager() {
                   <tr>
                     <td
                       colSpan={8}
-                      className="px-5 py-10 text-center text-sm text-crema/50"
+                      className="px-6 py-10 text-center text-sm text-slate-500"
                     >
                       No menu items found
                     </td>
@@ -403,10 +400,10 @@ export default function AdminMenuManager() {
           </div>
 
           {/* PAGINATION */}
-          <div className="flex flex-col gap-4 border-t border-white/10 px-5 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 border-t border-slate-200 bg-slate-50 px-6 py-4 md:flex-row md:items-center md:justify-between">
             {/* ROWS PER PAGE */}
             <div className="flex items-center gap-3">
-              <p className="text-sm text-crema/70">
+              <p className="text-sm text-slate-600">
                 Rows per page
               </p>
 
@@ -419,7 +416,7 @@ export default function AdminMenuManager() {
 
                   setCurrentPage(1);
                 }}
-                className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-crema outline-none"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -430,7 +427,7 @@ export default function AdminMenuManager() {
 
             {/* PAGE BUTTONS */}
             <div className="flex items-center gap-3">
-              <p className="text-sm text-crema/70">
+              <p className="text-sm text-slate-600">
                 Page {currentPage} of{" "}
                 {totalPages || 1}
               </p>
@@ -442,7 +439,7 @@ export default function AdminMenuManager() {
                     Math.max(prev - 1, 1)
                   )
                 }
-                className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-crema transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Previous
               </button>
@@ -460,7 +457,7 @@ export default function AdminMenuManager() {
                     )
                   )
                 }
-                className="rounded-lg bg-saffron px-4 py-2 text-sm font-medium text-espresso transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
               </button>
@@ -470,16 +467,16 @@ export default function AdminMenuManager() {
 
         {/* MODAL */}
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#1d1d1d] p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
               {/* HEADER */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-saffron">
+                  <p className="text-sm text-emerald-600">
                     Menu Management
                   </p>
 
-                  <h2 className="mt-1 text-2xl font-bold text-crema">
+                  <h2 className="mt-1 text-2xl font-bold text-slate-900">
                     {form.id
                       ? "Edit Menu"
                       : "Add Menu"}
@@ -491,7 +488,7 @@ export default function AdminMenuManager() {
                     setShowModal(false);
                     setForm(emptyForm);
                   }}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-crema"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                 >
                   <X size={18} />
                 </button>
@@ -512,11 +509,11 @@ export default function AdminMenuManager() {
                       }))
                     }
                     placeholder="Menu Name"
-                    className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-crema outline-none placeholder:text-crema/40 focus:border-saffron"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                   />
 
                   {errors.name && (
-                    <p className="mt-1 text-xs text-red-400">
+                    <p className="mt-1 text-xs text-red-600">
                       {errors.name}
                     </p>
                   )}
@@ -533,7 +530,7 @@ export default function AdminMenuManager() {
                   }
                   placeholder="Description"
                   rows={4}
-                  className="w-full resize-none rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-crema outline-none placeholder:text-crema/40 focus:border-saffron"
+                  className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -548,11 +545,11 @@ export default function AdminMenuManager() {
                       }
                       placeholder="Price"
                       inputMode="numeric"
-                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-crema outline-none placeholder:text-crema/40 focus:border-saffron"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                     />
 
                     {errors.price && (
-                      <p className="mt-1 text-xs text-red-400">
+                      <p className="mt-1 text-xs text-red-600">
                         {errors.price}
                       </p>
                     )}
@@ -568,7 +565,7 @@ export default function AdminMenuManager() {
                         }))
                       }
                     >
-                      <SelectTrigger className="h-[50px] w-full border border-white/10 bg-white/10 text-crema">
+                      <SelectTrigger className="h-[50px] w-full border border-slate-200 bg-white text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
 
@@ -587,7 +584,7 @@ export default function AdminMenuManager() {
                     </Select>
 
                     {errors.category && (
-                      <p className="mt-1 text-xs text-red-400">
+                      <p className="mt-1 text-xs text-red-600">
                         {errors.category}
                       </p>
                     )}
@@ -604,11 +601,11 @@ export default function AdminMenuManager() {
                     }))
                   }
                   placeholder="Image URL"
-                  className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-crema outline-none placeholder:text-crema/40 focus:border-saffron"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
 
-                <label className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-4">
-                  <span className="text-sm text-crema">
+                <label className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-4">
+                  <span className="text-sm text-slate-900">
                     Available Status
                   </span>
 
@@ -622,13 +619,13 @@ export default function AdminMenuManager() {
                           event.target.checked,
                       }))
                     }
-                    className="h-5 w-5 accent-saffron"
+                    className="h-5 w-5 accent-emerald-600"
                   />
                 </label>
 
                 <button
                   disabled={saving}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-saffron text-sm font-semibold text-espresso transition hover:opacity-90 disabled:opacity-50"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {form.id ? (
                     <Save size={18} />

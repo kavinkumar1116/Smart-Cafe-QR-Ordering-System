@@ -2,12 +2,14 @@ import AppShell from "@/components/AppShell";
 import AdminTableMaster from "@/components/AdminTableMaster";
 
 type TenantTableMasterPageProps = {
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 };
 
-export default function TenantTableMasterPage({ params }: TenantTableMasterPageProps) {
+export default async function TenantTableMasterPage({ params }: TenantTableMasterPageProps) {
+  const { tenantSlug } = await params;
+
   return (
-    <AppShell title="Table Management" subtitle={`Tenant: ${params.tenantSlug}`}>
+    <AppShell title="Table Management" subtitle={`Tenant: ${tenantSlug}`}>
       <AdminTableMaster />
     </AppShell>
   );

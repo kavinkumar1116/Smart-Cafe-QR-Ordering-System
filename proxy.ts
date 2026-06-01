@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getTenantBySlug } from "./lib/tenant";
+import { getFirstActiveTenant, getTenantBySlug } from "./lib/tenant";
 
 const EXEMPT_PATHS = [
   "/_next",
@@ -20,7 +20,12 @@ function getPathSegments(pathname: string) {
   return pathname.split("/").filter(Boolean);
 }
 
-export async function middleware(request: NextRequest) {
+function isTenantPlaceholder(segment: string) {
+  const decodedSegment = decodeURIComponent(segment).toLowerCase();
+  return decodedSegment === "{tenantslug}" || decodedSegment === ":tenantslug";
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (shouldSkipPath(pathname)) {
@@ -44,8 +49,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (isTenantPlaceholder(tenantSlug)) {
+    const defaultTenant = await getFirstActiveTenant();
+    if (defaultTenant) {
+      const redirectUrl = request.nextUrl.clone();
+      segments[pathname.startsWith("/api/") ? 1 : 0] = defaultTenant.tenant_slug;
+      redirectUrl.pathname = `/${segments.join("/")}`;
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   const tenant = await getTenantBySlug(tenantSlug);
-  console.log("middleware tenant", { tenantSlug, tenant });
 
   if (!tenant) {
     return new NextResponse("Tenant not found", { status: 404 });

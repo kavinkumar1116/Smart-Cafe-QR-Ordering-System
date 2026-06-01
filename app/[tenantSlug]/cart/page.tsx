@@ -2,12 +2,14 @@ import AppShell from "@/components/AppShell";
 import CartExperience from "@/components/CartExperience";
 
 type TenantCartPageProps = {
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 };
 
-export default function TenantCartPage({ params }: TenantCartPageProps) {
+export default async function TenantCartPage({ params }: TenantCartPageProps) {
+  const { tenantSlug } = await params;
+
   return (
-    <AppShell title="Cart" subtitle={`Tenant: ${params.tenantSlug}`}>
+    <AppShell title="Cart" subtitle={`Tenant: ${tenantSlug}`}>
       <CartExperience />
     </AppShell>
   );

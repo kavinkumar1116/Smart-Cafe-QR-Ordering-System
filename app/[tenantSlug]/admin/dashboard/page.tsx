@@ -2,12 +2,14 @@ import AppShell from "@/components/AppShell";
 import AdminDashboard from "@/components/AdminDashboard";
 
 type TenantAdminDashboardPageProps = {
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 };
-alert();
-export default function TenantAdminDashboardPage({ params }: TenantAdminDashboardPageProps) {
+
+export default async function TenantAdminDashboardPage({ params }: TenantAdminDashboardPageProps) {
+  const { tenantSlug } = await params;
+
   return (
-    <AppShell title="Admin Dashboard" subtitle={`Tenant: ${params.tenantSlug}`}>
+    <AppShell title="Admin Dashboard" subtitle={`Tenant: ${tenantSlug}`}>
       <AdminDashboard />
     </AppShell>
   );

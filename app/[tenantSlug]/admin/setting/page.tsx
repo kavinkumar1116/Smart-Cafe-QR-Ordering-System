@@ -2,12 +2,14 @@ import AppShell from "@/components/AppShell";
 import AdminSettings from "@/components/AdminSettings";
 
 type TenantSettingsPageProps = {
-  params: { tenantSlug: string };
+  params: Promise<{ tenantSlug: string }>;
 };
 
-export default function TenantSettingsPage({ params }: TenantSettingsPageProps) {
+export default async function TenantSettingsPage({ params }: TenantSettingsPageProps) {
+  const { tenantSlug } = await params;
+
   return (
-    <AppShell title="Settings" subtitle={`Tenant: ${params.tenantSlug}`}>
+    <AppShell title="Settings" subtitle={`Tenant: ${tenantSlug}`}>
       <AdminSettings />
     </AppShell>
   );

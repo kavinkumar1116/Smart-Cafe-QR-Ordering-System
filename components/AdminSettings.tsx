@@ -17,18 +17,18 @@ import type { LucideIcon } from "lucide-react";
 type ToggleKey = "roundOff" | "splitBilling" | "tips" | "autoBillPrint";
 
 interface SettingsFormData {
-  restaurantName: string;
-  branchName: string;
-  logo: string;
+  restaurant_name: string;
+  branch_name: string;
+  logo_url: string;
   address: string;
-  contactNumber: string;
-  emailAddress: string;
-  gstNumber: string;
-  gstPercentage: string;
-  serviceCharge: string;
-  discountRules: string;
-  invoicePrefix: string;
-  invoiceNumberFormat: string;
+  contact_number: string;
+  email_address: string;
+  gst_number: string;
+  gst_percentage: string;
+  service_charge: string;
+  discount_rules: string;
+  invoice_prefix: string;
+  invoice_number_format: string;
 }
 
 interface SettingsSection {
@@ -92,7 +92,7 @@ function Field({
 }: InputProps) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wide text-crema/48">
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </span>
 
@@ -101,7 +101,7 @@ function Field({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}
-        className="mt-2 w-full rounded-lg border border-white/10 bg-espresso px-3 py-3 text-sm text-crema outline-none transition placeholder:text-crema/30 focus:border-saffron"
+        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       />
     </label>
   );
@@ -110,13 +110,13 @@ function Field({
 function SelectField({ label, defaultValue, options }: SelectProps) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wide text-crema/48">
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </span>
 
       <select
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-lg border border-white/10 bg-espresso px-3 py-3 text-sm text-crema outline-none transition focus:border-saffron"
+        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       >
         {options.map((option) => (
           <option key={option}>{option}</option>
@@ -136,16 +136,16 @@ function Toggle({
     <button
       type="button"
       onClick={onChange}
-      className="flex w-full items-center justify-between gap-4 border-b border-white/10 py-3 text-left last:border-b-0"
+      className="flex w-full items-center justify-between gap-4 border-b border-slate-200 py-3 text-left last:border-b-0 hover:bg-slate-50 transition"
       aria-pressed={enabled}
     >
       <span>
-        <span className="block text-sm font-semibold text-crema">
+        <span className="block text-sm font-semibold text-slate-900">
           {label}
         </span>
 
         {description ? (
-          <span className="mt-1 block text-xs leading-5 text-crema/48">
+          <span className="mt-1 block text-xs leading-5 text-slate-500">
             {description}
           </span>
         ) : null}
@@ -153,11 +153,11 @@ function Toggle({
 
       <span
         className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition ${
-          enabled ? "bg-saffron" : "bg-white/14"
+          enabled ? "bg-emerald-600" : "bg-slate-200"
         }`}
       >
         <span
-          className={`h-5 w-5 rounded-full bg-espresso transition ${
+          className={`h-5 w-5 rounded-full bg-white shadow-sm transition ${
             enabled ? "translate-x-5" : "translate-x-0"
           }`}
         />
@@ -176,17 +176,17 @@ function Panel({
   return (
     <section
       id={id}
-      className={`scroll-mt-28 rounded-lg border border-white/10 bg-white/8 p-4 shadow-soft sm:p-5 ${
+      className={`scroll-mt-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${
         active ? "block" : "hidden"
       }`}
     >
       <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-saffron text-espresso">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
           <Icon size={21} aria-hidden="true" />
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold text-crema">
+          <h2 className="text-lg font-semibold text-slate-900">
             {title}
           </h2>
         </div>
@@ -212,17 +212,17 @@ function ActionButton({
 }) {
   const toneClass =
     tone === "primary"
-      ? "bg-saffron text-espresso hover:bg-[#f0b556]"
+      ? "bg-emerald-600 text-white hover:bg-emerald-700"
       : tone === "danger"
-      ? "border border-berry/40 bg-berry/16 text-crema hover:bg-berry/24"
-      : "border border-white/10 bg-white/8 text-crema hover:bg-white/14";
+      ? "border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200"
+      : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${toneClass}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${toneClass} disabled:opacity-60 disabled:cursor-not-allowed`}
     >
       <Icon size={16} aria-hidden="true" />
       {label}
@@ -240,18 +240,18 @@ export default function AdminSettings() {
   const setCafeProfile = useCafeStore((state) => state.setCafeProfile);
 
   const [getAllFormsData, setGetAllFormsData] = useState<SettingsFormData>({
-    restaurantName: "",
-    branchName: "",
-    logo: "",
+    restaurant_name: "",
+    branch_name: "",
+    logo_url: "",
     address: "",
-    contactNumber: "",
-    emailAddress: "",
-    gstNumber: "",
-    gstPercentage: "",
-    serviceCharge: "",
-    discountRules: "",
-    invoicePrefix: "",
-    invoiceNumberFormat: "",
+    contact_number: "",
+    email_address: "",
+    gst_number: "",
+    gst_percentage: "",
+    service_charge: "",
+    discount_rules: "",
+    invoice_prefix: "",
+    invoice_number_format: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -262,11 +262,11 @@ export default function AdminSettings() {
   function updateSettingsField(key: keyof SettingsFormData, value: string) {
     setGetAllFormsData((current) => ({ ...current, [key]: value }));
 
-    if (key === "restaurantName") setRestaurantName(value);
-    if (key === "branchName") setBranchName(value);
-    if (key === "logo") setLogo(value);
-    if (key === "gstNumber") setGstNumber(value);
-    if (key === "contactNumber") setContactNumber(value);
+    if (key === "restaurant_name") setRestaurantName(value);
+    if (key === "branch_name") setBranchName(value);
+    if (key === "logo_url") setLogo(value);
+    if (key === "gst_number") setGstNumber(value);
+    if (key === "contact_number") setContactNumber(value);
   }
 
   useEffect(() => {
@@ -291,11 +291,11 @@ export default function AdminSettings() {
         if (data.settings) {
           setGetAllFormsData((current) => ({ ...current, ...data.settings }));
           setCafeProfile({
-            restaurantName: data.settings.restaurantName,
-            branchName: data.settings.branchName,
-            logo: data.settings.logo,
-            gstNumber: data.settings.gstNumber,
-            contactNumber: data.settings.contactNumber,
+            restaurantName: data.settings.restaurant_name,
+            branchName: data.settings.branch_name,
+            logo: data.settings.logo_url,
+            gstNumber: data.settings.gst_number,
+            contactNumber: data.settings.contact_number,
           });
         }
       } catch (error) {
@@ -350,20 +350,23 @@ export default function AdminSettings() {
   return (
     <AdminGuard>
       <div className="space-y-5">
-        <section className="glass-panel rounded-lg p-5">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-saffron text-espresso">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
               <Building2 size={20} aria-hidden="true" />
             </div>
 
-            <h2 className="mt-1 text-2xl font-semibold text-crema sm:text-3xl">
-              Restaurant Settings
-            </h2>
+            <div>
+              <p className="text-sm font-medium text-emerald-600">Settings</p>
+              <h2 className="mt-1 text-2xl font-semibold text-slate-900 sm:text-3xl">
+                Restaurant Settings
+              </h2>
+            </div>
           </div>
         </section>
 
         <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
-          <aside className="rounded-lg border border-white/10 bg-white/8 p-3 shadow-soft xl:sticky xl:top-24 xl:self-start">
+          <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24 xl:self-start">
             <nav className="space-y-1">
               {sections.map((section) => {
                 const Icon = section.icon;
@@ -374,10 +377,10 @@ export default function AdminSettings() {
                     key={section.id}
                     type="button"
                     onClick={() => setActiveSection(section.id)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
                       selected
-                        ? "bg-saffron text-espresso"
-                        : "text-crema/68 hover:bg-white/10 hover:text-crema"
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
                     <Icon size={17} aria-hidden="true" />
@@ -400,14 +403,14 @@ export default function AdminSettings() {
               <div className="grid gap-4 lg:grid-cols-3">
                 <Field
                   label="Restaurant Name"
-                  value={getAllFormsData.restaurantName}
-                  onChange={(value) => updateSettingsField("restaurantName", value)}
+                  value={getAllFormsData.restaurant_name}
+                  onChange={(value) => updateSettingsField("restaurant_name", value)}
                 />
 
                 <Field
                   label="Branch Name"
-                  value={getAllFormsData.branchName}
-                  onChange={(value) => updateSettingsField("branchName", value)}
+                  value={getAllFormsData.branch_name}
+                  onChange={(value) => updateSettingsField("branch_name", value)}
                 />
 
                 <Field
@@ -418,37 +421,37 @@ export default function AdminSettings() {
 
                 <Field
                   label="Contact Number"
-                  value={getAllFormsData.contactNumber}
-                  onChange={(value) => updateSettingsField("contactNumber", value)}
+                  value={getAllFormsData.contact_number}
+                  onChange={(value) => updateSettingsField("contact_number", value)}
                 />
 
                 <Field
                   label="Email Address"
                   type="email"
-                  value={getAllFormsData.emailAddress}
-                  onChange={(value) => updateSettingsField("emailAddress", value)}
+                  value={getAllFormsData.email_address}
+                  onChange={(value) => updateSettingsField("email_address", value)}
                 />
 
                 <Field
                   label="GST Number"
-                  value={getAllFormsData.gstNumber}
-                  onChange={(value) => updateSettingsField("gstNumber", value)}
+                  value={getAllFormsData.gst_number}
+                  onChange={(value) => updateSettingsField("gst_number", value)}
                 />
 
                 <Field
                   label="Logo URL"
-                  value={getAllFormsData.logo}
+                  value={getAllFormsData.logo_url}
                   placeholder="https://example.com/logo.png"
-                  onChange={(value) => updateSettingsField("logo", value)}
+                  onChange={(value) => updateSettingsField("logo_url", value)}
                 />
 
                 <div className="lg:col-span-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-crema/48">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Restaurant Logo
                   </span>
 
                   <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-white/10 bg-espresso text-saffron">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-emerald-600">
                       <Utensils size={24} aria-hidden="true" />
                     </div>
 
@@ -476,11 +479,11 @@ export default function AdminSettings() {
                 <Field
                   label="GST / Tax Percentage"
                   type="number"
-                  value={getAllFormsData.gstPercentage}
+                  value={getAllFormsData.gst_percentage}
                   onChange={(value) =>
                     setGetAllFormsData({
                       ...getAllFormsData,
-                      gstPercentage: value,
+                      gst_percentage: value,
                     })
                   }
                 />
@@ -488,44 +491,44 @@ export default function AdminSettings() {
                 <Field
                   label="Service Charge"
                   type="number"
-                  value={getAllFormsData.serviceCharge}
+                  value={getAllFormsData.service_charge}
                   onChange={(value) =>
                     setGetAllFormsData({
                       ...getAllFormsData,
-                      serviceCharge: value,
+                      service_charge: value,
                     })
                   }
                 />
 
                 <Field
                   label="Discount Rules"
-                  value={getAllFormsData.discountRules}
+                  value={getAllFormsData.discount_rules}
                   onChange={(value) =>
                     setGetAllFormsData({
                       ...getAllFormsData,
-                      discountRules: value,
+                      discount_rules: value,
                     })
                   }
                 />
 
                 <Field
                   label="Invoice Prefix"
-                  value={getAllFormsData.invoicePrefix}
+                  value={getAllFormsData.invoice_prefix}
                   onChange={(value) =>
                     setGetAllFormsData({
                       ...getAllFormsData,
-                      invoicePrefix: value,
+                      invoice_prefix: value,
                     })
                   }
                 />
 
                 <Field
                   label="Invoice Number Format"
-                  value={getAllFormsData.invoiceNumberFormat}
+                  value={getAllFormsData.invoice_number_format}
                   onChange={(value) =>
                     setGetAllFormsData({
                       ...getAllFormsData,
-                      invoiceNumberFormat: value,
+                      invoice_number_format: value,
                     })
                   }
                 />
@@ -533,14 +536,14 @@ export default function AdminSettings() {
             </Panel>
 
             {/* Save Settings */}
-            <section className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/8 p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
+            <section className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-crema">
+                <h2 className="text-lg font-semibold text-slate-900">
                   Save restaurant configuration
                 </h2>
 
                 {message ? (
-                  <p className="mt-4 rounded-lg bg-white/8 p-3 text-sm text-crema/70">
+                  <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
                     {message}
                   </p>
                 ) : null}
