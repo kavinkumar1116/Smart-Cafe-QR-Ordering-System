@@ -378,3 +378,39 @@ export async function updateOrderStatus(
   if (error) throw mapSupabaseError(error);
   return data ? mapOrder(data as unknown as Database["public"]["Tables"]["orders"]["Row"]) : null;
 }
+
+
+export async function fetchAdminSalesReports(tenantId?: number): Promise<any[]> {
+  const supabase = createServerSupabaseClient();
+  const query = applyTenantFilter(supabase.from("orders" as any).select("id, order_id, table_number, total_amount,order_type, created_at").order("created_at", { ascending: false }), tenantId);
+  const { data, error } = await query;
+  if (error) throw mapSupabaseError(error);
+  return data || [];
+}
+
+export async function getOrderSalesReportByDate( tenantId?: number, order_type: string = "", date: string = "",invoice_no: string = ""
+): Promise<any[]> {
+  const supabase = createServerSupabaseClient();
+
+  let query = supabase.from("orders" as any).select("id, order_id, table_number, total_amount, order_type, created_at");
+
+  if (order_type) {
+    query = query.eq("order_type", order_type);
+  }
+
+  if (date) {
+    query = query.gte("created_at", `${date}T00:00:00`).lt("created_at", `${date}T23:59:59`);
+  }
+
+  if (invoice_no) {
+    query = query.or(`order_id.eq.${invoice_no},order_id.eq.${invoice_no}`);
+  }
+
+  query = applyTenantFilter(query.order("created_at", { ascending: false }),tenantId );
+
+  const { data, error } = await query;
+
+  if (error) throw mapSupabaseError(error);
+
+  return data || [];
+}
