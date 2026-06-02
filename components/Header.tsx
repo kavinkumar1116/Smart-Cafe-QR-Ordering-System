@@ -9,6 +9,7 @@ import {
   Settings,
   User,
   ChevronDown,
+  Menu,
 } from "lucide-react";
 import Image from "next/image";
 import defaultLogo from "@/public/assets/logo.png";
@@ -18,7 +19,7 @@ import { usePathname } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { tenantApiFetch } from "@/lib/tenant";
 import { useCafeStore } from "@/src/store/useCafeStore";
-import { Button } from "@/components/ui/Button";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 export default function Header() {
   const router = useRouter();
@@ -26,13 +27,13 @@ export default function Header() {
   const [profileOwner, setProfileOwner] = useState("Not signed in");
   const [openProfile, setOpenProfile] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const { toggleMenu, sidebarOpen, isDesktop, mobileOpen } = useSidebar();
 
   const restaurantName = useCafeStore((state) => state.restaurantName);
   const branchName = useCafeStore((state) => state.branchName);
   const logo = useCafeStore((state) => state.logo);
   const setCafeProfile = useCafeStore((state) => state.setCafeProfile);
 
-  // Get page title based on pathname
   const getPageTitle = () => {
     if (pathname.includes("dashboard")) return "Dashboard";
     if (pathname.includes("orders_list")) return "Orders";
@@ -102,18 +103,37 @@ export default function Header() {
 
   const userInitial = profileOwner.charAt(0).toUpperCase();
 
+  const menuAriaLabel =
+    isDesktop
+      ? sidebarOpen
+        ? "Collapse sidebar"
+        : "Expand sidebar"
+      : "Open navigation menu";
+
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
-      <div className="px-4 py-4 sm:px-6 lg:px-8 lg:ml-sidebar">
+      <div className="px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
-          {/* Left: Page Title */}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-slate-900">
-              {getPageTitle()}
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">
-              {getPageSubtitle()}
-            </p>
+          {/* Left: Menu toggle + Page Title */}
+          <div className="flex flex-1 min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleMenu}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200"
+              aria-label={menuAriaLabel}
+              aria-controls="mobile-sidebar-drawer"
+              aria-expanded={isDesktop ? sidebarOpen : mobileOpen}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-2xl font-bold text-slate-900">
+                {getPageTitle()}
+              </h1>
+              <p className="mt-1 truncate text-sm text-slate-600">
+                {getPageSubtitle()}
+              </p>
+            </div>
           </div>
 
           {/* Center: Search Bar (hidden on mobile) */}
@@ -130,18 +150,15 @@ export default function Header() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Search Mobile */}
             <button className="flex md:hidden h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Search size={20} />
             </button>
 
-            {/* Notifications */}
             <button className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
               <Bell size={20} />
               <span className="absolute right-2 top-2 flex h-2 w-2 items-center justify-center rounded-full bg-red-500"></span>
             </button>
 
-            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -149,7 +166,6 @@ export default function Header() {
               {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
             </button>
 
-            {/* Profile Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setOpenProfile(!openProfile)}
@@ -162,10 +178,8 @@ export default function Header() {
                 <ChevronDown size={16} className={`transition-transform duration-200 ${openProfile ? "rotate-180" : ""}`} />
               </button>
 
-              {/* Profile Dropdown Menu */}
               {openProfile && (
                 <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white shadow-lg">
-                  {/* Profile Header */}
                   <div className="border-b border-slate-200 px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-lg">
@@ -180,7 +194,6 @@ export default function Header() {
                     </div>
                   </div>
 
-                  {/* Cafe Info */}
                   <div className="border-b border-slate-200 px-4 py-4">
                     <div className="space-y-2">
                       <div>
@@ -194,7 +207,6 @@ export default function Header() {
                     </div>
                   </div>
 
-                  {/* Menu Items */}
                   <div className="px-2 py-2 space-y-1">
                     <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
                       <User size={16} />
