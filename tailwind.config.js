@@ -3,6 +3,14 @@ module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
+    "./contexts/**/*.{js,jsx,ts,tsx}",
+    "./lib/**/*.{js,jsx,ts,tsx}",
+  ],
+  safelist: [
+    "lg:ml-[280px]",
+    "lg:ml-[80px]",
+    "lg:w-[280px]",
+    "lg:w-[80px]",
   ],
   theme: {
     extend: {
