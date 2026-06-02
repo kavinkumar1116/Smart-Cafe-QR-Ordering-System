@@ -56,7 +56,6 @@ export async function GET(request: Request) {
 
     if (error) throw error;
     const settingsRecord = data as SettingsRecord | null;
-    console.log("GET Settings for tenant :", settingsRecord);
     return NextResponse.json({ settings: normalizeSettings(settingsRecord) });
   } catch (error) {
     return NextResponse.json(
