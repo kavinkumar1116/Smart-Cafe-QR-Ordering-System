@@ -118,6 +118,15 @@ export interface QrCodesResponse extends ApiErrorResponse {
   qrCodes?: QrCodeRecord[];
 }
 
+export interface QrMenuResponse {
+  success: boolean;
+  tableNo?: string;
+  category?: Category[];
+  menuItems?: MenuItem[];
+  message?: string;
+  detail?: string;
+}
+
 export interface AdminMenuForm {
   id: number | null;
   name: string;
