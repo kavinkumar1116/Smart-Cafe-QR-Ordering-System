@@ -3,8 +3,8 @@ import QRCode from "qrcode";
 import { getErrorMessage } from "@/lib/api";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTables } from "@/lib/supabase/crud";
-import type { CafeTable } from "@/types/cafe";
+import { fetchTables,fetchCategories,fetchMenuItems } from "@/lib/supabase/crud";
+import type { CafeTable, Category,MenuItem } from "@/types/cafe";
 
 export async function GET(request: Request) {
   try {
@@ -19,10 +19,12 @@ export async function GET(request: Request) {
 
     const { tenantSlug, tenantId } = await getTenantContextFromRequest(request);
     const tables: CafeTable[] = await fetchTables(tenantId);
+    const Category: Category[] = await fetchCategories(tenantId);
+    const MenuItems: MenuItem[] = await fetchMenuItems(tenantId);
 
     const qrCodes = await Promise.all(
       tables.map(async (table) => {
-        const menuUrl = `${origin}/${tenantSlug}/order/T${table.table_number}`;
+        const menuUrl = `${origin}/api/${tenantSlug}/admin/qr/T${table.table_number}`;
         const qr_code_url = await QRCode.toDataURL(menuUrl, {
           margin: 2,
           width: 320,
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
       })
     );
 
-    return NextResponse.json({ qrCodes });
+    return NextResponse.json({ qrCodes:qrCodes, category:Category, menuItems:MenuItems  });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to generate QR codes", detail: getErrorMessage(error) },
