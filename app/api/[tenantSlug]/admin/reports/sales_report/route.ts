@@ -29,17 +29,17 @@ export async function POST(request: Request) {
     }
     
     const { tenantId } = await getTenantContextFromRequest(request);
-    const body = (await request.json()) as any;
-    const date = body.date || new Date().toISOString();
-    const order_type = body.order_type || "Dine-In";
-    const invoice_no = body.invoice_no || "";
-    
+    const body = (await request.json()) as {
+      date?: string;
+      order_type?: string;
+      invoice_no?: string;
+    };
+    const date = body.date || new Date().toISOString().split("T")[0];
+    const order_type = body.order_type ?? "";
+    const invoice_no = body.invoice_no?.trim() ?? "";
+
     if (!date) {
       return NextResponse.json({ error: "Date is required" }, { status: 400 });
-    }
-
-    if (!order_type) {
-      return NextResponse.json({ error: "Order id is required" }, { status: 400 });
     }
 
     const updated = await getOrderSalesReportByDate(
