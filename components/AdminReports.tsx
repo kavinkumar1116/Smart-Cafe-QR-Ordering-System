@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import AdminGuard from "@/components/AdminGuard";
+import ExportDropdown, {
+  type ExportColumn,
+} from "@/components/common/ExportDropdown";
 import { tenantApiFetch } from "@/lib/tenant";
-import { useRealtimeTable } from "@/lib/supabase/realtime";
 
 import {
   RefreshCw,
@@ -14,54 +16,107 @@ import {
   Eye,
 } from "lucide-react";
 
-import type {
-  CafeOrder,
-  OrdersResponse,
-} from "@/types/cafe";
-
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
+type SalesReport = {
+  id?: string | number;
+  order_id?: string;
+  table_number?: string | number;
+  total_amount?: string | number;
+  gst_amount?: string | number;
+  order_type?: string;
+  created_at?: string;
+};
+
+function formatReportDate(date: string) {
+  const d = new Date(date);
+
+  const year = d.getFullYear();
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+const SALES_REPORT_EXPORT_COLUMNS: ExportColumn<SalesReport>[] = [
+  { header: "SI.No", accessor: (_report, index) => index + 1 },
+  {
+    header: "Date",
+    accessor: (report) =>
+      report.created_at ? formatReportDate(report.created_at) : "",
+  },
+  { header: "Order ID", accessor: (report) => report.order_id ?? "" },
+  { header: "Table No", accessor: (report) => report.table_number ?? "" },
+  { header: "Amount", accessor: (report) => report.total_amount ?? "" },
+  {
+    header: "GST",
+    accessor: (report) => report.gst_amount ?? "15%",
+  },
+  { header: "Total Amount", accessor: (report) => report.total_amount ?? "" },
+  { header: "Order Type", accessor: (report) => report.order_type ?? "" },
+];
+
 export default function AdminReports() {
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<SalesReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
   const [orderType, setOrderType] = useState("");
-  const [getDate, setDate] = useState("2026-05-31");
+  const [getDate, setDate] = useState("");
   const [invoiceNo, setInvoiceNo] = useState("");
 
-  console.log("reports", reports)
   const loadSalesReports = useCallback(async () => {
+    setLoading(true);
 
-    const Get_date = getDate ? getDate : new Date().toLocaleDateString("en-CA");
-    const Get_orderType = orderType ? orderType : "Dine-In";
-    const Get_invoiceNo = invoiceNo ? invoiceNo : "";
+    const Get_date = getDate || new Date().toLocaleDateString("en-CA");
+    const Get_orderType = orderType;
+    const Get_invoiceNo = invoiceNo.trim();
 
-    console.log(Get_orderType);
-    console.log(Get_date);
-    console.log(Get_invoiceNo);
     const response = await tenantApiFetch("/api/admin/reports/sales_report", {
       cache: "no-store",
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order_type: Get_orderType, date: Get_date , invoice_no: Get_invoiceNo }),
+      body: JSON.stringify({
+        order_type: Get_orderType,
+        date: Get_date,
+        invoice_no: Get_invoiceNo,
+      }),
     });
 
-    const data = (await response.json()) as any;
-    console.log("data:", data.report)
+    const data = (await response.json()) as { report?: SalesReport[] };
     setReports(data.report || []);
-
     setLoading(false);
-  }, []);
+  }, [orderType, getDate, invoiceNo]);
 
   useEffect(() => {
-    loadSalesReports();
-  }, [loadSalesReports]);
+    void loadSalesReports();
+    // Initial load only; Search/Refresh use the latest filter values via onClick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // SEARCH FILTER
   const filtered = useMemo(() => {
-    return reports }, [reports, search]);
+    const q = search.trim().toLowerCase();
+    if (!q) return reports;
+
+    return reports.filter((report) => {
+      const haystack = [
+        report.order_id,
+        report.table_number,
+        report.order_type,
+        report.total_amount,
+        report.gst_amount,
+        report.created_at,
+        report.id,
+      ]
+        .filter((value) => value != null && value !== "")
+        .map(String)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(q);
+    });
+  }, [reports, search]);
 
   // PAGINATION
   const totalPages = Math.max(
@@ -80,16 +135,10 @@ export default function AdminReports() {
     setPage(1);
   }, [search, pageSize]);
 
-  const formatDate = (date: string) => {
-    console.log("ffdf", date)
-    const d = new Date(date);
-  
-    const year = d.getFullYear();
-    const month = d.toLocaleString("en-US", { month: "short" });
-    const day = String(d.getDate()).padStart(2, "0");
-  
-    return `${year}-${month}-${day}`;
-  };
+  const exportFilename = useMemo(() => {
+    const datePart = getDate || new Date().toLocaleDateString("en-CA");
+    return `sales-report-${datePart}`;
+  }, [getDate]);
 
   return (
     <AdminGuard>
@@ -135,7 +184,7 @@ export default function AdminReports() {
         >
           <option value="">All Orders</option>
           <option value="Dine-In">Dine-In</option>
-          <option value="Take-Away">Take-Away</option>
+          <option value="Takeaway">Take-Away</option>
           <option value="Delivery">Delivery</option>
         </select>
       </div>
@@ -160,6 +209,7 @@ export default function AdminReports() {
         </label>
         <input
           type="text"
+          value={invoiceNo}
           onChange={(e) => setInvoiceNo(e.target.value)}
           placeholder="Search invoice..."
           className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
@@ -178,18 +228,22 @@ export default function AdminReports() {
       </button>
 
       <button
-        onClick={() => { setOrderType("Dine-In"); setDate(new Date().toLocaleDateString("en-CA")); }}
+        onClick={() => {
+          setOrderType("");
+          setDate("");
+          setInvoiceNo("");
+        }}
         className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
       >
         Reset
       </button>
 
-      <button
-        onClick={loadSalesReports}
-        className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-      >
-        Export
-      </button>
+      <ExportDropdown
+        data={filtered}
+        columns={SALES_REPORT_EXPORT_COLUMNS}
+        filename={exportFilename}
+        disabled={loading}
+      />
 
     </div>
   </div>
@@ -212,7 +266,7 @@ export default function AdminReports() {
 
               <input
                 type="text"
-                placeholder="Search customers..."
+                placeholder="Search reports..."
                 value={search}
                 onChange={(e) =>
                   setSearch(e.target.value)
@@ -299,7 +353,7 @@ export default function AdminReports() {
 
                       {/* ORDER ID */}
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-slate-900">
-                      {formatDate(report.created_at)}
+                      {formatReportDate(report.created_at ?? "")}
                       </td>
 
                       {/* CUSTOMER */}

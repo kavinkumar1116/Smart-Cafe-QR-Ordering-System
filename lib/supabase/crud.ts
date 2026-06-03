@@ -1,5 +1,6 @@
 import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { OrderReportFilters } from "@/lib/order-report";
 import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus } from "@/types/cafe";
 import type { Database } from "@/types/database";
 
@@ -79,14 +80,16 @@ function mapOrder(row: Database["public"]["Tables"]["orders"]["Row"]): CafeOrder
   };
 }
 
-export async function fetchCategories(): Promise<Category[]> {
+export async function fetchCategories(tenantId?: number): Promise<Category[]> {
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
+  const query = applyTenantFilter(supabase
     .from("categories")
     .select(categorySelect)
     .eq("is_available", true)
-    .order("name", { ascending: true });
-
+    .order("name", { ascending: true }),
+    tenantId
+  )
+  const { data, error } = await query;
   if (error) throw mapSupabaseError(error);
   return (data || []).map(mapCategory);
 }
@@ -413,4 +416,81 @@ export async function getOrderSalesReportByDate( tenantId?: number, order_type: 
   if (error) throw mapSupabaseError(error);
 
   return data || [];
+}
+
+type OrderReportItemRow = {
+  quantity: number;
+  price_at_time: number | string;
+};
+
+type OrderReportQueryRow = Database["public"]["Tables"]["orders"]["Row"] & {
+  order_items?: OrderReportItemRow[] | null;
+};
+
+export async function fetchOrderReports(
+  tenantId?: number,
+  filters: OrderReportFilters = {}
+): Promise<CafeOrder[]> {
+  const supabase = createServerSupabaseClient();
+
+  let query = supabase
+    .from("orders" as any)
+    .select(`${orderSelect}, order_items(quantity, price_at_time)`);
+
+  if (filters.date_from) {
+    query = query.gte("created_at", `${filters.date_from}T00:00:00`);
+  }
+
+  if (filters.date_to) {
+    query = query.lt("created_at", `${filters.date_to}T23:59:59.999`);
+  }
+
+  if (filters.status) {
+    if (filters.status === "Completed") {
+      query = query.eq("status", "Served");
+    } else if (filters.status === "Pending") {
+      query = query.in("status", ["Pending", "Preparing", "Ready"]);
+    } else if (filters.status === "Cancelled") {
+      query = query.eq("status", "Cancelled");
+    } else {
+      query = query.eq("status", filters.status);
+    }
+  }
+
+  if (filters.table_number) {
+    query = query.eq("table_number", Number(filters.table_number));
+  }
+
+  if (filters.payment_method) {
+    query = query.eq("billing_method", filters.payment_method);
+  }
+
+  if (filters.customer_name?.trim()) {
+    query = query.ilike("customer_name", `%${filters.customer_name.trim()}%`);
+  }
+
+  if (filters.order_type) {
+    query = query.eq("order_type", filters.order_type);
+  }
+
+  query = applyTenantFilter(
+    query.order("created_at", { ascending: false }),
+    tenantId
+  );
+
+  const { data, error } = await query;
+  if (error) throw mapSupabaseError(error);
+
+  return ((data || []) as unknown as OrderReportQueryRow[]).map((row) => {
+    const order = mapOrder(row);
+    const items = (row.order_items || []).map((item, index) => ({
+      id: index + 1,
+      menu_item_id: 0,
+      name: "",
+      quantity: item.quantity,
+      price_at_time: item.price_at_time,
+    }));
+
+    return { ...order, items };
+  });
 }
