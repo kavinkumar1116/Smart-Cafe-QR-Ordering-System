@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
     icon: UtensilsCrossed,
     children: [
       { href: "/admin/reports/sales_report", label: "Sales Report", icon: BarChart3 },
-      { href: "/admin/reports/orders_report", label: "Order Report", icon: BarChart3 },
+      { href: "/admin/reports/order_report", label: "Order Report", icon: BarChart3 },
       { href: "/admin/reports/revenue_report", label: "Revenue Report", icon: BarChart3 },
     ],
   },
@@ -187,7 +187,7 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <>
-      <div className={cn("py-6", isCollapsed ? "px-2" : "px-4")}>
+      <div className={cn( isCollapsed ? "px-2" : "px-4")}>
         <Link
           href={withTenantSlug("/", tenantSlug)}
           className={cn(
