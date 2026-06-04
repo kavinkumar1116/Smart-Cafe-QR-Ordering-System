@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     const qrCodes = await Promise.all(
       tables.map(async (table) => {
-        const menuUrl = `https://smart-cafe-qr-ordering-system.vercel.app/api/${tenantSlug}/admin/qr/${table.table_number}`;
+        const menuUrl = `https://smart-cafe-qr-ordering-system.vercel.app/${tenantSlug}/admin/qr/${table.table_number}`;
         const qr_code_url = await QRCode.toDataURL(menuUrl, {
           margin: 2,
           width: 320,
