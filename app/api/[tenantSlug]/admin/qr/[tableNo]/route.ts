@@ -6,6 +6,7 @@ import {
   fetchCategories,
   fetchMenuItems,
   fetchTableByNumber,
+  getRestaurantDetails,
 } from "@/lib/supabase/crud";
 
 type RouteContext = {
@@ -43,6 +44,8 @@ export async function GET(request: Request, context: RouteContext) {
       );
     }
 
+    const restaurantDetails = await getRestaurantDetails(tenantId);
+
     const table = await fetchTableByNumber(tableNumber, tenantId);
     if (!table) {
       return NextResponse.json(
@@ -60,6 +63,7 @@ export async function GET(request: Request, context: RouteContext) {
 
     return NextResponse.json({
       success: true,
+      restaurantDetails: restaurantDetails[0] || null,
       tableNo: String(tableNumber),
       category,
       menuItems,

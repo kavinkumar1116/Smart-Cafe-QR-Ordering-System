@@ -391,6 +391,15 @@ export async function fetchAdminSalesReports(tenantId?: number): Promise<any[]> 
   return data || [];
 }
 
+export async function getRestaurantDetails(tenantId?: number): Promise<any[]> {
+  const supabase = createServerSupabaseClient();
+  const query = supabase.from("app_settings" as any)
+    .select("id, restaurant_name, logo_url, address").select("id, restaurant_name, logo_url, address").order("created_at", { ascending: false });
+  const { data, error } = await query;
+  if (error) throw mapSupabaseError(error);
+  return data || [];
+}
+
 export async function getOrderSalesReportByDate( tenantId?: number, order_type: string = "", date: string = "",invoice_no: string = ""
 ): Promise<any[]> {
   const supabase = createServerSupabaseClient();
