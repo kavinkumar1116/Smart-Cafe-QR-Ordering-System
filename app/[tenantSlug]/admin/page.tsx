@@ -9,8 +9,8 @@ export default async function TenantAdminPage({ params }: TenantAdminPageProps) 
   const { tenantSlug } = await params;
 
   return (
-    <AppShell title="Admin" subtitle={`Tenant: ${tenantSlug}`}>
+     
       <AdminLogin />
-    </AppShell>
+    
   );
 }
