@@ -430,26 +430,6 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
     if (errors[id]) setErrors((e) => ({ ...e, [id]: null }));
   };
 
-    const saveCreateNewAccout = async () => {
-    const response = await fetch("/api/CreateNewAccout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
-
-    const result = await response.json();
-
-    console.log("API Response:", result);
-
-    if (!response.ok) {
-      throw new Error(result.message || "Failed to save Create New Accout");
-    }
-
-    return result;
-  };
-
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     STEP_REQUIRED[step].forEach((id) => {
@@ -460,26 +440,11 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
     return Object.keys(next).length === 0;
   };
 
-const handleNext = async () => {
-  if (!validate()) return;
-
-  if (step === 2) {
-    try {
-      await saveCreateNewAccout();
-
-      console.log("Create New Accout saved successfully");
-
-      setDone(true);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to create free trial");
-    }
-
-    return;
-  }
-
-  setStep((s) => s + 1);
-};
+  const handleNext = () => {
+    if (!validate()) return;
+    if (step === 2) { setDone(true); return; }
+    setStep((s) => s + 1);
+  };
 
   const handleBack = () => setStep((s) => s - 1);
 
@@ -582,7 +547,6 @@ const stepPanels = [
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 export default function SmartCafeLanding() {
-
   const [showModal, setShowModal] = useState(false);
 
   return (

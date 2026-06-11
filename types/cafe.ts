@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type OrderStatus = "Pending" | "Preparing" | "Ready" | "Served" | "Cancelled";
-export type PaymentStatus = "Pending" | "Paid";
+export type OrderStatus = "Pending" | "Preparing" | "Ready" | "Served" | "Paid" | "Cancelled";
+export type PaymentStatus = "Pending" | "Paid" | "Cancelled";
 export type BillingMethod = "UPI" | "Cash";
 export type OrderMode = "Dine-In" | "Takeaway" | "Delivery";
 export type SessionStatus = "OPEN" | "CLOSED";
@@ -181,4 +181,39 @@ export interface ShellProps {
   children?: ReactNode;
   title?: string;
   subtitle?: string;
+}
+
+export interface CreateNewAccout {
+  tenant_id: number;
+  tenant_slug: string | null;
+  tenant_name: string | null;
+
+  owner_name: string;
+  email: string;
+  phone: string;
+
+  subscription_plan: string | null;
+
+  status: number; // <-- change from string to number
+
+  cafe_name: string;
+  brand: string | null;
+  branch: string;
+
+  outlet_type: string;
+  tables: string;
+
+  address: string;
+  city: string;
+  pincode: string;
+  state: string;
+
+  whatsapp: string | null;
+  designation: string | null;
+
+  gst: string | null;
+  fssai: string | null;
+
+  created_at: string;
+  updated_at: string;
 }

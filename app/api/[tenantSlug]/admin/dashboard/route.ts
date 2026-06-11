@@ -161,10 +161,10 @@ export async function GET(request: Request) {
       trendRowsResult,
     ] = await Promise.all([
       countOrders(start, endExclusive, tenantId),
-      countOrders(start, endExclusive, tenantId, { column: "order_type", value: DINE_IN_VALUES }),
+      countOrders(start, endExclusive, tenantId, { column: "order_type", value: "Dine-In" }),
       countOrders(start, endExclusive, tenantId, { column: "order_type", value: "Takeaway" }),
       countOrders(start, endExclusive, tenantId, { column: "status", value: "Pending" }),
-      countOrders(start, endExclusive, tenantId, { column: "status", value: COMPLETED_VALUES }),
+      countOrders(start, endExclusive, tenantId, { column: "status", value: "Paid" }),
       supabase
         .from("orders" as any)
         .select("id, customer_mobile, customer_name, status, order_type, total_amount, created_at")
@@ -185,8 +185,7 @@ export async function GET(request: Request) {
     const rangeRows = (rangeRowsResult.data || []) as unknown as OrderAnalyticsRow[];
     const trendRows = (trendRowsResult.data || []) as unknown as Pick<OrderAnalyticsRow, "total_amount" | "created_at">[];
     const totalRevenue = rangeRows.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-    const customers = new Set(
-      rangeRows.map((order) => order.customer_mobile || order.customer_name || String(order.id))
+    const customers = new Set(rangeRows.map((order) => order.customer_mobile || order.customer_name || String(order.id))
     ).size;
 
     const hourlySales = Array.from({ length: CLOSING_HOUR - OPENING_HOUR }, (_, index) => {
