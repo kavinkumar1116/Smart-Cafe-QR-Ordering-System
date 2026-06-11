@@ -20,28 +20,32 @@ import type {
   OrdersResponse,
   OrderStatus,
   PaymentStatus,
+  SessionStatus,
 } from "@/types/cafe";
+import jsPDF from "jspdf";
 
-const orderStatuses: OrderStatus[] = ["Pending", "Preparing", "Ready", "Served", "Cancelled"];
-const paymentStatuses: PaymentStatus[] = ["Pending", "Paid"];
+const orderStatuses: OrderStatus[] = ["Pending", "Preparing", "Ready", "Served","Paid", "Cancelled"];
+const paymentStatuses: PaymentStatus[] = ["Pending", "Paid", "Cancelled"];
 const billingMethods: BillingMethod[] = ["UPI", "Cash"];
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 // ── Badge helpers ────────────────────────────────────────────────
 function orderStatusClass(status: string) {
   switch (status) {
-    case "Served":    return "border-green-500/30 bg-green-500/10 text-green-400";
+    case "Served": return "border-green-500/30 bg-green-500/10 text-green-400";
     case "Preparing": return "border-saffron/30  bg-saffron/10  text-saffron";
-    case "Ready":     return "border-blue-400/30  bg-blue-400/10  text-blue-400";
+    case "Ready": return "border-blue-400/30  bg-blue-400/10  text-blue-400";
     case "Cancelled": return "border-red-500/30  bg-red-500/10  text-red-400";
-    default:          return "border-white/12    bg-white/6     text-crema/50";
+    default: return "border-white/12    bg-white/6     text-crema/50";
   }
 }
 
 function paymentStatusClass(status: string) {
   return status === "Paid"
     ? "border-green-500/30 bg-green-500/10 text-green-400"
-    : "border-saffron/30  bg-saffron/10  text-saffron";
+    : status === "Cancelled"
+      ? "border-red-500/30 bg-red-500/10 text-red-400"
+      : "border-saffron/30  bg-saffron/10  text-saffron";
 }
 
 function Badge({ label, className }: { label: string; className: string }) {
@@ -60,14 +64,15 @@ interface ReceiptDialogProps {
   error: string;
   onClose: () => void;
   onSelectBillingMethod: (method: BillingMethod) => void;
+  onCancelOrder: (orderId: number) => void;
 }
 
-function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBillingMethod }: ReceiptDialogProps) {
+function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBillingMethod, onCancelOrder }: ReceiptDialogProps) {
   if (!order && !loading) return null;
 
   const items = order?.items || [];
   const calculatedTotal = items.reduce((sum, item) => sum + Number(item.price_at_time || 0) * Number(item.quantity || 0), 0);
- 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
@@ -123,7 +128,7 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
                 <div className="px-4 py-6 text-center text-sm text-slate-600">No item details found.</div>
               ) : (
                 items.map((item) => {
-                  const price    = Number(item.price_at_time || 0);
+                  const price = Number(item.price_at_time || 0);
                   const quantity = Number(item.quantity || 0);
                   return (
                     <div
@@ -148,18 +153,35 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
 
             {error && <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800 border border-rose-200">{error}</p>}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {billingMethods.map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => onSelectBillingMethod(method)}
-                  disabled={saving}
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saving ? "Saving..." : method}
-                </button>
-              ))}
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {order?.status !== "Cancelled" ? (
+                <>
+                  {billingMethods.map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => onSelectBillingMethod(method)}
+                      disabled={saving}
+                      className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {saving ? "Saving..." : method}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => order && onCancelOrder(order.id)}
+                    disabled={saving}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg"
+                  >
+                    Cancel Order
+                  </button>
+                </>
+              ) : (
+                <div className="col-span-3 rounded-lg bg-red-50 border border-red-200 p-3 text-center text-red-700 font-medium">
+                  This order is already cancelled.
+                </div>
+              )}
             </div>
           </>
         ) : null}
@@ -168,17 +190,165 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
   );
 }
 
+const downloadReceipt = async (
+  order: CafeOrder,
+  billingMethod: string
+) => {
+  const items = order.items ?? [];
+
+  const total = items.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price_at_time || 0) *
+      Number(item.quantity || 0),
+    0
+  );
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [80, 200], // Thermal receipt size
+  });
+
+  let y = 10;
+
+  // Header
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("SMART CAFE", 40, y, { align: "center" });
+
+  y += 7;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  pdf.text("Chennai", 40, y, { align: "center" });
+
+  y += 8;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
+  // Order Details
+  pdf.text(`Order ID: ${order.order_id}`, 5, y);
+  y += 6;
+
+  pdf.text(
+    `Date: ${new Date(order.created_at).toLocaleString()}`,
+    5,
+    y
+  );
+  y += 6;
+
+  pdf.text(`Customer: ${order.customer_name}`, 5, y);
+  y += 6;
+
+  pdf.text(
+    `Mobile: ${order.customer_mobile || "-"}`,
+    5,
+    y
+  );
+  y += 6;
+
+  pdf.text(
+    `Table: ${order.table_number || order.table_id}`,
+    5,
+    y
+  );
+
+  y += 6;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
+  // Table Header
+  pdf.setFont("helvetica", "bold");
+
+  pdf.text("Item", 5, y);
+  pdf.text("Qty", 45, y);
+  pdf.text("Amount", 75, y, {
+    align: "right",
+  });
+
+  y += 5;
+
+  pdf.line(5, y, 75, y);
+
+  y += 5;
+
+  pdf.setFont("helvetica", "normal");
+
+  // Items
+  items.forEach((item) => {
+    const qty = Number(item.quantity || 0);
+
+    const amount =
+      Number(item.price_at_time || 0) * qty;
+
+    pdf.text(item.name, 5, y);
+
+    pdf.text(String(qty), 45, y);
+
+    pdf.text(`${amount.toFixed(2)}`, 70, y, {
+      align: "right",
+    });
+
+    y += 6;
+  });
+
+  y += 2;
+
+  pdf.line(5, y, 75, y);
+
+  y += 8;
+
+  // Total
+  pdf.setFont("helvetica", "bold");
+
+  pdf.text(
+    `Total : ${total.toFixed(2)}`,
+    5,
+    y
+  );
+
+  y += 8;
+
+  pdf.setFont("helvetica", "normal");
+
+  pdf.text(
+    `Billing Method : ${billingMethod}`,
+    5,
+    y
+  );
+
+  y += 12;
+
+  pdf.setFont("helvetica", "bold");
+
+  pdf.text(
+    "THANK YOU!",
+    40,
+    y,
+    {
+      align: "center",
+    }
+  );
+
+  pdf.save(`${order.order_id}.pdf`);
+};
+
 // ── Main Page ────────────────────────────────────────────────────
 export default function AdminOrders() {
-  const [orders, setOrders]               = useState<CafeOrder[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [search, setSearch]               = useState("");
-  const [pageSize, setPageSize]           = useState(10);
-  const [page, setPage]                   = useState(1);
-  const [receiptOrder, setReceiptOrder]   = useState<CafeOrder | null>(null);
+  const [orders, setOrders] = useState<CafeOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
+  const [receiptOrder, setReceiptOrder] = useState<CafeOrder | null>(null);
   const [receiptLoading, setReceiptLoading] = useState(false);
-  const [receiptSaving, setReceiptSaving]   = useState(false);
-  const [receiptError, setReceiptError]     = useState("");
+  const [receiptSaving, setReceiptSaving] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
 
   const loadOrders = useCallback(async () => {
     const response = await tenantApiFetch("/api/admin/orders", { cache: "no-store" });
@@ -194,7 +364,8 @@ export default function AdminOrders() {
   useRealtimeTable({ table: "orders", onChange: loadOrders });
   useRealtimeTable({ table: "order_items", onChange: loadOrders });
 
-  async function updateOrder(id: number, patch: Partial<Pick<CafeOrder, "status" | "payment_status" | "billing_method">>) {
+
+  async function updateOrder(id: number, patch: Partial<Pick<CafeOrder, "status" | "payment_status" | "billing_method" | "session_status">>) {
     const response = await tenantApiFetch("/api/admin/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -229,22 +400,37 @@ export default function AdminOrders() {
     const response = await tenantApiFetch("/api/admin/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: receiptOrder.id, billing_method: method, payment_status: "Paid" }),
+      body: JSON.stringify({ id: receiptOrder.id, billing_method: method, payment_status: "Paid", status: "Paid" }),
     });
     const data = (await response.json()) as OrderResponse;
     if (response.ok && data.order) {
-      const updatedOrder = { ...receiptOrder, ...data.order, items: receiptOrder.items, billing_method: method, payment_status: "Paid" as PaymentStatus };
+      const updatedOrder = { ...receiptOrder, ...data.order, items: receiptOrder.items, billing_method: method, payment_status: "Paid" as PaymentStatus, status: "Paid" as OrderStatus, session_status: "CLOSED" as SessionStatus };
+      console.log("Updated Order:", updatedOrder);
       setReceiptOrder(updatedOrder);
+      await downloadReceipt(updatedOrder, method);
       setOrders((current) =>
         current.map((order) => (order.id === receiptOrder.id ? { ...order, ...updatedOrder } : order))
       );
       setReceiptError("");
+      setReceiptOrder(null);
     } else {
       setReceiptError(data.error || data.detail || "Unable to save billing method.");
     }
     setReceiptSaving(false);
   }
 
+
+  async function onCancelOrder(orderId: number) {
+    await updateOrder(orderId, {
+      status: "Cancelled",
+      payment_status: "Cancelled",
+      session_status: "CLOSED",
+    });
+
+    if (receiptOrder && receiptOrder.id === orderId) {
+      setReceiptOrder(null);
+    }
+  }
   // ── Filtered + paginated data ──────────────────────────────────
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -258,22 +444,23 @@ export default function AdminOrders() {
   }, [orders, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage   = Math.min(page, totalPages);
-  const paginated  = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const safePage = Math.min(page, totalPages);
+  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   // reset to page 1 when search or pageSize changes
   useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const cols = [
-    { label: "SI.No",      width: "w-14",   align: "text-center" },
-    { label: "Order ID",   width: "w-32",   align: "text-left"   },
-    { label: "Customer",   width: "w-36",   align: "text-left"   },
-    { label: "Contact",    width: "w-36",   align: "text-left"   },
-    { label: "Table",      width: "w-16",   align: "text-center" },
-    { label: "Date",       width: "w-40",   align: "text-left"   },
-    { label: "Payment",    width: "w-36",   align: "text-left"   },
-    { label: "Method",     width: "w-24",   align: "text-center" },
-    { label: "Receipt",    width: "w-36",   align: "text-center" },
+    { label: "SI.No", width: "w-14", align: "text-center" },
+    { label: "Order ID", width: "w-32", align: "text-left" },
+    { label: "Customer", width: "w-36", align: "text-left" },
+    { label: "Contact", width: "w-36", align: "text-left" },
+    { label: "Table", width: "w-16", align: "text-center" },
+    { label: "Date", width: "w-40", align: "text-left" },
+    { label: "Order Status", width: "w-24", align: "text-center" },
+    { label: "Payment", width: "w-36", align: "text-left" },
+    { label: "Method", width: "w-24", align: "text-center" },
+    { label: "Action", width: "w-36", align: "text-center" },
   ];
 
   return (
@@ -383,18 +570,31 @@ export default function AdminOrders() {
 
                       {/* Date */}
                       <td className="px-6 py-3 text-sm text-slate-600 whitespace-nowrap">
-                       {new Date(order.created_at).toLocaleString("en-GB", { day: "2-digit", month: "short",
-    year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit",  hour12: true, }).replace(",", "")}
+                        {new Date(order.created_at).toLocaleString("en-GB", {
+                          day: "2-digit", month: "short",
+                          year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true,
+                        }).replace(",", "")}
+                      </td>
+
+                      {/* Order Status */}
+                      <td className="px-6 py-3">
+                        <span
+                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold ${(order.status || "Pending") === "Paid"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-rose-100 text-rose-700"
+                            }`}
+                        >
+                          {order.status || "Pending"}
+                        </span>
                       </td>
 
                       {/* Payment Status */}
-                     <td className="px-6 py-3">
+                      <td className="px-6 py-3">
                         <span
-                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold ${
-                            (order.payment_status || "Pending") === "Paid"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-rose-100 text-rose-700"
-                          }`}
+                          className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold ${(order.payment_status || "Pending") === "Paid"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-rose-100 text-rose-700"
+                            }`}
                         >
                           {order.payment_status || "Pending"}
                         </span>
@@ -416,10 +616,15 @@ export default function AdminOrders() {
                         <button
                           type="button"
                           onClick={() => openReceipt(order)}
-                         className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap ${order.billing_method ? "bg-emerald-600 text-white hover:bg-emerald-700" : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap ${order.status === "Cancelled"
+                              ? "bg-rose-600 text-white hover:bg-rose-700"
+                              : order.billing_method
+                                ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                            }`}
                         >
                           <Receipt size={13} aria-hidden="true" />
-                            Receipt
+                          Receipt
                         </button>
                       </td>
                     </tr>
@@ -476,11 +681,10 @@ export default function AdminOrders() {
                       <button
                         key={p}
                         onClick={() => setPage(p as number)}
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition ${
-                          safePage === p
-                            ? "bg-emerald-600 text-white"
-                            : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
-                        }`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-medium transition ${safePage === p
+                          ? "bg-emerald-600 text-white"
+                          : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+                          }`}
                       >
                         {p}
                       </button>
@@ -508,6 +712,7 @@ export default function AdminOrders() {
           error={receiptError}
           onClose={() => setReceiptOrder(null)}
           onSelectBillingMethod={saveBillingMethod}
+          onCancelOrder={onCancelOrder}
         />
       </section>
     </AdminGuard>

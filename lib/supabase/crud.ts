@@ -1,7 +1,7 @@
 import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { OrderReportFilters } from "@/lib/order-report";
-import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus } from "@/types/cafe";
+import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout } from "@/types/cafe";
 import type { Database } from "@/types/database";
 
 type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
@@ -28,6 +28,10 @@ const categorySelect = "id, name, image_url, is_available";
 const menuSelect = "id, name, description, price, category, image_url, is_available";
 const orderSelect =
   "id, order_id, table_id, table_number, customer_name, customer_mobile, status, session_status, payment_status, billing_method, order_type, total_amount, created_at";
+
+
+type CreateNewAccoutInsert = Database["public"]["Tables"]["tenants"]["Insert"];
+
 
 function mapSupabaseError(error: PostgrestError): Error {
   return new Error(error.message || "Supabase request failed");
@@ -502,4 +506,20 @@ export async function fetchOrderReports(
 
     return { ...order, items };
   });
+}
+
+export async function insertCreateNewAccout(item: CreateNewAccoutInsert): Promise<CreateNewAccout> {
+
+  const supabase = createServerSupabaseClient();
+  const payload: CreateNewAccoutInsert = {...item};
+
+  const { data, error } = await supabase
+    .from("tenants")
+    .insert(payload)
+    .select("tenant_id, tenant_slug,tenant_name,owner_name,email,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, created_at, updated_at ")
+    .single();
+
+  if (error) throw mapSupabaseError(error);
+
+ return data as CreateNewAccout;
 }
