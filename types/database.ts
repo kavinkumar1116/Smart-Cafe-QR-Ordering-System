@@ -381,6 +381,116 @@ export interface Database {
           },
         ];
       };
+     tenants: {
+        Row: {
+          tenant_id: number;
+          tenant_slug: string | null;
+          tenant_name: string | null;
+
+          owner_name: string;
+          email: string;
+          phone: string;
+
+          subscription_plan: string | null;
+          status: number;
+
+          cafe_name: string;
+          brand: string | null;
+          branch: string;
+
+          outlet_type: string;
+          tables: string;
+
+          address: string;
+          city: string;
+          pincode: string;
+          state: string;
+
+          whatsapp: string | null;
+          designation: string | null;
+
+          gst: string | null;
+          fssai: string | null;
+
+          created_at: string;
+          updated_at: string;
+        };
+
+        Insert: {
+          tenant_id?: number;
+          tenant_slug?: string | null;
+          tenant_name?: string | null;
+
+          owner_name: string;
+          email: string;
+          phone: string;
+
+          subscription_plan?: string | null;
+          status?: number;
+
+          cafe_name: string;
+          brand?: string | null;
+          branch: string;
+
+          outlet_type: string;
+          tables: string;
+
+          address: string;
+          city: string;
+          pincode: string;
+          state: string;
+
+          whatsapp?: string | null;
+          designation?: string | null;
+
+          gst?: string | null;
+          fssai?: string | null;
+
+          trial_start_date?: string | null;
+          trial_end_date?: string | null;
+
+          created_at?: string;
+          updated_at?: string;
+        };
+
+        Update: {
+          tenant_id?: number;
+          tenant_slug?: string | null;
+          tenant_name?: string | null;
+
+          owner_name?: string;
+          email?: string;
+          phone?: string;
+
+          subscription_plan?: string | null;
+          status?: number;
+
+          cafe_name?: string;
+          brand?: string | null;
+          branch?: string;
+
+          outlet_type?: string;
+          tables?: string;
+
+          address?: string;
+          city?: string;
+          pincode?: string;
+          state?: string;
+
+          whatsapp?: string | null;
+          designation?: string | null;
+
+          gst?: string | null;
+          fssai?: string | null;
+
+          trial_start_date?: string | null;
+          trial_end_date?: string | null;
+
+          updated_at?: string;
+        };
+
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
