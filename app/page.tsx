@@ -86,14 +86,14 @@ const plans = [
 
 const stats = [
   { value: "2 min", label: "Avg order time" },
-  { value: "99%",  label: "Uptime SLA" },
-  { value: "∞",    label: "Menu items" },
+  { value: "99%", label: "Uptime SLA" },
+  { value: "∞", label: "Menu items" },
 ];
 
 const steps = [
-  { title: "Scan QR",               desc: "Each table opens its own menu URL instantly" },
+  { title: "Scan QR", desc: "Each table opens its own menu URL instantly" },
   { title: "Enter details & order", desc: "Name and mobile captured before cart actions" },
-  { title: "Track live status",     desc: "Pending → preparing → served in real time" },
+  { title: "Track live status", desc: "Pending → preparing → served in real time" },
 ];
 
 interface ModuleItem {
@@ -102,14 +102,14 @@ interface ModuleItem {
 }
 
 const modules: ModuleItem[] = [
-  { Icon: QrCode,       label: "QR Gen" },
+  { Icon: QrCode, label: "QR Gen" },
   { Icon: ShoppingCart, label: "Live cart" },
-  { Icon: ChefHat,      label: "Kitchen" },
-  { Icon: BarChart2,    label: "Analytics" },
-  { Icon: Bell,         label: "Notify" },
-  { Icon: Clock,        label: "Status" },
-  { Icon: User,         label: "Admin" },
-  { Icon: Lock,         label: "Auth" },
+  { Icon: ChefHat, label: "Kitchen" },
+  { Icon: BarChart2, label: "Analytics" },
+  { Icon: Bell, label: "Notify" },
+  { Icon: Clock, label: "Status" },
+  { Icon: User, label: "Admin" },
+  { Icon: Lock, label: "Auth" },
 ];
 
 // ─── Modal constants ───────────────────────────────────────────────────────────
@@ -143,7 +143,7 @@ const DESIGNATIONS = ["Owner", "Manager", "IT / Tech admin", "Operations head"];
 const STEP_REQUIRED: string[][] = [
   ["cafeName", "branch", "outletType", "tables"],
   ["address", "city", "pincode", "state", "phone"],
-  ["ownerName", "email"],
+  ["ownerName", "email", "password", "confirmPassword"],
 ];
 
 const STEP_LABELS = [
@@ -155,21 +155,40 @@ const STEP_LABELS = [
 const EMPTY_FORM: Record<string, string> = {
   cafeName: "", brand: "", branch: "", outletType: "", tables: "",
   address: "", city: "", pincode: "", state: "", phone: "", whatsapp: "",
-  ownerName: "", designation: "", email: "", gst: "", fssai: "",
+  ownerName: "", designation: "", email: "", password: "", confirmPassword: "", gst: "", fssai: "",
 };
 
-const validators: Record<string, (v: string) => string | null> = {
-  cafeName:   (v) => v.trim() ? null : "Please enter your cafe name",
-  branch:     (v) => v.trim() ? null : "Please enter branch name",
-  outletType: (v) => v        ? null : "Please select outlet type",
-  tables:     (v) => v        ? null : "Please select table count",
-  address:    (v) => v.trim() ? null : "Please enter your address",
-  city:       (v) => v.trim() ? null : "Required",
-  pincode:    (v) => /^\d{6}$/.test(v.trim()) ? null : "Enter valid 6-digit pincode",
-  state:      (v) => v        ? null : "Please select state",
-  phone:      (v) => /^(\+91)?[6-9]\d{9}$/.test(v.replace(/\s/g, "")) ? null : "Enter valid 10-digit number",
-  ownerName:  (v) => v.trim() ? null : "Required",
-  email:      (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "Enter a valid email address",
+const validators: Record<
+  string,
+  (v: string, form: Record<string, string>) => string | null
+> = {
+  cafeName: (v) => v.trim() ? null : "Please enter your cafe name",
+  branch: (v) => v.trim() ? null : "Please enter branch name",
+  outletType: (v) => v ? null : "Please select outlet type",
+  tables: (v) => v ? null : "Please select table count",
+  address: (v) => v.trim() ? null : "Please enter your address",
+  city: (v) => v.trim() ? null : "Required",
+  pincode: (v) => /^\d{6}$/.test(v.trim()) ? null : "Enter valid 6-digit pincode",
+  state: (v) => v ? null : "Please select state",
+  phone: (v) =>
+    /^(\+91)?[6-9]\d{9}$/.test(v.replace(/\s/g, ""))
+      ? null
+      : "Enter valid 10-digit number",
+  ownerName: (v) => v.trim() ? null : "Required",
+  email: (v) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+      ? null
+      : "Enter a valid email address",
+
+  password: (v) =>
+    v.length >= 6
+      ? null
+      : "Password must be at least 6 characters",
+
+  confirmPassword: (v, form) =>
+    v === form.password
+      ? null
+      : "Passwords do not match",
 };
 
 // ─── Field wrapper ─────────────────────────────────────────────────────────────
@@ -309,7 +328,7 @@ function StepLocation({ formData, onValueChange, errors }: StepProps) {
           <FInput id="phone" type="tel" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="+91 98765 43210" maxLength={13} />
         </Field>
         <Field label="WhatsApp number" hint="Order alerts will be sent here">
-          <FInput id="whatsapp" type="tel" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="Same or different" maxLength={13} />  
+          <FInput id="whatsapp" type="tel" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="Same or different" maxLength={13} />
         </Field>
       </div>
     </div>
@@ -332,18 +351,27 @@ function StepAdmin({ formData, onValueChange, errors }: StepProps) {
           </FSelect>
         </Field>
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="GSTIN" hint="Required for GST-compliant billing invoices (CGST/SGST split)">
+          <FInput id="gst" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="15-character GST number" maxLength={15} />
+        </Field>
 
+        <Field label="FSSAI licence no." hint="Printed on customer-facing digital receipts">
+          <FInput id="fssai" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="14-digit FSSAI number" maxLength={14} />
+        </Field>
+      </div>
       <Field label="Email address" required error={errors.email} hint="Your login ID — trial credentials will be sent here">
         <FInput id="email" type="email" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="you@yourcafe.com" />
       </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Password" required error={errors.password} hint="Set a strong password for your account">
+          <FInput id="password" type="password" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="At least 6 characters" />
+        </Field>
+        <Field label="Confirm password" required error={errors.confirmPassword} hint="Set a strong password for your account">
+          <FInput id="confirmPassword" type="password" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="At least 6 characters" />
+        </Field>
 
-      <Field label="GSTIN" hint="Required for GST-compliant billing invoices (CGST/SGST split)">
-        <FInput id="gst" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="15-character GST number" maxLength={15} />
-      </Field>
-
-      <Field label="FSSAI licence no." hint="Printed on customer-facing digital receipts">
-        <FInput id="fssai" formData={formData} onValueChange={onValueChange} errors={errors} placeholder="14-digit FSSAI number" maxLength={14} />
-      </Field>
+      </div>
 
       <div className="mt-1 flex gap-2 rounded-[8px] border border-[#e8a030]/20 bg-[#e8a030]/6 p-3">
         <ShieldCheck size={14} className="mt-[2px] flex-shrink-0 text-[#e8a030]" aria-hidden="true" />
@@ -364,9 +392,9 @@ interface TagItem {
 
 function SuccessScreen() {
   const tags: TagItem[] = [
-    { Icon: QrCode,    label: "QR codes ready" },
-    { Icon: ChefHat,   label: "Kitchen display on" },
-    { Icon: Mail,      label: "Credentials sent" },
+    { Icon: QrCode, label: "QR codes ready" },
+    { Icon: ChefHat, label: "Kitchen display on" },
+    { Icon: Mail, label: "Credentials sent" },
     { Icon: BarChart2, label: "Analytics live" },
   ];
 
@@ -407,9 +435,9 @@ function StepDots({ current, total }: StepDotsProps) {
           key={i}
           className={[
             "h-[3px] flex-1 rounded-full transition-all duration-200",
-            i < current     ? "bg-[#e8a030]"
-            : i === current ? "bg-[#e8a030]/45"
-            : "bg-white/10",
+            i < current ? "bg-[#e8a030]"
+              : i === current ? "bg-[#e8a030]/45"
+                : "bg-white/10",
           ].join(" ")}
         />
       ))}
@@ -420,17 +448,17 @@ function StepDots({ current, total }: StepDotsProps) {
 // ─── Trial signup modal ────────────────────────────────────────────────────────
 
 function TrialSignupModal({ onClose }: TrialSignupModalProps) {
-  const [step,   setStep]   = useState(0);
-  const [form,   setForm]   = useState<Record<string, string>>(EMPTY_FORM);
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState<Record<string, string>>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
-  const [done,   setDone]   = useState(false);
+  const [done, setDone] = useState(false);
 
   const handleChange = (id: string, value: string) => {
     setForm((f) => ({ ...f, [id]: value }));
     if (errors[id]) setErrors((e) => ({ ...e, [id]: null }));
   };
 
-    const saveCreateNewAccout = async () => {
+  const saveCreateNewAccout = async () => {
     const response = await fetch("/api/CreateNewAccout", {
       method: "POST",
       headers: {
@@ -453,56 +481,56 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     STEP_REQUIRED[step].forEach((id) => {
-      const msg = validators[id]?.(form[id] ?? "");
+      const msg = validators[id]?.(form[id] ?? "", form);
       if (msg) next[id] = msg;
     });
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-const handleNext = async () => {
-  if (!validate()) return;
+  const handleNext = async () => {
+    if (!validate()) return;
 
-  if (step === 2) {
-    try {
-      await saveCreateNewAccout();
+    if (step === 2) {
+      try {
+        await saveCreateNewAccout();
 
-      console.log("Create New Accout saved successfully");
+        console.log("Create New Accout saved successfully");
 
-      setDone(true);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to create free trial");
+        setDone(true);
+      } catch (error) {
+        console.error(error);
+        alert("Failed to create free trial");
+      }
+
+      return;
     }
 
-    return;
-  }
-
-  setStep((s) => s + 1);
-};
+    setStep((s) => s + 1);
+  };
 
   const handleBack = () => setStep((s) => s - 1);
 
-const stepPanels = [
-  <StepCafeIdentity
-    key={0}
-    formData={form}
-    onValueChange={handleChange}
-    errors={errors}
-  />,
-  <StepLocation
-    key={1}
-    formData={form}
-    onValueChange={handleChange}
-    errors={errors}
-  />,
-  <StepAdmin
-    key={2}
-    formData={form}
-    onValueChange={handleChange}
-    errors={errors}
-  />,
-];
+  const stepPanels = [
+    <StepCafeIdentity
+      key={0}
+      formData={form}
+      onValueChange={handleChange}
+      errors={errors}
+    />,
+    <StepLocation
+      key={1}
+      formData={form}
+      onValueChange={handleChange}
+      errors={errors}
+    />,
+    <StepAdmin
+      key={2}
+      formData={form}
+      onValueChange={handleChange}
+      errors={errors}
+    />,
+  ];
 
   return (
     <div
@@ -517,7 +545,7 @@ const stepPanels = [
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-[17px] font-medium text-[#fdf6ec]">
                 <Coffee size={18} className="text-[#e8a030]" aria-hidden="true" />
-                Start your free trial
+                Start your free Account
               </div>
               <button
                 onClick={onClose}
@@ -615,22 +643,26 @@ export default function SmartCafeLanding() {
               aria-hidden="true"
               className="absolute inset-0 h-full w-full object-cover opacity-35"
             />
+
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0b07] via-[#0e0b07]/60 to-transparent" />
 
-            <div className="relative z-10">
+            <div className="relative z-10 -top-[7%]">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
                 ✦ Modern cafe tech
               </div>
 
               <h1 className="text-[34px] font-medium leading-[1.15] text-[#fdf6ec]">
-                Scan. Order.<br />
+                Scan. Order.
+                <br />
                 <span className="text-[#e8a030]">Get Served.</span>
               </h1>
 
               <p className="mb-6 mt-3 max-w-[340px] text-[13px] leading-[1.7] text-[#fdf6ec]/55">
-                Customers browse and order from their table. Admins manage live kitchen flow from one focused dashboard.
+                Customers browse and order from their table. Admins manage live kitchen
+                flow from one focused dashboard.
               </p>
 
+              {/* Steps */}
               <div className="flex flex-col gap-[10px]">
                 {steps.map((step, i) => (
                   <div
@@ -640,12 +672,66 @@ export default function SmartCafeLanding() {
                     <div className="mt-[1px] flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[#e8a030]/35 bg-[#e8a030]/15 text-[11px] font-medium text-[#e8a030]">
                       {i + 1}
                     </div>
+
                     <div>
-                      <p className="text-[13px] font-medium text-[#fdf6ec]">{step.title}</p>
-                      <p className="mt-[2px] text-[11px] text-[#fdf6ec]/45">{step.desc}</p>
+                      <p className="text-[13px] font-medium text-[#fdf6ec]">
+                        {step.title}
+                      </p>
+                      <p className="mt-[2px] text-[11px] text-[#fdf6ec]/45">
+                        {step.desc}
+                      </p>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Create Account Card */}
+              <div className="mt-6 overflow-hidden rounded-2xl border border-[#e8a030]/20 bg-gradient-to-br from-[#e8a030]/15 to-[#e8a030]/5 p-5 backdrop-blur-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="rounded-full border border-[#e8a030]/30 bg-[#e8a030]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-[#e8a030]">
+                      Free Trial
+                    </span>
+
+                    <h3 className="mt-3 text-[22px] font-semibold text-[#fdf6ec]">
+                      Create Your Cafe Account
+                    </h3>
+
+                    <p className="mt-2 max-w-md text-[13px] leading-[1.7] text-[#fdf6ec]/60">
+                      Launch your digital ordering system in minutes. Generate table QR
+                      codes, manage orders, monitor kitchen workflow, and grow your cafe
+                      with real-time analytics.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
+                    ✓ 14 Days Free
+                  </div>
+
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
+                    ✓ Unlimited Orders
+                  </div>
+
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
+                    ✓ No Credit Card
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center gap-2 rounded-xl bg-[#e8a030] px-5 py-3 text-[13px] font-semibold text-[#1a0f00] transition-all hover:bg-[#d4902a]"
+                  >
+                    <Rocket size={15} />
+                    Create Free Account
+                  </button>
+
+                  <button className="rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-[13px] font-medium text-[#fdf6ec] transition-all hover:bg-white/10">
+                    View Demo
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -706,7 +792,7 @@ export default function SmartCafeLanding() {
 
                     {plan.isTrial ? (
                       <button
-                        onClick={() => setShowModal(true)}
+                        // onClick={() => setShowModal(true)}
                         className="w-full rounded-[8px] border border-white/12 bg-white/7 py-[7px] text-[12px] font-medium text-[#fdf6ec] transition hover:bg-white/13"
                       >
                         {plan.cta}

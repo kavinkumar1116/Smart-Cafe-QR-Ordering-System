@@ -31,6 +31,8 @@ const orderSelect =
 
 
 type CreateNewAccoutInsert = Database["public"]["Tables"]["tenants"]["Insert"];
+type CreateNewAccoutUpdate = Database["public"]["Tables"]["tenants"]["Update"];
+type TenantPatch = Partial<Database["public"]["Tables"]["tenants"]["Update"]>;
 
 
 function mapSupabaseError(error: PostgrestError): Error {
@@ -509,17 +511,77 @@ export async function fetchOrderReports(
 }
 
 export async function insertCreateNewAccout(item: CreateNewAccoutInsert): Promise<CreateNewAccout> {
-
   const supabase = createServerSupabaseClient();
-  const payload: CreateNewAccoutInsert = {...item};
 
   const { data, error } = await supabase
     .from("tenants")
-    .insert(payload)
-    .select("tenant_id, tenant_slug,tenant_name,owner_name,email,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, created_at, updated_at ")
+    .insert({ ...item, reset_otp: null, reset_otp_expiry: null } as any)
+    .select("tenant_id, tenant_slug, tenant_name, owner_name, email, password_hash, phone, subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode, state, whatsapp, designation, gst, fssai, created_at, updated_at")
     .single();
 
   if (error) throw mapSupabaseError(error);
+  return data as CreateNewAccout;
+}
 
- return data as CreateNewAccout;
+export async function fetchTenantsByEmail(email: string): Promise<CreateNewAccout[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
+    .eq("email", email.trim())
+    .order("created_at", { ascending: true });
+
+  if (error) throw mapSupabaseError(error);
+  return data as CreateNewAccout[];
+}
+
+export async function updateTenantBranch(tenantId: number, item: Partial<CreateNewAccout>): Promise<CreateNewAccout> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("tenants")
+    .update(item as any)  // ← cast here once, all call sites stay clean
+    .eq("tenant_id", tenantId)
+    .select("tenant_id, tenant_slug, tenant_name, owner_name, email, phone, subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode, state, whatsapp, designation, gst, fssai, created_at, updated_at")
+    .single();
+
+  if (error) throw mapSupabaseError(error);
+  return data as CreateNewAccout;
+}
+
+export async function insertTenantResetOtp(
+  tenantId: number,
+  reset_otp: string,
+  reset_otp_expiry: string
+): Promise<CreateNewAccout> {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("tenants")
+    .update({ reset_otp, reset_otp_expiry } as CreateNewAccoutUpdate)
+    .eq("tenant_id", tenantId)
+    .select();  // ← remove .maybeSingle() temporarily
+ 
+
+  if (error) throw mapSupabaseError(error);
+  if (!data || data.length === 0) throw new Error(`No tenant found with id: ${tenantId}`);
+
+  return data[0] as CreateNewAccout;
+}
+
+export async function updateForgotPassword(
+  tenantId: number,
+  password_hash: string,
+): Promise<CreateNewAccout> {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("tenants")
+    .update({ reset_otp: null, reset_otp_expiry: null, password_hash } as any)
+    .eq("tenant_id", tenantId)
+    .select();
+
+  if (error) throw mapSupabaseError(error);
+  if (!data || data.length === 0) throw new Error(`No tenant found with id: ${tenantId}`);
+
+  return data[0] as CreateNewAccout;
 }

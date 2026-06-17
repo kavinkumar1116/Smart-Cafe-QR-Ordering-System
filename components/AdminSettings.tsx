@@ -31,6 +31,20 @@ interface SettingsFormData {
   invoice_number_format: string;
 }
 
+interface BranchFormData {
+  tenant_id?: number;
+  branch_name: string;
+  email: string;
+  password?: string;
+  address: string;
+  city: string;
+  pincode: string;
+  state: string;
+  status: boolean;
+  admin_email: string;
+  admin_password: string;
+}
+
 interface SettingsSection {
   id: string;
   title: string;
@@ -73,6 +87,11 @@ const sections: SettingsSection[] = [
     id: "billing",
     title: "Billing & Tax Settings",
     icon: ReceiptText,
+  },
+  {
+    id: "create_branches",
+    title: "Create Branches",
+    icon: Building2,
   },
 ];
 
@@ -152,14 +171,12 @@ function Toggle({
       </span>
 
       <span
-        className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition ${
-          enabled ? "bg-emerald-600" : "bg-slate-200"
-        }`}
+        className={`flex h-7 w-12 shrink-0 items-center rounded-full p-1 transition ${enabled ? "bg-emerald-600" : "bg-slate-200"
+          }`}
       >
         <span
-          className={`h-5 w-5 rounded-full bg-white shadow-sm transition ${
-            enabled ? "translate-x-5" : "translate-x-0"
-          }`}
+          className={`h-5 w-5 rounded-full bg-white shadow-sm transition ${enabled ? "translate-x-5" : "translate-x-0"
+            }`}
         />
       </span>
     </button>
@@ -176,9 +193,8 @@ function Panel({
   return (
     <section
       id={id}
-      className={`scroll-mt-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${
-        active ? "block" : "hidden"
-      }`}
+      className={`scroll-mt-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${active ? "block" : "hidden"
+        }`}
     >
       <div className="mb-5 flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
@@ -214,8 +230,8 @@ function ActionButton({
     tone === "primary"
       ? "bg-emerald-600 text-white hover:bg-emerald-700"
       : tone === "danger"
-      ? "border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200"
-      : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
+        ? "border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200"
+        : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
 
   return (
     <button
@@ -252,6 +268,104 @@ export default function AdminSettings() {
     discount_rules: "",
     invoice_prefix: "",
     invoice_number_format: "",
+  });
+
+  const [branches, setBranches] = useState<any[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
+  const [branchesError, setBranchesError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<any | null>(null);
+  const [branchForm, setBranchForm] = useState<BranchFormData>({
+    branch_name: "",
+    email: "",
+    password: "",
+    address: "",
+    city: "",
+    pincode: "",
+    state: "",
+    status: true,
+    admin_email: "",
+    admin_password: "",
+  });
+
+  async function loadBranches() {
+    setBranchesLoading(true);
+    setBranchesError("");
+    try {
+      const response = await tenantApiFetch("/api/admin/branches");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load branches");
+      }
+      setBranches(data.branches || []);
+    } catch (err) {
+      setBranchesError(err instanceof Error ? err.message : "Error loading branches");
+    } finally {
+      setBranchesLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeSection === "create_branches") {
+      void loadBranches();
+    }
+  }, [activeSection]);
+
+  async function saveBranch(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMessage("");
+    try {
+      const isEdit = !!editingBranch;
+      const response = await tenantApiFetch("/api/admin/branches", {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isEdit ? {
+          tenant_id: editingBranch.tenant_id,
+          branch_name: branchForm.branch_name,
+          email: branchForm.email,
+          address: branchForm.address,
+          city: branchForm.city,
+          pincode: branchForm.pincode,
+          state: branchForm.state,
+          status: branchForm.status,
+        } : {
+          branch_name: branchForm.branch_name,
+          email: branchForm.email,
+          password: branchForm.password,
+          address: branchForm.address,
+          city: branchForm.city,
+          pincode: branchForm.pincode,
+          state: branchForm.state,
+          status: branchForm.status,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save branch");
+      }
+
+      setModalOpen(false);
+      void loadBranches();
+      setMessage(isEdit ? "Branch updated successfully." : "Branch created successfully.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Failed to save branch.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const [getNewBranchesFormsData, setGetNewBranchesFormsData] = useState({
+    branch_name: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    status: "",
+    exisitng_email_id: "",
+    exisitng_password: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -377,11 +491,10 @@ export default function AdminSettings() {
                     key={section.id}
                     type="button"
                     onClick={() => setActiveSection(section.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
-                      selected
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${selected
                         ? "bg-emerald-600 text-white shadow-sm"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
+                      }`}
                   >
                     <Icon size={17} aria-hidden="true" />
 
@@ -535,6 +648,111 @@ export default function AdminSettings() {
               </div>
             </Panel>
 
+
+            {/* Create Branches */}
+            <Panel
+              {...sections[2]}
+              active={activeSection === sections[2].id}
+            >
+              <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Branches List
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">Manage cafe locations and statuses</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingBranch(null);
+                    setBranchForm({
+                      branch_name: "",
+                      email: "",
+                      password: "",
+                      address: "",
+                      city: "",
+                      pincode: "",
+                      state: "",
+                      status: true,
+                      admin_email: "",
+                      admin_password: "",
+                    }); 
+                    setModalOpen(true);
+                  }}
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
+                >
+                  Create New Branch
+                </button>
+              </div>
+
+              {branchesLoading ? (
+                <div className="text-sm text-slate-500 py-6 text-center">Loading branches...</div>
+              ) : branchesError ? (
+                <div className="text-sm text-rose-500 py-6 text-center">{branchesError}</div>
+              ) : branches.length === 0 ? (
+                <div className="text-sm text-slate-500 py-10 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  No branches created yet. Click "Create New Branch" to add one.
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                  <table className="w-full border-collapse text-left text-sm text-slate-500">
+                    <thead className="bg-slate-50 text-xs uppercase text-slate-700">
+                      <tr>
+                        <th className="px-5 py-3.5 font-semibold">Branch Name</th>
+                        <th className="px-5 py-3.5 font-semibold">Email</th>
+                        <th className="px-5 py-3.5 font-semibold">Location</th>
+                        <th className="px-5 py-3.5 font-semibold">Status</th>
+                        <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {branches.map((b) => (
+                        <tr key={b.tenant_id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-5 py-3.5 font-semibold text-slate-900">{b.branch}</td>
+                          <td className="px-5 py-3.5 text-slate-600">{b.email}</td>
+                          <td className="px-5 py-3.5 text-slate-500">
+                            {b.city ? `${b.city}, ${b.state || ""}` : "-"}
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === 1 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
+                              }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${b.status === 1 ? "bg-emerald-500" : "bg-slate-400"
+                                }`} />
+                              {b.status === 1 ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingBranch(b);
+                                setBranchForm({
+                                  branch_name: b.branch || "",
+                                  email: b.email || "",
+                                  password: "",
+                                  address: b.address || "",
+                                  city: b.city || "",
+                                  pincode: b.pincode || "",
+                                  state: b.state || "",
+                                  status: b.status === 1,
+                                  admin_email: b.admin_email || "",
+                                  admin_password: "",
+                                });
+                                setModalOpen(true);
+                              }}
+                              className="font-semibold text-emerald-600 hover:text-emerald-700 transition"
+                            >
+                              Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Panel>
+
             {/* Save Settings */}
             <section className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -559,6 +777,138 @@ export default function AdminSettings() {
             </section>
           </div>
         </div>
+
+        {/* Modal Popup */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-[2px]">
+            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {editingBranch ? "Edit Cafe Branch" : "Create New Cafe Branch"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition"
+                  aria-label="Close modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={saveBranch} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label="Branch Name"
+                    value={branchForm.branch_name}
+                    placeholder="e.g. Indiranagar Branch"
+                    onChange={(val) => setBranchForm({ ...branchForm, branch_name: val })}
+                  />
+                  <Field
+                    label="Email Address"
+                    type="email"
+                    value={branchForm.email}
+                    placeholder="e.g. indiranagar@cafe.com"
+                    onChange={(val) => setBranchForm({ ...branchForm, email: val })}
+                  />
+                  {!editingBranch && (
+                    <div className="sm:col-span-2">
+                      <Field
+                        label="Login Password"
+                        type="password"
+                        value={branchForm.password}
+                        placeholder="Set account login password"
+                        onChange={(val) => setBranchForm({ ...branchForm, password: val })}
+                      />
+                    </div>
+                  )}
+                  <div className="sm:col-span-2">
+                    <Field
+                      label="Address"
+                      value={branchForm.address}
+                      placeholder="Shop no, building, street..."
+                      onChange={(val) => setBranchForm({ ...branchForm, address: val })}
+                    />
+                  </div>
+                  <Field
+                    label="City"
+                    value={branchForm.city}
+                    placeholder="e.g. Bengaluru"
+                    onChange={(val) => setBranchForm({ ...branchForm, city: val })}
+                  />
+                  <Field
+                    label="Pincode"
+                    value={branchForm.pincode}
+                    placeholder="6-digit PIN code"
+                    onChange={(val) => setBranchForm({ ...branchForm, pincode: val })}
+                  />
+                  <div className="sm:col-span-2">
+                    <Field
+                      label="State"
+                      value={branchForm.state}
+                      placeholder="e.g. Karnataka"
+                      onChange={(val) => setBranchForm({ ...branchForm, state: val })}
+                    />
+                  </div>
+
+                   
+                  <Field
+                    label="Admin Email Address"
+                    type="email"
+                    value={branchForm.admin_email}
+                    placeholder="e.g. indiranagar@cafe.com"
+                    onChange={(val) => setBranchForm({ ...branchForm, email: val })}
+                  /> 
+                  
+                      <Field
+                        label="Admin Login Password"
+                        type="password"
+                        value={branchForm.admin_password}
+                        placeholder="Set account login password"
+                        onChange={(val) => setBranchForm({ ...branchForm, password: val })}
+                      /> 
+
+
+                  {activeSection !== "create_branches" && (
+                    <div className="sm:col-span-2 py-2 border-t border-b border-slate-100 my-1">
+                      <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                        Branch Activation Status
+                      </span>
+                      <Toggle
+                        label="Branch Active"
+                        description="When disabled, customers cannot order from this location"
+                        enabled={branchForm.status}
+                        onChange={() =>
+                          setBranchForm({
+                            ...branchForm,
+                            status: !branchForm.status,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-60 shadow-sm"
+                  >
+                    {saving ? "Saving..." : "Save Branch"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </AdminGuard>
   );

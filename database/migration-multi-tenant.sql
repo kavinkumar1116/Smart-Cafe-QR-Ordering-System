@@ -16,14 +16,38 @@ CREATE TABLE IF NOT EXISTS tenants (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS subscription_plans (
-  id BIGSERIAL PRIMARY KEY,
-  plan_key VARCHAR(50) UNIQUE NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  price NUMERIC(10, 2) NOT NULL,
-  interval VARCHAR(30) NOT NULL,
-  features JSONB NOT NULL DEFAULT '{}',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+
+CREATE TABLE IF NOT EXISTS subscription_plans  (
+    id BIGSERIAL PRIMARY KEY,
+
+    cafe_name VARCHAR(255) NOT NULL,
+    brand VARCHAR(255),
+    branch VARCHAR(255) NOT NULL,
+    outlet_type VARCHAR(100) NOT NULL,
+    tables VARCHAR(50) NOT NULL,
+
+    address TEXT NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    pincode VARCHAR(10) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+
+    phone VARCHAR(15) NOT NULL,
+    whatsapp VARCHAR(15),
+
+    owner_name VARCHAR(255) NOT NULL,
+    designation VARCHAR(100),
+
+    email VARCHAR(255) NOT NULL UNIQUE,
+
+    gst VARCHAR(15),
+    fssai VARCHAR(14),
+
+    plan VARCHAR(50) DEFAULT 'Free Trial',
+    trial_days INTEGER DEFAULT 14,
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS tenant_subscriptions (

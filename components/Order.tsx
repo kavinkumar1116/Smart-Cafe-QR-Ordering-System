@@ -684,10 +684,8 @@ export default function Order({ tableId }: MenuExperienceProps) {
   );
 
   const visibleGroups = useMemo<MenuGroup[]>(() => {
-    const sourceCategories =
-      category === "All"
-        ? categoryOptions.filter((entry) => entry !== "All")
-        : [category];
+    
+    const sourceCategories = category === "All" ? categoryOptions.filter((entry) => entry !== "All") : [category];
 
     return sourceCategories
       .map((groupCategory) => ({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname,useParams, useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { ReactNode } from "react";
 
@@ -9,45 +9,26 @@ interface AdminGuardProps {
   children: ReactNode;
 }
 
-export default function AdminGuard({ children }: AdminGuardProps) {
+export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const { tenantSlug } = useParams(); // Get the tenantSlug from the URL
   const [ready, setReady] = useState(false);
 
-  const loginPath = getTenantAdminLoginPath(pathname);
+ 
 
   useEffect(() => {
-    let active = true;
-    const supabase = createBrowserSupabaseClient();
-
-    async function checkSession() {
-      const { data } = await supabase.auth.getSession();
-      if (!active) return;
-
-      if (!data.session) {
-        router.replace(loginPath);
-        return;
-      }
-
-      setReady(true);
+    // Check your cookie or storage
+    const isAuthenticated = document.cookie.includes("smart-cafe-admin=true"); // or localStorage
+    
+    if (!isAuthenticated) {
+      // Dynamically redirect back to the tenant's login page
+      router.replace(`/${tenantSlug}/admin`);
+      return;
     }
+    setReady(true);
+  }, [router, tenantSlug]);
 
-    void checkSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.replace(loginPath);
-    });
-
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
-  }, [loginPath, router]);
-
-  if (!ready) {
-    return <div className="glass-panel rounded-lg p-8 text-center text-crema/70">Checking admin session...</div>;
-  }
-
+  if (!ready) return <div>Checking session...</div>;
   return children;
 }
 
