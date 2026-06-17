@@ -384,11 +384,14 @@ export interface Database {
      tenants: {
         Row: {
           tenant_id: number;
+          parent_tenant_id: number | null;
+          is_head_branch : boolean;
           tenant_slug: string | null;
           tenant_name: string | null;
 
           owner_name: string;
           email: string;
+          password_hash: string;
           phone: string;
 
           subscription_plan: string | null;
@@ -412,12 +415,17 @@ export interface Database {
           gst: string | null;
           fssai: string | null;
 
+          reset_otp: string | null;
+          reset_otp_expiry: string | null;
+
           created_at: string;
           updated_at: string;
         };
 
         Insert: {
           tenant_id?: number;
+          parent_tenant_id ?: number | null;
+          is_head_branch : boolean;
           tenant_slug?: string | null;
           tenant_name?: string | null;
 
@@ -449,12 +457,17 @@ export interface Database {
           trial_start_date?: string | null;
           trial_end_date?: string | null;
 
+          reset_otp: string | null;
+          reset_otp_expiry: string | null;
+
           created_at?: string;
           updated_at?: string;
         };
 
         Update: {
           tenant_id?: number;
+          parent_tenant_id?: number | null;
+          is_head_branch : boolean;
           tenant_slug?: string | null;
           tenant_name?: string | null;
 
@@ -485,6 +498,9 @@ export interface Database {
 
           trial_start_date?: string | null;
           trial_end_date?: string | null;
+
+          reset_otp: string | null;
+          reset_otp_expiry: string | null;
 
           updated_at?: string;
         };
