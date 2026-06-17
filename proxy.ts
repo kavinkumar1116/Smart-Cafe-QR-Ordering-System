@@ -11,6 +11,9 @@ const EXEMPT_PATHS = [
   "/api/auth",
   "/api/auth/",
   "/api/CreateNewAccout",
+  "/api/AdminLogin",
+  "/api/AdminForgotPassword",
+  "/api/logout",
 ];
 
 function shouldSkipPath(pathname: string) {

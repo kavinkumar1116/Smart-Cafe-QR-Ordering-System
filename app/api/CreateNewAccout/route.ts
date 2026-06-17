@@ -1,6 +1,25 @@
+import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
 import { insertCreateNewAccout } from "@/lib/supabase/crud";
+
+
+function generateTenantId(length = 10): string {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  let id =
+    letters.charAt(Math.floor(Math.random() * letters.length));
+
+  for (let i = 1; i < length; i++) {
+    id += chars.charAt(
+      Math.floor(Math.random() * chars.length)
+    );
+  }
+
+  return id;
+}
+
 
 export async function POST(req: Request) {
   try {
@@ -23,43 +42,54 @@ export async function POST(req: Request) {
       ownerName,
       designation,
       email,
+      password,
       gst,
       fssai,
     } = body;
 
-    // Generate unique tenant slug
-    const baseSlug = (cafeName || "cafe")
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    const randomSuffix = Math.random().toString(36).substring(2, 7);
-    const tenant_slug = `${baseSlug}-${randomSuffix}`;
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate tenant_id as a random unique number (fits BIGINT/number)
-    const tenant_id = Math.floor(10000000 + Math.random() * 90000000);
 
-    // Map camelCase fields to database snake_case fields
+    const tenant_slug = generateTenantId();
+
+    // Generate tenant id
+    const tenant_id = Math.floor(
+      10000000 + Math.random() * 90000000
+    );
+
     const payload = {
       tenant_id,
       tenant_slug,
-      tenant_name: cafeName ? `${cafeName} - ${branch || ""}`.trim() : "Smart Cafe",
+      tenant_name: cafeName
+        ? `${cafeName} - ${branch || ""}`.trim()
+        : "Smart Cafe",
+
       owner_name: ownerName || "",
       email: email || "",
+
+      // Save hashed password
+      password_hash: hashedPassword,
+
       phone: phone || "",
+
       subscription_plan: "Free Trial",
-      status: 1, // Active
+      status: 1,
+
       cafe_name: cafeName || "",
       brand: brand || null,
       branch: branch || "",
       outlet_type: outletType || "",
       tables: tables || "",
+
       address: address || "",
       city: city || "",
       pincode: pincode || "",
       state: state || "",
+
       whatsapp: whatsapp || null,
       designation: designation || null,
+
       gst: gst || null,
       fssai: fssai || null,
     };
@@ -68,7 +98,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "New Accout created successfully",
+      message: "New Account created successfully",
       data: CreateNewAccout,
     });
   } catch (error) {
