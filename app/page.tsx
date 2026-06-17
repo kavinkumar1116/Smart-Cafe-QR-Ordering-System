@@ -51,45 +51,6 @@ interface TrialSignupModalProps {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const plans = [
-  {
-    name: "Free Trial",
-    price: "₹0",
-    duration: "14 days",
-    description: "Perfect for testing and portfolio demos",
-    features: ["1 table QR", "Basic menu", "Order tracking"],
-    highlighted: false,
-    cta: "Start Free Trial",
-    isTrial: true,
-  },
-  {
-    name: "Pro",
-    price: "₹999",
-    duration: "/month",
-    description: "Everything you need for a growing cafe",
-    features: ["Unlimited tables", "Analytics dashboard", "Kitchen display"],
-    highlighted: true,
-    cta: "Subscribe Now",
-    isTrial: false,
-  },
-  {
-    name: "Enterprise",
-    price: "₹2999",
-    duration: "/month",
-    description: "Multi-branch, white-label & priority support",
-    features: ["Multi-branch", "White-label", "Priority support"],
-    highlighted: false,
-    cta: "Subscribe Now",
-    isTrial: false,
-  },
-];
-
-const stats = [
-  { value: "2 min", label: "Avg order time" },
-  { value: "99%", label: "Uptime SLA" },
-  { value: "∞", label: "Menu items" },
-];
-
 const steps = [
   { title: "Scan QR", desc: "Each table opens its own menu URL instantly" },
   { title: "Enter details & order", desc: "Name and mobile captured before cart actions" },
@@ -633,207 +594,169 @@ export default function SmartCafeLanding() {
         </header>
 
         {/* ── Main two-column grid ── */}
-        <main className="grid flex-1 grid-cols-2 overflow-hidden">
+       <main className="relative z-10 grid flex-1 grid-cols-1 lg:grid-cols-2 overflow-hidden">
 
-          {/* ── LEFT: Hero ── */}
-          <section className="relative flex flex-col justify-end overflow-hidden border-r border-white/7 p-8">
-            <img
-              src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=900&q=80"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover opacity-35"
-            />
+  {/* LEFT SIDE */}
+  <section className="relative flex flex-col justify-center px-12 py-12">
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0e0b07] via-[#0e0b07]/60 to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
 
-            <div className="relative z-10 -top-[7%]">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
-                ✦ Modern cafe tech
-              </div>
+    <div className="relative z-10 max-w-xl mt-[-30px]">
+      <h1 className="text-5xl font-bold leading-tight text-white">
+        Transform Your Cafe
+        <br />
+        <span className="bg-gradient-to-r from-[#e8a030] to-[#ffd27d] bg-clip-text text-transparent">
+           Into Digital
+        </span>
+      </h1>
 
-              <h1 className="text-[34px] font-medium leading-[1.15] text-[#fdf6ec]">
-                Scan. Order.
-                <br />
-                <span className="text-[#e8a030]">Get Served.</span>
-              </h1>
+      <p className="mt-2 text-lg leading-8 text-white/70">
+        QR Ordering, Live Kitchen Tracking, Smart Billing,
+        Customer Insights and Branch Management —
+        all from one dashboard.
+      </p>
 
-              <p className="mb-6 mt-3 max-w-[340px] text-[13px] leading-[1.7] text-[#fdf6ec]/55">
-                Customers browse and order from their table. Admins manage live kitchen
-                flow from one focused dashboard.
-              </p>
+      {/* Stats */}
+      <div className="mt-5 grid grid-cols-3 gap-4">
 
-              {/* Steps */}
-              <div className="flex flex-col gap-[10px]">
-                {steps.map((step, i) => (
-                  <div
-                    key={step.title}
-                    className="flex items-start gap-[10px] rounded-[10px] border border-white/7 bg-white/4 px-[14px] py-[10px]"
-                  >
-                    <div className="mt-[1px] flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[#e8a030]/35 bg-[#e8a030]/15 text-[11px] font-medium text-[#e8a030]">
-                      {i + 1}
-                    </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+          <p className="text-3xl font-bold text-[#e8a030]">500+</p>
+          <p className="mt-1 text-xs text-white/60">
+            Active Cafes
+          </p>
+        </div>
 
-                    <div>
-                      <p className="text-[13px] font-medium text-[#fdf6ec]">
-                        {step.title}
-                      </p>
-                      <p className="mt-[2px] text-[11px] text-[#fdf6ec]/45">
-                        {step.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+          <p className="text-3xl font-bold text-[#e8a030]">1M+</p>
+          <p className="mt-1 text-xs text-white/60">
+            Orders Processed
+          </p>
+        </div>
 
-              {/* Create Account Card */}
-              <div className="mt-6 overflow-hidden rounded-2xl border border-[#e8a030]/20 bg-gradient-to-br from-[#e8a030]/15 to-[#e8a030]/5 p-5 backdrop-blur-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="rounded-full border border-[#e8a030]/30 bg-[#e8a030]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.08em] text-[#e8a030]">
-                      Free Trial
-                    </span>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md">
+          <p className="text-3xl font-bold text-[#e8a030]">99.9%</p>
+          <p className="mt-1 text-xs text-white/60">
+            Uptime
+          </p>
+        </div>
 
-                    <h3 className="mt-3 text-[22px] font-semibold text-[#fdf6ec]">
-                      Create Your Cafe Account
-                    </h3>
+      </div>
 
-                    <p className="mt-2 max-w-md text-[13px] leading-[1.7] text-[#fdf6ec]/60">
-                      Launch your digital ordering system in minutes. Generate table QR
-                      codes, manage orders, monitor kitchen workflow, and grow your cafe
-                      with real-time analytics.
-                    </p>
-                  </div>
-                </div>
+      {/* Steps */}
+      <div className="mt-5 flex flex-col gap-4">
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
-                    ✓ 14 Days Free
-                  </div>
-
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
-                    ✓ Unlimited Orders
-                  </div>
-
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-[#fdf6ec]/70">
-                    ✓ No Credit Card
-                  </div>
-                </div>
-
-                <div className="mt-5 flex gap-3">
-                  <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-xl bg-[#e8a030] px-5 py-3 text-[13px] font-semibold text-[#1a0f00] transition-all hover:bg-[#d4902a]"
-                  >
-                    <Rocket size={15} />
-                    Create Free Account
-                  </button>
-
-                  <button className="rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-[13px] font-medium text-[#fdf6ec] transition-all hover:bg-white/10">
-                    View Demo
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ── RIGHT: Panels ── */}
-          <section className="flex flex-col gap-4 overflow-hidden p-5">
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-[10px]">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-[10px] border border-white/8 bg-white/4 p-3 text-center"
-                >
-                  <p className="text-[22px] font-medium text-[#e8a030]">{stat.value}</p>
-                  <p className="mt-[2px] text-[10px] text-[#fdf6ec]/40">{stat.label}</p>
-                </div>
-              ))}
+        {steps.map((step, i) => (
+          <div
+            key={step.title}
+            className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e8a030]/15 text-[#e8a030] font-semibold">
+              {i + 1}
             </div>
 
-            {/* Plans */}
             <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-[#fdf6ec]/40">
-                Choose your plan
+              <p className="font-medium text-white">
+                {step.title}
               </p>
-              <div className="grid grid-cols-3 gap-[10px]">
-                {plans.map((plan) => (
-                  <div
-                    key={plan.name}
-                    className={[
-                      "relative flex flex-col rounded-[12px] p-[14px] transition-all",
-                      plan.highlighted
-                        ? "border border-[#e8a030]/45 bg-[#e8a030]/6"
-                        : "border border-white/9 bg-white/4 hover:border-white/18",
-                    ].join(" ")}
-                  >
-                    {plan.highlighted && (
-                      <span className="absolute right-[10px] top-[10px] rounded-full bg-[#e8a030] px-[7px] py-[2px] text-[9px] font-medium text-[#1a0f00]">
-                        Popular
-                      </span>
-                    )}
 
-                    <p className="mb-[6px] text-[13px] font-medium text-[#fdf6ec]">{plan.name}</p>
-                    <p className="text-[26px] font-medium leading-none text-[#e8a030]">{plan.price}</p>
-                    <p className="mb-2 mt-[2px] text-[11px] text-[#fdf6ec]/40">{plan.duration}</p>
-                    <p className="mb-[10px] flex-1 text-[11px] leading-[1.5] text-[#fdf6ec]/45">
-                      {plan.description}
-                    </p>
-
-                    <div className="mb-3 flex flex-col gap-[5px]">
-                      {plan.features.map((f) => (
-                        <div key={f} className="flex items-center gap-[5px] text-[11px] text-[#fdf6ec]/70">
-                          <BadgeCheck size={13} className="text-[#e8a030]" aria-hidden="true" />
-                          {f}
-                        </div>
-                      ))}
-                    </div>
-
-                    {plan.isTrial ? (
-                      <button
-                        // onClick={() => setShowModal(true)}
-                        className="w-full rounded-[8px] border border-white/12 bg-white/7 py-[7px] text-[12px] font-medium text-[#fdf6ec] transition hover:bg-white/13"
-                      >
-                        {plan.cta}
-                      </button>
-                    ) : (
-                      <button
-                        className={[
-                          "w-full rounded-[8px] py-[7px] text-[12px] font-medium transition",
-                          plan.highlighted
-                            ? "bg-[#e8a030] text-[#1a0f00] hover:bg-[#d4902a]"
-                            : "border border-white/12 bg-white/7 text-[#fdf6ec] hover:bg-white/13",
-                        ].join(" ")}
-                      >
-                        {plan.cta}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Modules */}
-            <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.06em] text-[#fdf6ec]/40">
-                Portfolio-ready modules
+              <p className="mt-1 text-sm text-white/50">
+                {step.desc}
               </p>
-              <div className="grid grid-cols-4 gap-2">
-                {modules.map(({ Icon, label }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-[7px] rounded-[8px] border border-white/7 bg-white/4 px-[10px] py-[8px] text-[11px] text-[#fdf6ec]/65"
-                  >
-                    <Icon size={15} className="flex-shrink-0 text-[#e8a030]" aria-hidden="true" />
-                    {label}
-                  </div>
-                ))}
-              </div>
             </div>
+          </div>
+        ))}
 
-          </section>
-        </main>
+      </div>
+
+    </div>
+
+  </section>
+
+  {/* RIGHT SIDE */}
+  <section className="flex items-center justify-center px-8">
+
+    <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+
+      <div className="absolute -right-20 -top-20 h-52 w-52 rounded-full bg-[#e8a030]/20 blur-3xl" />
+
+      <div className="relative z-10">
+
+        <span className="inline-flex items-center rounded-full border border-[#e8a030]/30 bg-[#e8a030]/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#e8a030]">
+          Free Trial
+        </span>
+
+        <h2 className="mt-5 text-4xl font-bold text-white">
+          Create Your Cafe Account
+        </h2>
+
+        <p className="mt-4 text-sm leading-7 text-white/60">
+          Launch your digital ordering system in minutes.
+          Generate QR codes, manage live orders,
+          track kitchen workflow and grow your business.
+        </p>
+
+        {/* Features */}
+        <div className="mt-8 grid grid-cols-2 gap-3">
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white">
+            📱 QR Ordering
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white">
+            🍔 Menu Management
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white">
+            🧾 Smart Billing
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white">
+            📊 Analytics
+          </div>
+
+        </div>
+
+        {/* Trial Tags */}
+        <div className="mt-6 flex flex-wrap gap-2">
+
+          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+            ✓ 14 Days Free
+          </div>
+
+          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+            ✓ Unlimited Orders
+          </div>
+
+          <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+            ✓ No Credit Card
+          </div>
+
+        </div>
+
+        {/* CTA */}
+        <div className="mt-8 flex gap-4">
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#e8a030] to-[#ffcb66] px-6 py-4 font-semibold text-black transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(232,160,48,0.45)]"
+          >
+            <Rocket size={18} />
+            Create Free Account
+          </button>
+
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-medium text-white transition-all hover:bg-white/10">
+            View Demo
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
       </div>
     </>
   );
