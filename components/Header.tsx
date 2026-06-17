@@ -90,12 +90,20 @@ export default function Header() {
     void loadUser();
   }, []);
 
-  async function signOut() {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signOut();
-    setOpenProfile(false);
-    router.push(getAdminLoginPath(pathname));
+const handleLogout = async () => {
+  try {
+    await fetch("/api/logout", {
+      method: "POST",
+    });
+
+    localStorage.removeItem("smart-cafe-admin=true");
+
+    document.cookie = "smart-cafe-admin=;";
+    window.location.href = "/mycafe/login";
+  } catch (error) {
+    console.error("Logout failed:", error);
   }
+};
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
@@ -208,17 +216,9 @@ export default function Header() {
                   </div>
 
                   <div className="px-2 py-2 space-y-1">
-                    <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
-                      <User size={16} />
-                      Profile
-                    </button>
-                    <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
-                      <Settings size={16} />
-                      Settings
-                    </button>
                     <div className="border-t border-slate-200 my-1"></div>
                     <button
-                      onClick={signOut}
+                      onClick={handleLogout }
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut size={16} />

@@ -185,11 +185,14 @@ export interface ShellProps {
 
 export interface CreateNewAccout {
   tenant_id: number;
+  parent_tenant_id: number | null;
+  is_head_branch : boolean;
   tenant_slug: string | null;
   tenant_name: string | null;
 
   owner_name: string;
   email: string;
+  password_hash: string;
   phone: string;
 
   subscription_plan: string | null;
@@ -213,6 +216,9 @@ export interface CreateNewAccout {
 
   gst: string | null;
   fssai: string | null;
+
+  reset_otp: string | null;
+  reset_otp_expiry: string | null;
 
   created_at: string;
   updated_at: string;
