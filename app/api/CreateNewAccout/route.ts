@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ FIX 7: Login URL uses tenant_slug (correct — slug is for URL routing)
-    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${tenant_slug}/login`;
+    const loginUrl = `https://smart-cafe-qr-ordering-system.vercel.app/${tenant_slug}/login`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
