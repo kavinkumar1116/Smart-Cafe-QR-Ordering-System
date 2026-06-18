@@ -203,17 +203,46 @@ function FSelect({
   children,
 }: FSelectProps) {
   return (
-    <select
-      id={id}
-      value={formData[id] ?? ""}
-      onChange={(e) => onValueChange(id, e.target.value)}
-      className={[
-        inputCls(!!errors[id]),
-        "cursor-pointer appearance-none text-[#fdf6ec]/60",
-      ].join(" ")}
-    >
-      {children}
-    </select>
+    <div className="relative">
+      <select
+        id={id}
+        value={formData[id] ?? ""}
+        onChange={(e) => onValueChange(id, e.target.value)}
+        className={[
+          "w-full rounded-xl",
+          "border border-white/10",
+          "bg-white/5 backdrop-blur-md",
+          "px-4 py-3 pr-10",
+          "text-[#fdf6ec]",
+          "outline-none",
+          "transition-all duration-200",
+          "hover:border-[#e8a030]/40",
+          "focus:border-[#e8a030]",
+          "focus:ring-2 focus:ring-[#e8a030]/20",
+          "appearance-none cursor-pointer",
+          errors[id]
+            ? "border-red-500 focus:ring-red-500/20"
+            : "",
+        ].join(" ")}
+      >
+        {children}
+      </select>
+
+      {/* Custom Arrow */}
+      <svg
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#e8a030]"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        strokeWidth="2"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -236,16 +265,38 @@ function StepCafeIdentity({ formData, onValueChange, errors }: StepProps) {
       </div>
 
       <Field label="Type of outlet" required error={errors.outletType}>
-        <FSelect id="outletType" formData={formData} onValueChange={onValueChange} errors={errors}>
-          <option value="">Select outlet type</option>
-          {OUTLET_TYPES.map((t) => <option key={t}>{t}</option>)}
-        </FSelect>
+       <FSelect
+  id="outletType"
+  formData={formData}
+  onValueChange={onValueChange}
+  errors={errors}
+>
+  <option value="" className="bg-slate-900 text-white">
+    Select outlet type
+  </option>
+
+  {OUTLET_TYPES.map((t) => (
+    <option
+      key={t}
+      value={t}
+      className="bg-slate-900 text-white"
+    >
+      {t}
+    </option>
+  ))}
+</FSelect>
       </Field>
 
       <Field label="Number of tables" required error={errors.tables} hint="Used to auto-generate your QR code batch">
         <FSelect id="tables" formData={formData} onValueChange={onValueChange} errors={errors}>
-          <option value="">Select range</option>
-          {TABLE_RANGES.map((r) => <option key={r}>{r}</option>)}
+          <option value="" className="bg-slate-900 text-white">
+            Select range
+          </option>
+          {TABLE_RANGES.map((r) => (
+            <option key={r} className="bg-slate-900 text-white">
+              {r}
+            </option>
+          ))}
         </FSelect>
       </Field>
     </div>
@@ -279,8 +330,14 @@ function StepLocation({ formData, onValueChange, errors }: StepProps) {
 
       <Field label="State" required error={errors.state}>
         <FSelect id="state" formData={formData} onValueChange={onValueChange} errors={errors}>
-          <option value="">Select state</option>
-          {STATES.map((s) => <option key={s}>{s}</option>)}
+          <option value="" className="bg-slate-900 text-white">
+            Select state
+          </option>
+          {STATES.map((s) => (
+            <option key={s} className="bg-slate-900 text-white">
+              {s}
+            </option>
+          ))}
         </FSelect>
       </Field>
 
@@ -307,8 +364,14 @@ function StepAdmin({ formData, onValueChange, errors }: StepProps) {
         </Field>
         <Field label="Designation">
           <FSelect id="designation" formData={formData} onValueChange={onValueChange} errors={errors}>
-            <option value="">Select role</option>
-            {DESIGNATIONS.map((d) => <option key={d}>{d}</option>)}
+            <option value="" className="bg-slate-900 text-white">
+              Select role
+            </option>
+            {DESIGNATIONS.map((d) => (
+              <option key={d} className="bg-slate-900 text-white">
+                {d}
+              </option>
+            ))}
           </FSelect>
         </Field>
       </div>

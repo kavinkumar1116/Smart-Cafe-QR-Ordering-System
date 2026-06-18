@@ -1,7 +1,7 @@
 import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { OrderReportFilters } from "@/lib/order-report";
-import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout } from "@/types/cafe";
+import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout , CreateSettings} from "@/types/cafe";
 import type { Database } from "@/types/database";
 
 type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
@@ -32,7 +32,7 @@ const orderSelect =
 
 type CreateNewAccoutInsert = Database["public"]["Tables"]["tenants"]["Insert"];
 type CreateNewAccoutUpdate = Database["public"]["Tables"]["tenants"]["Update"];
-type TenantPatch = Partial<Database["public"]["Tables"]["tenants"]["Update"]>;
+type TenantCreateSettingsPatch = Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
 
 
 function mapSupabaseError(error: PostgrestError): Error {
@@ -535,6 +535,18 @@ export async function fetchTenantsByEmail(email: string): Promise<CreateNewAccou
   return data as CreateNewAccout[];
 }
 
+export async function fetchTenantsByTenantID(tenantId: number): Promise<CreateNewAccout[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("tenant_id")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw mapSupabaseError(error);
+  return data as CreateNewAccout[];
+}
+
 export async function updateTenantBranch(tenantId: number, item: Partial<CreateNewAccout>): Promise<CreateNewAccout> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
@@ -584,4 +596,17 @@ export async function updateForgotPassword(
   if (!data || data.length === 0) throw new Error(`No tenant found with id: ${tenantId}`);
 
   return data[0] as CreateNewAccout;
+}
+
+export async function insertCreateSettings(item: TenantCreateSettingsPatch): Promise<CreateSettings> {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("app_settings" )
+    .insert({ ...item } as any)
+    .select("id, tenant_id, restaurant_name, branch_name, logo_url, address, contact_number, email, gst_number, gst_percentage, service_charge, discount_rules, invoice_prefix, invoice_number_format")
+    .single();
+
+  if (error) throw mapSupabaseError(error);
+  return data as CreateSettings;
 }

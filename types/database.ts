@@ -6,24 +6,57 @@ export interface Database {
       app_settings: {
         Row: {
           id: number;
-          scope: string;
-          settings: Json;
+          tenant_id: number;
+          restaurant_name: string;
+          branch_name: string;
+          logo_url: string;
+          address: string;
+          contact_number: string;
+          email: string;
+          gst_number: string;
+          gst_percentage: number;
+          service_charge: number;
+          discount_rules: string;
+          invoice_prefix: string;
+          invoice_number_format: string;
           created_at: string;
           updated_at: string | null;
         };
         Insert: {
-          id?: number;
-          scope: string;
-          settings?: Json;
-          created_at?: string;
-          updated_at?: string | null;
+          id: number;
+          tenant_id: number;
+          restaurant_name: string;
+          branch_name: string;
+          logo_url: string;
+          address: string;
+          contact_number: string;
+          email: string;
+          gst_number: string;
+          gst_percentage: number;
+          service_charge: number;
+          discount_rules: string;
+          invoice_prefix: string;
+          invoice_number_format: string;
+          created_at: string;
+          updated_at: string | null;
         };
         Update: {
-          id?: number;
-          scope?: string;
-          settings?: Json;
-          created_at?: string;
-          updated_at?: string | null;
+          id: number;
+          tenant_id: number;
+          restaurant_name: string;
+          branch_name: string;
+          logo_url: string;
+          address: string;
+          contact_number: string;
+          email: string;
+          gst_number: string;
+          gst_percentage: number;
+          service_charge: number;
+          discount_rules: string;
+          invoice_prefix: string;
+          invoice_number_format: string;
+          created_at: string;
+          updated_at: string | null;
         };
         Relationships: [];
       };
@@ -381,11 +414,11 @@ export interface Database {
           },
         ];
       };
-     tenants: {
+      tenants: {
         Row: {
           tenant_id: number;
           parent_tenant_id: number | null;
-          is_head_branch : boolean;
+          is_head_branch: boolean;
           tenant_slug: string | null;
           tenant_name: string | null;
 
@@ -424,8 +457,8 @@ export interface Database {
 
         Insert: {
           tenant_id?: number;
-          parent_tenant_id ?: number | null;
-          is_head_branch : boolean;
+          parent_tenant_id?: number | null;
+          is_head_branch: boolean;
           tenant_slug?: string | null;
           tenant_name?: string | null;
 
@@ -467,7 +500,7 @@ export interface Database {
         Update: {
           tenant_id?: number;
           parent_tenant_id?: number | null;
-          is_head_branch : boolean;
+          is_head_branch: boolean;
           tenant_slug?: string | null;
           tenant_name?: string | null;
 
