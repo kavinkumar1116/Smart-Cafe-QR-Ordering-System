@@ -1,20 +1,29 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
-import { insertCreateNewAccout } from "@/lib/supabase/crud";
+import {
+  insertCreateNewAccout,
+  insertCreateSettings,
+  fetchTenantsByTenantID,
+  fetchTenantsByEmail,
+} from "@/lib/supabase/crud";
+import nodemailer from "nodemailer";
 
 
-function generateTenantId(length = 10): string {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+async function generateTenantSlug(length = 10): Promise<string> {
+  const numbers = "0123456789";
+  let id = "";
 
-  let id =
-    letters.charAt(Math.floor(Math.random() * letters.length));
+  for (let i = 0; i < length; i++) {
+    id += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
 
-  for (let i = 1; i < length; i++) {
-    id += chars.charAt(
-      Math.floor(Math.random() * chars.length)
-    );
+  // Avoid leading zero
+  if (id[0] === "0") return generateTenantSlug(length);
+
+  const existingTenants = await fetchTenantsByTenantID(Number(id));
+  if (existingTenants.length > 0) {
+    return generateTenantSlug(length);
   }
 
   return id;
@@ -47,68 +56,249 @@ export async function POST(req: Request) {
       fssai,
     } = body;
 
-    // Hash password
+    // ✅ FIX 1: Check email duplicate FIRST before any heavy computation
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingEmailTenants = await fetchTenantsByEmail(normalizedEmail);
+    if (existingEmailTenants.length > 0) {
+      return NextResponse.json(
+        { success: false, message: "Email already registered." },
+        { status: 400 }
+      );
+    }
+
+    // ✅ FIX 2: Hash password only after email check passes
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ FIX 3: tenant_slug is the unique string identifier used in URLs
+    const tenant_slug = await generateTenantSlug();
 
-    const tenant_slug = generateTenantId();
-
-    // Generate tenant id
-    const tenant_id = Math.floor(
-      10000000 + Math.random() * 90000000
-    );
+    // ✅ FIX 4: tenant_id is a separate numeric ID for DB relations
+    const tenant_id = Math.floor(10000000 + Math.random() * 90000000);
 
     const payload = {
       tenant_id,
       tenant_slug,
-      tenant_name: cafeName
-        ? `${cafeName} - ${branch || ""}`.trim()
-        : "Smart Cafe",
-
-      owner_name: ownerName || "",
-      email: email || "",
-
-      // Save hashed password
+      tenant_name: `${cafeName}${branch ? ` - ${branch}` : ""}`,
+      owner_name: ownerName,
+      email: normalizedEmail,
       password_hash: hashedPassword,
-
-      phone: phone || "",
-
+      phone,
       subscription_plan: "Free Trial",
       status: 1,
-
-      cafe_name: cafeName || "",
+      cafe_name: cafeName,
       brand: brand || null,
-      branch: branch || "",
-      outlet_type: outletType || "",
-      tables: tables || "",
-
-      address: address || "",
-      city: city || "",
-      pincode: pincode || "",
-      state: state || "",
-
+      branch,
+      outlet_type: outletType,
+      tables,
+      address,
+      city,
+      pincode,
+      state,
       whatsapp: whatsapp || null,
       designation: designation || null,
-
       gst: gst || null,
       fssai: fssai || null,
     };
 
+    // ✅ FIX 5: Check if account insert actually returned data
     const CreateNewAccout = await insertCreateNewAccout(payload as any);
+
+    if (!CreateNewAccout) {
+      return NextResponse.json(
+        { success: false, message: "Failed to create account. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    // ✅ FIX 6: Settings insert — log failure but don't block success response
+    const settingsPayload = {
+      tenant_id,
+      restaurant_name: cafeName,
+      branch_name: branch,
+      address,
+      contact_number: phone,
+      email: normalizedEmail,
+      gst_number: gst || null,
+    };
+
+    try {
+      const CreateSettings = await insertCreateSettings(settingsPayload as any);
+      console.log("CreateSettings", CreateSettings);
+    } catch (settingsError) {
+      // Non-fatal: log it, don't fail the whole request
+      console.error("Settings insert failed:", settingsError);
+    }
+
+    // ✅ FIX 7: Login URL uses tenant_slug (correct — slug is for URL routing)
+    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL}/${tenant_slug}/login`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `"Smart Cafe" <${process.env.SMTP_EMAIL}>`,
+        to: normalizedEmail,
+        subject: "🎉 Welcome to Smart Cafe - Free Trial Activated",
+        html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+        </head>
+        <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;">
+          
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:30px 0;">
+            <tr>
+              <td align="center">
+
+                <table width="650" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+
+                  <!-- Header -->
+                  <tr>
+                    <td style="background:#111827;padding:30px;text-align:center;">
+                      <h1 style="margin:0;color:#f59e0b;font-size:32px;">
+                        ☕ Smart Cafe
+                      </h1>
+                      <p style="margin-top:10px;color:#d1d5db;font-size:15px;">
+                        QR Ordering & Billing Platform
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Welcome -->
+                  <tr>
+                    <td style="padding:35px;">
+                      <h2 style="margin-top:0;color:#111827;">
+                        🎉 Free Trial Activated Successfully
+                      </h2>
+
+                      <p style="font-size:15px;color:#4b5563;line-height:1.8;">
+                        Hello <strong>${ownerName}</strong>,
+                      </p>
+
+                      <p style="font-size:15px;color:#4b5563;line-height:1.8;">
+                        Thank you for choosing <strong>Smart Cafe</strong>.
+                        Your account has been successfully created and your
+                        <strong>14-Day Free Trial</strong> is now active.
+                      </p>
+
+                      <!-- Cafe Details -->
+                      <table width="100%" cellpadding="10" cellspacing="0" style="margin-top:20px;border:1px solid #e5e7eb;border-radius:10px;">
+                        <tr>
+                          <td colspan="2" style="background:#f9fafb;font-weight:bold;font-size:16px;">
+                            Cafe Information
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>Cafe Name</strong></td>
+                          <td>${cafeName}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Branch</strong></td>
+                          <td>${branch}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Owner</strong></td>
+                          <td>${ownerName}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Email</strong></td>
+                          <td>${normalizedEmail}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Phone</strong></td>
+                          <td>${phone}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Outlet Type</strong></td>
+                          <td>${outletType}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Tenant ID</strong></td>
+                          <td>${tenant_slug}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Trial Plan</strong></td>
+                          <td>14 Days Free Trial</td>
+                        </tr>
+                      </table>
+
+                      <!-- Login -->
+                      <div style="margin-top:30px;padding:20px;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;">
+                        <h3 style="margin-top:0;color:#92400e;">
+                          Login Details
+                        </h3>
+                        <p><strong>Email:</strong> ${normalizedEmail}</p>
+                        <p><strong>Login URL:</strong></p>
+                        <a href="${loginUrl}"
+                           style="display:inline-block;padding:12px 24px;background:#f59e0b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
+                          Login to Dashboard
+                        </a>
+                      </div>
+
+                      <!-- Features -->
+                      <div style="margin-top:30px;">
+                        <h3 style="color:#111827;">Included in Your Trial</h3>
+                        <ul style="color:#4b5563;line-height:2;">
+                          <li>✅ QR Code Ordering</li>
+                          <li>✅ Unlimited Orders</li>
+                          <li>✅ Kitchen Order Management</li>
+                          <li>✅ Billing & Invoice Management</li>
+                          <li>✅ Menu Management</li>
+                          <li>✅ Sales Reports & Analytics</li>
+                        </ul>
+                      </div>
+
+                      <p style="margin-top:30px;color:#4b5563;line-height:1.8;">
+                        Need help getting started? Reply to this email and our team will assist you.
+                      </p>
+
+                      <p style="color:#4b5563;">
+                        Regards,<br>
+                        <strong>Smart Cafe Team</strong>
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background:#111827;padding:20px;text-align:center;">
+                      <p style="margin:0;color:#9ca3af;font-size:12px;">
+                        © ${new Date().getFullYear()} Smart Cafe. All Rights Reserved.
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </body>
+        </html>
+        `,
+      });
+    } catch (mailError) {
+      console.error("Email sending failed:", mailError);
+    }
 
     return NextResponse.json({
       success: true,
       message: "New Account created successfully",
       data: CreateNewAccout,
     });
+
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
-      {
-        success: false,
-        message: getErrorMessage(error),
-      },
+      { success: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }

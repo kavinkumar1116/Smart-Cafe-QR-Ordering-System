@@ -223,3 +223,21 @@ export interface CreateNewAccout {
   created_at: string;
   updated_at: string;
 }
+
+export interface CreateSettings {
+  id: number;
+  tenant_id: number;
+  restaurant_name: string;
+  branch_name: string;
+  logo_url: string;
+  address: string;
+  contact_number: string;
+  email: string;
+  email_address: string;
+  gst_number: string;
+  gst_percentage: number;
+  service_charge: number;
+  discount_rules: string;
+  invoice_prefix: string;
+  invoice_number_format: string;
+}
