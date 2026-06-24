@@ -7,6 +7,8 @@ export interface CafeProfileState {
   logo: string;
   gstNumber: string;
   contactNumber: string;
+  gstPercentage: number;
+  subscriptionExpiringDate: string;
 }
 
 // Store actions are kept explicit so components can subscribe only to what they need.
@@ -17,7 +19,9 @@ interface CafeStore extends CafeProfileState {
   setGstNumber: (gstNumber: string) => void;
   setContactNumber: (contactNumber: string) => void;
   setCafeProfile: (profile: Partial<CafeProfileState>) => void;
+  setGstPercentage: (gstPercentage: number) => void;
   resetCafeProfile: () => void;
+  setSubscriptionExpiringDate: (subscriptionExpiringDate: string) => void;
 }
 
 // Stable defaults prevent empty header UI before settings are loaded.
@@ -27,6 +31,8 @@ export const defaultCafeProfile: CafeProfileState = {
   logo: "",
   gstNumber: "",
   contactNumber: "",
+  gstPercentage: 0,
+  subscriptionExpiringDate: "",
 };
 
 // Zustand hook for global cafe identity state.
@@ -39,6 +45,8 @@ export const useCafeStore = create<CafeStore>((set) => ({
   setLogo: (logo) => set({ logo }),
   setGstNumber: (gstNumber) => set({ gstNumber }),
   setContactNumber: (contactNumber) => set({ contactNumber }),
+  setGstPercentage: (gstPercentage) => set({ gstPercentage }),
+  setSubscriptionExpiringDate: (subscriptionExpiringDate) => set({ subscriptionExpiringDate }),
 
   // Batch updates are useful when hydrating from the settings API.
   setCafeProfile: (profile) =>

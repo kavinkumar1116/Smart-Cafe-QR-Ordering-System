@@ -1,7 +1,7 @@
 import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { OrderReportFilters } from "@/lib/order-report";
-import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout , CreateSettings} from "@/types/cafe";
+import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout, CreateSettings, CreateSubscriptionPlan } from "@/types/cafe";
 import type { Database } from "@/types/database";
 
 type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
@@ -33,6 +33,10 @@ const orderSelect =
 type CreateNewAccoutInsert = Database["public"]["Tables"]["tenants"]["Insert"];
 type CreateNewAccoutUpdate = Database["public"]["Tables"]["tenants"]["Update"];
 type TenantCreateSettingsPatch = Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
+type TenantCreateSubscriptionPlan = Partial<Database["public"]["Tables"]["subscriptions"]["Insert"]>;
+type SubscriptionInsert = Database["public"]["Tables"]["subscriptions"]["Row"];
+
+type GetSubscriptions = Partial<Database["public"]["Tables"]["subscription_plans"]["Row"]>;
 
 
 function mapSupabaseError(error: PostgrestError): Error {
@@ -50,7 +54,7 @@ function mapCategory(row: CategoryRow): Category {
     image_url: row.image_url || "",
     is_available: row.is_available,
     created_at: "",
-    updated_at: "", 
+    updated_at: "",
   };
 }
 
@@ -64,7 +68,7 @@ function mapMenuItem(row: MenuItemRow): MenuItem {
     image_url: row.image_url || "",
     is_available: row.is_available,
     created_at: "",
-    updated_at: "", 
+    updated_at: "",
   };
 }
 
@@ -303,7 +307,7 @@ export async function fetchOpenOrderByTableNumber(tableNumber: number, tenantId?
 export async function fetchOrderById(id: string, tenantId?: number): Promise<CafeOrder | null> {
   const supabase = createServerSupabaseClient();
   const numericId = Number(id);
-const query = applyTenantFilter(supabase.from("orders" as any).select(orderSelect), tenantId);
+  const query = applyTenantFilter(supabase.from("orders" as any).select(orderSelect), tenantId);
   const { data, error } = Number.isFinite(numericId) && numericId > 0
     ? await query.or(`id.eq.${numericId},order_id.eq.${id}`).limit(1).maybeSingle()
     : await query.eq("order_id", id).limit(1).maybeSingle();
@@ -406,7 +410,7 @@ export async function getRestaurantDetails(tenantId?: number): Promise<any[]> {
   return data || [];
 }
 
-export async function getOrderSalesReportByDate( tenantId?: number, order_type: string = "", date: string = "",invoice_no: string = ""
+export async function getOrderSalesReportByDate(tenantId?: number, order_type: string = "", date: string = "", invoice_no: string = ""
 ): Promise<any[]> {
   const supabase = createServerSupabaseClient();
 
@@ -424,7 +428,7 @@ export async function getOrderSalesReportByDate( tenantId?: number, order_type: 
     query = query.or(`order_id.eq.${invoice_no},order_id.eq.${invoice_no}`);
   }
 
-  query = applyTenantFilter(query.order("created_at", { ascending: false }),tenantId );
+  query = applyTenantFilter(query.order("created_at", { ascending: false }), tenantId);
 
   const { data, error } = await query;
 
@@ -534,6 +538,17 @@ export async function fetchTenantsByEmail(email: string): Promise<CreateNewAccou
   if (error) throw mapSupabaseError(error);
   return data as CreateNewAccout[];
 }
+export async function fetchTenantsDataByTenantID(tenantId: number): Promise<CreateNewAccout[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw mapSupabaseError(error);
+  return data as CreateNewAccout[];
+}
 
 export async function fetchTenantsByTenantID(tenantId: number): Promise<CreateNewAccout[]> {
   const supabase = createServerSupabaseClient();
@@ -572,7 +587,7 @@ export async function insertTenantResetOtp(
     .update({ reset_otp, reset_otp_expiry } as CreateNewAccoutUpdate)
     .eq("tenant_id", tenantId)
     .select();  // ← remove .maybeSingle() temporarily
- 
+
 
   if (error) throw mapSupabaseError(error);
   if (!data || data.length === 0) throw new Error(`No tenant found with id: ${tenantId}`);
@@ -602,7 +617,7 @@ export async function insertCreateSettings(item: TenantCreateSettingsPatch): Pro
   const supabase = createServerSupabaseClient();
 
   const { data, error } = await supabase
-    .from("app_settings" )
+    .from("app_settings")
     .insert({ ...item } as any)
     .select("id, tenant_id, restaurant_name, branch_name, logo_url, address, contact_number, email, gst_number, gst_percentage, service_charge, discount_rules, invoice_prefix, invoice_number_format")
     .single();
@@ -610,3 +625,70 @@ export async function insertCreateSettings(item: TenantCreateSettingsPatch): Pro
   if (error) throw mapSupabaseError(error);
   return data as CreateSettings;
 }
+
+export async function insertSubscriptions(
+  item: SubscriptionInsert
+): Promise<CreateSubscriptionPlan> {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .insert([item])
+    .select()
+    .single();
+
+  if (error) {
+    throw mapSupabaseError(error);
+  }
+
+  return data as CreateSubscriptionPlan;
+}
+export async function updateSubscriptions(tenantId: number,item: TenantCreateSubscriptionPlan
+): Promise<CreateSubscriptionPlan> {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .update(item)
+    .eq("tenant_id", tenantId)
+    .select("id,tenant_id,plan_name,plan_code, next_billing_cycle, amount,gst_percentage, start_date, end_date,status,payment_status,transaction_id,created_at,updated_at")
+        .single();
+
+  if (error) {
+    throw mapSupabaseError(error);
+  }
+
+  return data as CreateSubscriptionPlan;
+}
+
+export async function fetchSubcriptionsByPlan(id ? : number): Promise<GetSubscriptions[]> {
+  const supabase = createServerSupabaseClient();
+  let query = supabase
+    .from("subscription_plans")
+    .select("*");
+
+  if (id !== null && id !== undefined) {
+    query = query.eq("id", id);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw mapSupabaseError(error);
+
+  return (data ?? []) as GetSubscriptions[];
+}
+
+export async function fetchSubcriptionsByTenant(TenantId: number): Promise<SubscriptionInsert[]> {
+  const supabase = createServerSupabaseClient();
+  let query = supabase
+    .from("subscriptions")
+    .select("*");
+    query = query.eq("tenant_id", TenantId);
+  const { data, error } = await query;
+
+  if (error) throw mapSupabaseError(error);
+
+  return (data ?? []) as SubscriptionInsert[];
+}
+
+

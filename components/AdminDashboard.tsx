@@ -592,7 +592,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Hourly Sales */}
-        <Card variant="elevated">
+        {/* <Card variant="elevated">
           <CardHeader>
             <CardTitle>Hourly Sales</CardTitle>
             <CardDescription>Peak sales timing analysis</CardDescription>
@@ -600,7 +600,7 @@ export default function AdminDashboard() {
           <CardContent>
             <BarChart data={dashboard.charts.hourlySales} loading={loading} />
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </AdminGuard>
   );

@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { getSidebarShellOffset } from "@/lib/sidebar-layout";
 import type { ShellProps } from "@/types/cafe";
+import CafeProfileProvider from "@/components/CafeProfileProvider";
 
 function AppShellContent({ children }: ShellProps) {
   const { sidebarOpen, isHydrated } = useSidebar();
@@ -27,6 +28,7 @@ function AppShellContent({ children }: ShellProps) {
 export default function AppShell({ children }: ShellProps) {
   return (
     <SidebarProvider>
+      <CafeProfileProvider />
       <AppShellContent>{children}</AppShellContent>
     </SidebarProvider>
   );
