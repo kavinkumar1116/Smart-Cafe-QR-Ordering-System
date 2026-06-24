@@ -33,6 +33,7 @@ export default function AdminLogin() {
   const [forgotSuccess, setForgotSuccess] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [forgotData, setForgotData] = useState<ForgotState>({
     email: "",
     otp: "",
@@ -213,82 +214,102 @@ export default function AdminLogin() {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
 
       {/* ── Login Card (unchanged layout) ─────────────────────────────────── */}
-      { (!showForgot || showNewPassword || showConfirmPassword) && (
-        
-      
-      <div className="relative z-10 w-full max-w-md px-4">
-        <form
-          onSubmit={submit}
-          className="rounded-xl border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md"
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
-            <LockKeyhole size={24} aria-hidden="true" />
-          </div>
+      {(!showForgot || showNewPassword || showConfirmPassword) && (
 
-          <h2 className="mt-5 text-2xl font-semibold text-white">Admin Login</h2>
 
-          <p className="mt-2 text-sm leading-6 text-white/80">
-            Access live orders, menu inventory, and QR table tools.
-          </p>
-
-          <div className="mt-6 space-y-4">
-            <label className="block">
-              <span className="mb-2 block text-sm text-white">Email</span>
-              <input
-                placeholder="Enter your email"
-                className={inputClass}
-                value={form.email}
-                type="email"
-                autoComplete="email"
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, email: event.target.value }))
-                }
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm text-white">Password</span>
-              <input
-                placeholder="Enter your password"
-                className={inputClass}
-                value={form.password}
-                type="password"
-                autoComplete="current-password"
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, password: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center">
-              {/* ── "Forgot password?" now opens the modal ─────────────── */}
-              <button
-                type="button"
-                onClick={() => setShowForgot(true)}
-                className="ml-0 block text-sm leading-6 text-white hover:text-emerald-400 transition-colors"
-              >
-                Forgot password?
-              </button>
-            </div>
-          </div>
-
-          {error ? (
-            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </p>
-          ) : null}
-
-          <button
-            disabled={loading}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        <div className="relative z-10 w-full max-w-md px-4">
+          <form
+            onSubmit={submit}
+            className="rounded-xl border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md"
           >
-            <LogIn size={18} aria-hidden="true" />
-            {loading ? "Signing in..." : "Login"}
-          </button>
-        </form>
-      </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
+              <LockKeyhole size={24} aria-hidden="true" />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-semibold text-white">Admin Login</h2>
+
+            <p className="mt-2 text-sm leading-6 text-white/80">
+              Access live orders, menu inventory, and QR table tools.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm text-white">Email</span>
+                <input
+                  placeholder="Enter your email"
+                  className={inputClass}
+                  value={form.email}
+                  type="email"
+                  autoComplete="email"
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, email: event.target.value }))
+                  }
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm text-white">
+                  Password
+                </span>
+
+                <div className="relative">
+                  <input
+                    placeholder="Enter your password"
+                    className={`${inputClass} pr-12`}
+                    value={form.password}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        password: event.target.value,
+                      }))
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+              </label>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between">
+              <div className="flex items-center">
+                {/* ── "Forgot password?" now opens the modal ─────────────── */}
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="ml-0 block text-sm leading-6 text-white hover:text-emerald-400 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </div>
+
+            {error ? (
+              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </p>
+            ) : null}
+
+            <button
+              disabled={loading}
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <LogIn size={18} aria-hidden="true" />
+              {loading ? "Signing in..." : "Login"}
+            </button>
+          </form>
+        </div>
       )}
 
       {/* ── Forgot-password Modal ──────────────────────────────────────────── */}
@@ -308,31 +329,29 @@ export default function AdminLogin() {
               {(["email", "otp", "newPassword"] as ForgotStep[]).map((step, i) => (
                 <div key={step} className="flex items-center gap-2">
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                      forgotStep === step
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${forgotStep === step
                         ? "bg-emerald-600 text-white"
                         : ["email", "otp", "newPassword"].indexOf(forgotStep) > i
-                        ? "bg-emerald-800 text-emerald-300"
-                        : "bg-white/10 text-white/40"
-                    }`}
+                          ? "bg-emerald-800 text-emerald-300"
+                          : "bg-white/10 text-white/40"
+                      }`}
                   >
                     {i + 1}
                   </div>
                   {i < 2 && (
                     <div
-                      className={`h-px w-8 transition-colors ${
-                        ["email", "otp", "newPassword"].indexOf(forgotStep) > i
+                      className={`h-px w-8 transition-colors ${["email", "otp", "newPassword"].indexOf(forgotStep) > i
                           ? "bg-emerald-600"
                           : "bg-white/20"
-                      }`}
+                        }`}
                     />
                   )}
                 </div>
               ))}
               <span className="ml-2 text-xs text-white/50">
                 {forgotStep === "email"}
-                {forgotStep === "otp" }
-                {forgotStep === "newPassword" }
+                {forgotStep === "otp"}
+                {forgotStep === "newPassword"}
               </span>
             </div>
 
@@ -565,11 +584,10 @@ export default function AdminLogin() {
                     {/* Live match indicator */}
                     {forgotData.confirmPassword && (
                       <p
-                        className={`mt-1.5 text-xs ${
-                          forgotData.newPassword === forgotData.confirmPassword
+                        className={`mt-1.5 text-xs ${forgotData.newPassword === forgotData.confirmPassword
                             ? "text-emerald-400"
                             : "text-red-400"
-                        }`}
+                          }`}
                       >
                         {forgotData.newPassword === forgotData.confirmPassword
                           ? "✓ Passwords match"
