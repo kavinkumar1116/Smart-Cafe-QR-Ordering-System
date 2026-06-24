@@ -157,7 +157,7 @@ export interface Database {
         Insert: {
           id?: number;
           order_id: string;
-          table_id: number;
+          table_id: number | null;
           table_number?: number | null;
           customer_name: string;
           customer_mobile: string;
@@ -288,43 +288,6 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "branches_store_id_fkey";
-            columns: ["store_id"];
-            referencedRelation: "stores";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      subscriptions: {
-        Row: {
-          id: number;
-          store_id: number;
-          plan: string;
-          status: string;
-          current_period_end: string | null;
-          created_at: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: number;
-          store_id: number;
-          plan: string;
-          status?: string;
-          current_period_end?: string | null;
-          created_at?: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: number;
-          store_id?: number;
-          plan?: string;
-          status?: string;
-          current_period_end?: string | null;
-          created_at?: string;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "subscriptions_store_id_fkey";
             columns: ["store_id"];
             referencedRelation: "stores";
             referencedColumns: ["id"];
@@ -536,6 +499,105 @@ export interface Database {
           reset_otp_expiry: string | null;
 
           updated_at?: string;
+        };
+
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: number;
+          tenant_id: number;
+          plan_name: string;
+          plan_code: string;
+          next_billing_cycle: string | null;
+          amount: number | null;
+          gst_percentage: number | null;
+          start_date: string | null;
+          end_date: string | null;
+          status: string;
+          payment_status: boolean;
+          transaction_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+
+        Insert: {
+          id?: number;
+          tenant_id: number;
+          plan_name: string;
+          plan_code: string;
+          next_billing_cycle?: string | null;
+          amount?: number | null;
+          gst_percentage?: number | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          status?: string;
+          payment_status?: boolean;
+          transaction_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+
+        Update: {
+          id?: number;
+          tenant_id?: number;
+          plan_name?: string;
+          plan_code?: string;
+          next_billing_cycle?: string | null;
+          amount?: number | null;
+          gst_percentage?: number | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          status?: string;
+          payment_status?: boolean;
+          transaction_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+
+        Relationships: [];
+      };
+      subscription_plans: {
+        Row: {
+          id: number;
+          tenant_id: number;
+          plan_name: string;
+          plan_code: string;
+          monthly_price: number;
+          yearly_price: number;
+          max_tables: number;
+          trial_days: string | null;
+          is_active: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+
+        Insert: {
+          id?: number;
+          tenant_id: number;
+          plan_name: string;
+          plan_code: string;
+          monthly_price: number;
+          yearly_price: number;
+          max_tables: number;
+          trial_days: string | null;
+          is_active: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+
+        Update: {
+          id?: number;
+          tenant_id: number;
+          plan_name: string;
+          plan_code: string;
+          monthly_price: number;
+          yearly_price: number;
+          max_tables: number;
+          trial_days: string | null;
+          is_active: number | null;
+          created_at: string;
+          updated_at: string;
         };
 
         Relationships: [];

@@ -59,7 +59,7 @@ export interface OrderItem {
 export interface CafeOrder {
   id: number;
   order_id: string;
-  table_id: number;
+  table_id: number | null;
   table_number?: number | null;
   customer_name: string;
   customer_mobile: string;
@@ -240,4 +240,47 @@ export interface CreateSettings {
   discount_rules: string;
   invoice_prefix: string;
   invoice_number_format: string;
+}
+
+export interface CreateSubscriptionPlan {
+  id: number;
+  tenant_id: number;
+  plan_name: string;
+  plan_code: string;
+  next_billing_cycle: string | null;
+  amount: number | null;
+  gst_percentage: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  payment_status: boolean;
+  transaction_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubscriptionPlan {
+  id: number;
+
+  plan_name: string;
+
+  plan_code: string;
+
+  description: string | null;
+
+  monthly_price: number;
+
+  yearly_price: number;
+
+  max_tables: number;
+
+  max_orders_per_month: number;
+
+  trial_days: number;
+
+  is_active: boolean;
+
+  created_at: string;
+
+  updated_at: string;
 }

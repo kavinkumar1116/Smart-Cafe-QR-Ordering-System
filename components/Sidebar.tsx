@@ -7,13 +7,10 @@ import {
   Home,
   ShoppingCart,
   Clock,
-  ChefHat,
   Table2,
   QrCode,
   UtensilsCrossed,
   Layers,
-  Users,
-  Package,
   CreditCard,
   BarChart3,
   Users2,
@@ -36,7 +33,6 @@ const navItems: NavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/order", label: "Live Orders", icon: Clock },
   { href: "/admin/orders_list", label: "Orders List", icon: ShoppingCart },
-  { href: "/admin/kot", label: "Kitchen (KOT)", icon: ChefHat },
   { href: "/admin/table_master", label: "Tables", icon: Table2 },
   { href: "/admin/qr", label: "QR Codes", icon: QrCode },
   {
@@ -48,7 +44,6 @@ const navItems: NavItem[] = [
     ],
   },
   { href: "/admin/customers", label: "Customers", icon: Users2 },
-  { href: "/admin/inventory", label: "Inventory", icon: Package },
   {
     label: "Reports",
     icon: UtensilsCrossed,
@@ -58,8 +53,9 @@ const navItems: NavItem[] = [
       { href: "/admin/reports/revenue_report", label: "Revenue Report", icon: BarChart3 },
     ],
   },
-  { href: "/admin/staff", label: "Staff", icon: Users },
   { href: "/admin/setting", label: "Settings", icon: Settings },
+  { href: "/admin/subscriptions", label: "Billing & Subscription", icon: CreditCard, },
+  { href: "/admin/support", label: "Support", icon: HelpCircle, },
 ];
 
 function getTenantSlug(pathname: string) {
@@ -187,7 +183,7 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <>
-      <div className={cn( isCollapsed ? "px-2" : "px-4")}>
+      <div className={cn(isCollapsed ? "px-2" : "px-4")}>
         <Link
           href={withTenantSlug("/", tenantSlug)}
           className={cn(
@@ -305,47 +301,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      <div className={cn("border-b border-slate-200", isCollapsed ? "mx-2" : "mx-4")} />
-
-      <div className={cn("space-y-2 py-4", isCollapsed ? "px-2" : "px-3")}>
-        {[
-          { icon: CreditCard, label: "Current Plan" },
-          { icon: Package, label: "Storage" },
-          { icon: HelpCircle, label: "Support" },
-        ].map(({ icon: BottomIcon, label }) => {
-          const button = (
-            <button
-              type="button"
-              className={cn(
-                "group/sidebar-nav flex w-full items-center gap-3 rounded-lg py-2.5 text-sm font-medium text-slate-700 transition-all duration-300 hover:bg-slate-100 hover:shadow-sm",
-                linkPadding
-              )}
-            >
-              <BottomIcon size={18} className="flex-shrink-0 transition-transform duration-200 group-hover/sidebar-nav:scale-110" />
-              <span
-                className={cn(
-                  "truncate transition-all duration-300",
-                  showLabels ? "opacity-100" : "hidden opacity-0"
-                )}
-              >
-                {label}
-              </span>
-            </button>
-          );
-
-          if (!isCollapsed) {
-            return <div key={label}>{button}</div>;
-          }
-
-          return (
-            <Tooltip key={label}>
-              <TooltipTrigger asChild>{button}</TooltipTrigger>
-              <TooltipContent>{label}</TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
     </>
   );
 

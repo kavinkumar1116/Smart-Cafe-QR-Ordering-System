@@ -476,6 +476,7 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
   const [form, setForm] = useState<Record<string, string>>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (id: string, value: string) => {
     setForm((f) => ({ ...f, [id]: value }));
@@ -494,6 +495,7 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
     const result = await response.json();
 
     console.log("API Response:", result);
+    setLoading(false);
 
     if (!response.ok) {
       throw new Error(result.message || "Failed to save Create New Accout");
@@ -517,6 +519,8 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
 
     if (step === 2) {
       try {
+        setLoading(true);
+
         await saveCreateNewAccout();
 
         console.log("Create New Accout saved successfully");
@@ -613,16 +617,47 @@ function TrialSignupModal({ onClose }: TrialSignupModalProps) {
             >
               ← Back
             </button>
-            <button
-              onClick={handleNext}
-              className="flex items-center gap-[6px] rounded-[8px] bg-[#e8a030] px-5 py-[9px] text-[13px] font-medium text-[#1a0f00] transition-colors hover:bg-[#d4902a]"
-            >
-              {step === 2 ? (
-                <><Rocket size={14} aria-hidden="true" /> Activate free trial</>
-              ) : (
-                <>Continue <ArrowRight size={14} aria-hidden="true" /></>
-              )}
-            </button>
+           <button
+  onClick={handleNext}
+  disabled={loading}
+  className="flex items-center gap-[6px] rounded-[8px] bg-[#e8a030] px-5 py-[9px] text-[13px] font-medium text-[#1a0f00] transition-colors hover:bg-[#d4902a] disabled:cursor-not-allowed disabled:opacity-70"
+>
+  {step === 2 ? (
+    <>
+      {loading ? (
+        <svg
+          className="h-[14px] w-[14px] animate-spin"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="opacity-25"
+          />
+          <path
+            fill="currentColor"
+            className="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+          />
+        </svg>
+      ) : (
+        <Rocket size={14} aria-hidden="true" />
+      )}
+
+      {loading ? "Creating Account..." : "Activate Free Trial"}
+    </>
+  ) : (
+    <>
+      Continue
+      <ArrowRight size={14} aria-hidden="true" />
+    </>
+  )}
+</button>
           </div>
         )}
 
