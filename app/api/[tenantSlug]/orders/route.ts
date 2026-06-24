@@ -33,11 +33,11 @@ interface CreateOrderRequest {
 function normalizeItems(items: unknown): { menu_item_id: number; quantity: number }[] {
   return Array.isArray(items)
     ? items
-        .map((item: IncomingOrderItem) => ({
-          menu_item_id: Number(item.menu_item_id || item.id),
-          quantity: Math.max(1, Number(item.quantity || 1)),
-        }))
-        .filter((item) => Number.isFinite(item.menu_item_id))
+      .map((item: IncomingOrderItem) => ({
+        menu_item_id: Number(item.menu_item_id || item.id),
+        quantity: Math.max(1, Number(item.quantity || 1)),
+      }))
+      .filter((item) => Number.isFinite(item.menu_item_id))
     : [];
 }
 
@@ -73,58 +73,119 @@ export async function POST(request: Request) {
 
     const requestedTableNumber = Number(body.table_number);
     const requestedTableId = Number(body.table_id);
+
     const customerName = String(body.customer_name || "").trim();
     const customerMobile = String(body.customer_mobile || "").trim();
 
-    const paymentStatus: PaymentStatus = body.payment_status === "Paid" ? "Paid" : "Pending";
+    const paymentStatus: PaymentStatus =
+      body.payment_status === "Paid" ? "Paid" : "Pending";
 
-    const orderType: OrderMode = body.order_type === "Takeaway" ? "Takeaway" : "Dine-In";
+    const orderType: OrderMode =
+      body.order_type === "Takeaway"
+        ? "Takeaway"
+        : "Dine-In";
 
     const items = normalizeItems(body.items);
 
-    if ( (!requestedTableNumber && !requestedTableId) || !customerName || !customerMobile || items.length === 0 ) {
+    /* -----------------------------
+       Validation
+    ----------------------------- */
+
+    if (!customerName || !customerMobile || items.length === 0) {
       return NextResponse.json(
-        { error: "Table, customer details, and order items are required" },
+        {
+          error:
+            "Customer name, mobile number and order items are required",
+        },
         { status: 400 }
       );
     }
 
-    const table = requestedTableNumber ? await fetchTableByNumber(requestedTableNumber, tenantId) : await fetchTableById(requestedTableId, tenantId);
-
-    if (!table) {
+    if (
+      orderType === "Dine-In" &&
+      !requestedTableNumber &&
+      !requestedTableId
+    ) {
       return NextResponse.json(
-        { error: "Selected table is not available" },
+        {
+          error:
+            "Table selection is required for Dine-In orders",
+        },
         { status: 400 }
       );
     }
+
+    /* -----------------------------
+       Fetch table only for Dine-In
+    ----------------------------- */
+
+    const table =
+      orderType === "Dine-In"
+        ? requestedTableNumber
+          ? await fetchTableByNumber(
+            requestedTableNumber,
+            tenantId
+          )
+          : await fetchTableById(
+            requestedTableId,
+            tenantId
+          )
+        : null;
+
+    if (orderType === "Dine-In" && !table) {
+      return NextResponse.json(
+        {
+          error: "Selected table is not available",
+        },
+        { status: 400 }
+      );
+    }
+
+    /* -----------------------------
+       Menu items
+    ----------------------------- */
 
     const menuItems = await fetchMenuItems(tenantId);
 
     const priceMap = new Map(
       menuItems
         .filter((menuItem) => menuItem.is_available)
-        .map((menuItem) => [menuItem.id, Number(menuItem.price)])
+        .map((menuItem) => [
+          menuItem.id,
+          Number(menuItem.price),
+        ])
     );
 
     const orderItems = items.map((item) => ({
       menu_item_id: item.menu_item_id,
       quantity: item.quantity,
-      price_at_time: priceMap.get(item.menu_item_id) || 0,
+      price_at_time:
+        priceMap.get(item.menu_item_id) || 0,
     }));
 
-    const openOrder = await fetchOpenOrderByTableNumber(
-      table.table_number,
-      tenantId
-    );
+    /* -----------------------------
+       Existing Open Order Check
+       Only for Dine-In
+    ----------------------------- */
 
-    console.log("Creating order:", openOrder);
+    const openOrder =
+      orderType === "Dine-In" && table
+        ? await fetchOpenOrderByTableNumber(
+          table.table_number,
+          tenantId
+        )
+        : null;
 
     const isSameCustomerOrder =
       openOrder &&
-      openOrder.customer_mobile?.trim().toLowerCase() === customerMobile.toLowerCase() &&
-      openOrder.table_id === table.id && openOrder.payment_status === "Pending";
+      openOrder.customer_mobile
+        ?.trim()
+        .toLowerCase() ===
+      customerMobile.toLowerCase() &&
+      openOrder.table_id === table?.id &&
+      openOrder.payment_status === "Pending";
 
-    if (isSameCustomerOrder) {
+    if (isSameCustomerOrder && table) {
       const order = await appendOrderItems(
         openOrder.id,
         orderItems,
@@ -139,34 +200,46 @@ export async function POST(request: Request) {
           total_amount:
             Number(openOrder.total_amount || 0) +
             orderItems.reduce(
-              (sum, item) => sum + item.price_at_time * item.quantity,
+              (sum, item) =>
+                sum +
+                item.price_at_time *
+                item.quantity,
               0
             ),
         },
         tenantId
       );
 
-      return NextResponse.json({ order }, { status: 200 });
+      return NextResponse.json(
+        { order },
+        { status: 200 }
+      );
     }
 
-    // Create a new order when:
-    // - No open order exists
-    // - Customer is different
-    // - Existing order is already paid
+    /* -----------------------------
+       Create New Order
+    ----------------------------- */
 
     const order = await createOrder(
       {
         order_id: makeOrderCode(),
-        table_id: table.id,
-        table_number: table.table_number,
+
+        table_id: table?.id ?? null,
+        table_number: table?.table_number ?? null,
+
         customer_name: customerName,
         customer_mobile: customerMobile,
+
         status: "Pending",
         session_status: "OPEN",
         payment_status: paymentStatus,
         order_type: orderType,
+
         total_amount: orderItems.reduce(
-          (sum, item) => sum + item.price_at_time * item.quantity,
+          (sum, item) =>
+            sum +
+            item.price_at_time *
+            item.quantity,
           0
         ),
       },
@@ -174,7 +247,10 @@ export async function POST(request: Request) {
       tenantId
     );
 
-    return NextResponse.json({ order }, { status: 201 });
+    return NextResponse.json(
+      { order },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       {

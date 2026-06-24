@@ -97,6 +97,7 @@ export default function AdminTableMaster() {
 
   return (
     <AdminGuard>
+      {/* Modal */}
       {modalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
@@ -164,6 +165,7 @@ export default function AdminTableMaster() {
       ) : null}
 
       <section className="space-y-5">
+        {/* Header */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -181,79 +183,57 @@ export default function AdminTableMaster() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[440px] border-collapse text-sm">
-              <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200">
-                <tr>
-                  {["SI.No", "Table Number", "Edit", "Delete"].map((col, index) => (
-                    <th
-                      key={col}
-                      className={`px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 whitespace-nowrap ${
-                        index === 0 || index >= 2 ? "w-20 text-center" : "text-left"
-                      }`}
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-
-              <tbody>
-                {tables.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-16 text-center text-sm text-slate-500">
-                      No tables yet. Click <span className="font-semibold text-emerald-600">Add Table</span> to create one.
-                    </td>
-                  </tr>
-                ) : (
-                  tables.map((table, index) => (
-                    <tr
-                      key={table.id}
-                      className="border-b border-slate-200 transition hover:bg-slate-50 last:border-b-0"
-                    >
-                      <td className="px-6 py-4 text-center text-sm text-slate-500">
-                        {index + 1}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-                          Table {table.table_number}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(table)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 hover:border-slate-400"
-                          aria-label={`Edit table ${table.table_number}`}
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => deleteItem(table.id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-                          aria-label={`Delete table ${table.table_number}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {tables.length > 0 ? (
-            <div className="border-t border-slate-200 bg-slate-50 px-6 py-3">
-              <p className="text-sm text-slate-600">
-                {tables.length} table{tables.length !== 1 ? "s" : ""}
-              </p>
+        {/* Card Grid */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+          {tables.length === 0 ? (
+            <div className="px-6 py-16 text-center text-sm text-slate-500">
+              No tables yet. Click{" "}
+              <span className="font-semibold text-emerald-600">Add Table</span> to create one.
             </div>
-          ) : null}
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {tables.map((table) => (
+                  <div
+                    key={table.id}
+                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-green-600 p-4 transition hover:border-slate-300 hover:shadow-sm"
+                  >
+                    {/* Table Number Badge */}
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700">
+                      Table {table.table_number}
+                    </span>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(table)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:bg-slate-50"
+                        aria-label={`Edit table ${table.table_number}`}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteItem(table.id)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                        aria-label={`Delete table ${table.table_number}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-slate-200 bg-slate-50 px-5 py-3">
+                <p className="text-sm text-slate-600">
+                  {tables.length} table{tables.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </section>
     </AdminGuard>

@@ -23,11 +23,13 @@ import type {
   SessionStatus,
 } from "@/types/cafe";
 import jsPDF from "jspdf";
+import { useCafeStore } from "@/src/store/useCafeStore";
 
-const orderStatuses: OrderStatus[] = ["Pending", "Preparing", "Ready", "Served","Paid", "Cancelled"];
+const orderStatuses: OrderStatus[] = ["Pending", "Preparing", "Ready", "Served", "Paid", "Cancelled"];
 const paymentStatuses: PaymentStatus[] = ["Pending", "Paid", "Cancelled"];
 const billingMethods: BillingMethod[] = ["UPI", "Cash"];
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
 
 // ── Badge helpers ────────────────────────────────────────────────
 function orderStatusClass(status: string) {
@@ -59,6 +61,7 @@ function Badge({ label, className }: { label: string; className: string }) {
 // ── Receipt Dialog (unchanged logic) ────────────────────────────
 interface ReceiptDialogProps {
   order: CafeOrder | null;
+  gstPercentage: number;
   loading: boolean;
   saving: boolean;
   error: string;
@@ -67,11 +70,35 @@ interface ReceiptDialogProps {
   onCancelOrder: (orderId: number) => void;
 }
 
-function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBillingMethod, onCancelOrder }: ReceiptDialogProps) {
+const formatDateTime = (date: string | Date) => {
+  const d = new Date(date);
+
+  return `${d
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/ /g, "-")}, ${d.toLocaleTimeString("en-US", {
+      hour12: true,
+    })}`;
+}
+
+function ReceiptDialog({ order, gstPercentage, loading, saving, error, onClose, onSelectBillingMethod, onCancelOrder }: ReceiptDialogProps) {
   if (!order && !loading) return null;
 
   const items = order?.items || [];
-  const calculatedTotal = items.reduce((sum, item) => sum + Number(item.price_at_time || 0) * Number(item.quantity || 0), 0);
+const subTotal = items.reduce(
+  (sum, item) =>
+    sum +
+    Number(item.price_at_time || 0) *
+      Number(item.quantity || 0),
+  0
+);
+
+const gstAmount = (subTotal * Number(gstPercentage || 0)) / 100;
+
+const totalAmount = subTotal + gstAmount;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
@@ -108,13 +135,23 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
                 <p className="mt-1 font-medium text-slate-900">{order.customer_mobile}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Table</p>
-                <p className="mt-1 font-medium text-slate-900">{order.table_number || order.table_id}</p>
+                <p className="text-xs font-medium text-slate-500 uppercase">Order Type</p>
+                <p className="mt-1 font-medium text-slate-900">{order.order_type === "Dine-In"
+                  ? `Table ${order.table_number}` : "Takeaway"}</p>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase">Date</p>
-                <p className="mt-1 font-medium text-slate-900">{new Date(order.created_at).toLocaleString()}</p>
-              </div>
+                <p className="mt-1 font-medium text-slate-900">
+                  {new Date(order.created_at).toLocaleString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: true,
+                  })}
+                </p></div>
             </div>
 
             <div className="mt-4 max-h-72 overflow-y-auto rounded-lg border border-slate-200">
@@ -146,11 +183,28 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-between rounded-lg bg-slate-100 p-4 text-lg font-semibold text-slate-900">
-              <span>Total Price</span>
-              <span>{formatCurrency(calculatedTotal)}</span>
-            </div>
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex justify-between text-sm text-slate-600">
+                <span>Subtotal</span>
+                <span>{formatCurrency(subTotal)}</span>
+              </div>
 
+              <div className="mt-2 flex justify-between text-sm text-slate-600">
+                <span>GST ({gstPercentage}%)</span>
+                <span>{formatCurrency(gstAmount)}</span>
+              </div>
+
+              <div className="my-3 border-t border-dashed border-slate-200" />
+
+              <div className="flex justify-between">
+                <span className="text-base font-semibold text-slate-900">
+                  Total Price
+                </span>
+                <span className="text-xl font-bold text-emerald-600">
+                  {formatCurrency(totalAmount)}
+                </span>
+              </div>
+            </div>
             {error && <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-800 border border-rose-200">{error}</p>}
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -192,22 +246,30 @@ function ReceiptDialog({ order, loading, saving, error, onClose, onSelectBilling
 
 const downloadReceipt = async (
   order: CafeOrder,
+  gstPercentage: number,
   billingMethod: string
 ) => {
   const items = order.items ?? [];
 
-  const total = items.reduce(
+  // Calculate subtotal
+  const subTotal = items.reduce(
     (sum, item) =>
       sum +
       Number(item.price_at_time || 0) *
-      Number(item.quantity || 0),
+        Number(item.quantity || 0),
     0
   );
+
+  // GST Calculation
+  const gstAmount = (subTotal * gstPercentage) / 100;
+
+  // Final Total
+  const total = subTotal + gstAmount;
 
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "mm",
-    format: [80, 200], // Thermal receipt size
+    format: [80, 200],
   });
 
   let y = 10;
@@ -215,13 +277,17 @@ const downloadReceipt = async (
   // Header
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
-  pdf.text("SMART CAFE", 40, y, { align: "center" });
+  pdf.text("SMART CAFE", 40, y, {
+    align: "center",
+  });
 
   y += 7;
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(10);
-  pdf.text("Chennai", 40, y, { align: "center" });
+  pdf.text("Chennai", 40, y, {
+    align: "center",
+  });
 
   y += 8;
 
@@ -234,13 +300,17 @@ const downloadReceipt = async (
   y += 6;
 
   pdf.text(
-    `Date: ${new Date(order.created_at).toLocaleString()}`,
+    `Date: ${formatDateTime(order.created_at)}`,
     5,
     y
   );
   y += 6;
 
-  pdf.text(`Customer: ${order.customer_name}`, 5, y);
+  pdf.text(
+    `Customer: ${order.customer_name}`,
+    5,
+    y
+  );
   y += 6;
 
   pdf.text(
@@ -251,7 +321,11 @@ const downloadReceipt = async (
   y += 6;
 
   pdf.text(
-    `Table: ${order.table_number || order.table_id}`,
+    `Order Type: ${
+      order.order_type === "Dine-In"
+        ? `Table ${order.table_number}`
+        : "Takeaway"
+    }`,
     5,
     y
   );
@@ -262,7 +336,7 @@ const downloadReceipt = async (
 
   y += 6;
 
-  // Table Header
+  // Item Header
   pdf.setFont("helvetica", "bold");
 
   pdf.text("Item", 5, y);
@@ -290,7 +364,7 @@ const downloadReceipt = async (
 
     pdf.text(String(qty), 45, y);
 
-    pdf.text(`${amount.toFixed(2)}`, 70, y, {
+    pdf.text(amount.toFixed(2), 70, y, {
       align: "right",
     });
 
@@ -303,11 +377,24 @@ const downloadReceipt = async (
 
   y += 8;
 
-  // Total
+  // Summary Section
+  pdf.setFont("helvetica", "normal");
+
+  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`,5, y);
+  y += 8;
+
+  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5,y);
+  y += 8;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
   pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(12);
 
   pdf.text(
-    `Total : ${total.toFixed(2)}`,
+    `Grand Total : ${total.toFixed(2)}`,
     5,
     y
   );
@@ -315,6 +402,7 @@ const downloadReceipt = async (
   y += 8;
 
   pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
 
   pdf.text(
     `Billing Method : ${billingMethod}`,
@@ -325,6 +413,7 @@ const downloadReceipt = async (
   y += 12;
 
   pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(12);
 
   pdf.text(
     "THANK YOU!",
@@ -337,9 +426,9 @@ const downloadReceipt = async (
 
   pdf.save(`${order.order_id}.pdf`);
 };
-
 // ── Main Page ────────────────────────────────────────────────────
 export default function AdminOrders() {
+
   const [orders, setOrders] = useState<CafeOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -349,6 +438,7 @@ export default function AdminOrders() {
   const [receiptLoading, setReceiptLoading] = useState(false);
   const [receiptSaving, setReceiptSaving] = useState(false);
   const [receiptError, setReceiptError] = useState("");
+  const gstPercentage = useCafeStore((state) => state.gstPercentage);
 
   const loadOrders = useCallback(async () => {
     const response = await tenantApiFetch("/api/admin/orders", { cache: "no-store" });
@@ -407,7 +497,7 @@ export default function AdminOrders() {
       const updatedOrder = { ...receiptOrder, ...data.order, items: receiptOrder.items, billing_method: method, payment_status: "Paid" as PaymentStatus, status: "Paid" as OrderStatus, session_status: "CLOSED" as SessionStatus };
       console.log("Updated Order:", updatedOrder);
       setReceiptOrder(updatedOrder);
-      await downloadReceipt(updatedOrder, method);
+      await downloadReceipt(updatedOrder,gstPercentage, method);
       setOrders((current) =>
         current.map((order) => (order.id === receiptOrder.id ? { ...order, ...updatedOrder } : order))
       );
@@ -564,7 +654,7 @@ export default function AdminOrders() {
                       {/* Table */}
                       <td className="px-6 py-3 text-center">
                         <span className="inline-flex items-center rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                          {order.table_number || order.table_id}
+                          {order.table_number || order.table_id} {order.order_type}
                         </span>
                       </td>
 
@@ -617,10 +707,10 @@ export default function AdminOrders() {
                           type="button"
                           onClick={() => openReceipt(order)}
                           className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition whitespace-nowrap ${order.status === "Cancelled"
-                              ? "bg-rose-600 text-white hover:bg-rose-700"
-                              : order.billing_method
-                                ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                                : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                            ? "bg-rose-600 text-white hover:bg-rose-700"
+                            : order.billing_method
+                              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                              : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                             }`}
                         >
                           <Receipt size={13} aria-hidden="true" />
@@ -707,6 +797,7 @@ export default function AdminOrders() {
         {/* Receipt modal — unchanged */}
         <ReceiptDialog
           order={receiptOrder}
+          gstPercentage={gstPercentage}
           loading={receiptLoading}
           saving={receiptSaving}
           error={receiptError}

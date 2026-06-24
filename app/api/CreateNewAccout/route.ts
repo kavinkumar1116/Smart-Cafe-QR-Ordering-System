@@ -5,9 +5,10 @@ import {
   insertCreateNewAccout,
   insertCreateSettings,
   fetchTenantsByTenantID,
-  fetchTenantsByEmail,
+  fetchTenantsByEmail,insertSubscriptions, updateSubscriptions,fetchSubcriptionsByPlan
 } from "@/lib/supabase/crud";
 import nodemailer from "nodemailer";
+import { Currency } from "lucide-react";
 
 
 async function generateTenantSlug(length = 10): Promise<string> {
@@ -121,14 +122,54 @@ export async function POST(req: Request) {
       email: normalizedEmail,
       gst_number: gst || null,
     };
-
     try {
       const CreateSettings = await insertCreateSettings(settingsPayload as any);
-      console.log("CreateSettings", CreateSettings);
     } catch (settingsError) {
-      // Non-fatal: log it, don't fail the whole request
       console.error("Settings insert failed:", settingsError);
     }
+
+    // ✅ Subscriptions insert — isolated try/catch, non-blocking
+try {
+  const GetfetchSubcriptionsByPlan = await fetchSubcriptionsByPlan(1);
+  console.log("GetfetchSubcriptionsByPlan", GetfetchSubcriptionsByPlan);
+
+  if (!GetfetchSubcriptionsByPlan || GetfetchSubcriptionsByPlan.length === 0) {
+    console.warn("No subscription plan found for plan ID 1. Skipping subscription insert.");
+  } else {
+    const plan = GetfetchSubcriptionsByPlan[0];
+    console.log("plan", plan);
+
+    // ✅ Calculate end_date based on billing_cycle
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+
+const nextBillingDate = plan.plan_name === "Free Trial" ? new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000)
+    : null;
+
+
+    const subscriptionsPayload = {
+      tenant_id: tenant_id,
+      plan_name: plan.plan_name,          // ✅ Fixed: was using plan_code for plan_name
+      plan_code: plan.plan_code,
+      next_billing_cycle: nextBillingDate ? nextBillingDate.toISOString().split("T")[0] : null,
+      amount: plan.monthly_price,
+      gst_percentage: 0,
+      start_date: startDate.toISOString().split("T")[0],
+      end_date: endDate.toISOString().split("T")[0],   // ✅ Fixed: proper end_date
+      status: 1,
+      payment_status: "Paid",
+      transaction_id: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+ console.log("subscriptionsPayload", subscriptionsPayload);
+    const CreateSubscriptions = await insertSubscriptions(subscriptionsPayload as any);
+    console.log("CreateSubscriptions", CreateSubscriptions);
+  }
+} catch (subscriptionError) {
+  // Non-fatal: log it, don't fail the whole registration request
+  console.error("Subscription insert failed:", subscriptionError);
+}
 
     // ✅ FIX 7: Login URL uses tenant_slug (correct — slug is for URL routing)
     const loginUrl = `https://smart-cafe-qr-ordering-system.vercel.app/${tenant_slug}/login`;

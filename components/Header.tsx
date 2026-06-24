@@ -1,41 +1,40 @@
 "use client";
 
 import {
-  Search,
   Bell,
   Moon,
   Sun,
   LogOut,
-  Settings,
-  User,
   ChevronDown,
   Menu,
 } from "lucide-react";
-import Image from "next/image";
-import defaultLogo from "@/public/assets/logo.png";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
-import { tenantApiFetch } from "@/lib/tenant";
 import { useCafeStore } from "@/src/store/useCafeStore";
 import { useSidebar } from "@/contexts/SidebarContext";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const [profileOwner, setProfileOwner] = useState("Not signed in");
   const [openProfile, setOpenProfile] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const { toggleMenu, sidebarOpen, isDesktop, mobileOpen } = useSidebar();
+  const [openNotifications, setOpenNotifications] = useState(false);
 
   const restaurantName = useCafeStore((state) => state.restaurantName);
+
   const branchName = useCafeStore((state) => state.branchName);
+
   const logo = useCafeStore((state) => state.logo);
-  const setCafeProfile = useCafeStore((state) => state.setCafeProfile);
+
+  const resetCafeProfile = useCafeStore((state) => state.resetCafeProfile);
+
+  const subscriptionExpiringDate = useCafeStore((state) => state.subscriptionExpiringDate);
 
   const getPageTitle = () => {
     if (pathname.includes("dashboard")) return "Dashboard";
+    if (pathname.includes("order")) return "Live Orders";
     if (pathname.includes("orders_list")) return "Orders";
     if (pathname.includes("menu_master")) return "Menu Items";
     if (pathname.includes("category_master")) return "Categories";
@@ -43,11 +42,13 @@ export default function Header() {
     if (pathname.includes("qr")) return "QR Codes";
     if (pathname.includes("customers")) return "Customers";
     if (pathname.includes("setting")) return "Settings";
+    if (pathname.includes("subscriptions")) return "Current Plan";
     return "Smart Cafe";
   };
 
   const getPageSubtitle = () => {
     if (pathname.includes("dashboard")) return "Overview of your cafe operations";
+    if (pathname.includes("order")) return "Manage and track live orders";
     if (pathname.includes("orders_list")) return "Manage and track all orders";
     if (pathname.includes("menu_master")) return "Manage your menu items";
     if (pathname.includes("category_master")) return "Organize menu categories";
@@ -55,61 +56,33 @@ export default function Header() {
     if (pathname.includes("qr")) return "Generate and manage QR codes";
     if (pathname.includes("customers")) return "View customer information";
     if (pathname.includes("setting")) return "Cafe settings and configuration";
+    if (pathname.includes("subscriptions")) return "Current plan details";
     return "QR-based cafe ordering system";
   };
 
-  useEffect(() => {
-    async function loadCafeProfile() {
-      const response = await tenantApiFetch("/api/admin/settings", { cache: "no-store" });
-      const data = (await response.json()) as {
-        settings?: {
-          restaurantName?: string;
-          branchName?: string;
-          logo?: string;
-          gstNumber?: string;
-          contactNumber?: string;
-        };
-      };
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+      });
 
-      if (response.ok && data.settings) {
-        setCafeProfile(data.settings);
-      }
+      resetCafeProfile();
+      const AUTH_KEY = "smart-cafe-admin=true";
+      document.cookie = AUTH_KEY;
+      localStorage.setItem(AUTH_KEY, "false");
+
+      document.cookie = "smart-cafe-admin=;";
+      window.location.href = "/mycafe/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
-
-    void loadCafeProfile();
-  }, [setCafeProfile]);
-
-  useEffect(() => {
-    const supabase = createBrowserSupabaseClient();
-
-    async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setProfileOwner(data.user?.email || "Not signed in");
-    }
-
-    void loadUser();
-  }, []);
-
-const handleLogout = async () => {
-  try {
-    await fetch("/api/logout", {
-      method: "POST",
-    });
-
-    localStorage.removeItem("smart-cafe-admin=true");
-
-    document.cookie = "smart-cafe-admin=;";
-    window.location.href = "/mycafe/login";
-  } catch (error) {
-    console.error("Logout failed:", error);
-  }
-};
+  };
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
-  const userInitial = profileOwner.charAt(0).toUpperCase();
+  const userInitial = restaurantName.charAt(0).toUpperCase();
 
   const menuAriaLabel =
     isDesktop
@@ -144,28 +117,65 @@ const handleLogout = async () => {
             </div>
           </div>
 
-          {/* Center: Search Bar (hidden on mobile) */}
-          <div className="hidden md:flex flex-1 max-w-xs">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search orders, items..."
-                className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              />
-            </div>
-          </div>
-
           {/* Right: Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <button className="flex md:hidden h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              <Search size={20} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setOpenNotifications(!openNotifications);
+                  setOpenProfile(false);
+                }}
+                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100"
+              >
+                <Bell size={20} />
 
-            <button className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-              <Bell size={20} />
-              <span className="absolute right-2 top-2 flex h-2 w-2 items-center justify-center rounded-full bg-red-500"></span>
-            </button>
+                {subscriptionExpiringDate !== "" && <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-red-500" />}
+              </button>
+
+              {openNotifications && (
+                <div className="absolute right-0 top-full mt-2 w-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">
+                        Notifications
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Notification List */}
+                  <div className="max-h-[350px] overflow-y-auto">
+
+                    <div className="border-b border-slate-100 px-4 py-3 hover:bg-slate-50">
+                      <div className="flex gap-3">
+                        {subscriptionExpiringDate !== "" && (
+                          <>
+                            <div className="mt-1 h-2 w-2 rounded-full bg-amber-500" />
+
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">
+                                Subscription Expiring
+                              </p>
+
+                              <p className="mt-1 text-xs text-slate-500">
+                                {subscriptionExpiringDate}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="border-t border-slate-100 p-3">
+                    <button className="w-full rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200">
+                      View All Notifications
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={toggleTheme}
@@ -182,7 +192,7 @@ const handleLogout = async () => {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-semibold">
                   {userInitial}
                 </div>
-                <span className="hidden sm:inline">{restaurantName || "Cafe"}</span>
+                <span className="hidden sm:inline">{restaurantName}</span>
                 <ChevronDown size={16} className={`transition-transform duration-200 ${openProfile ? "rotate-180" : ""}`} />
               </button>
 
@@ -195,7 +205,7 @@ const handleLogout = async () => {
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-slate-900">
-                          {profileOwner}
+                          {restaurantName}
                         </h3>
                         <p className="text-xs text-slate-500">Admin Account</p>
                       </div>
@@ -218,7 +228,7 @@ const handleLogout = async () => {
                   <div className="px-2 py-2 space-y-1">
                     <div className="border-t border-slate-200 my-1"></div>
                     <button
-                      onClick={handleLogout }
+                      onClick={handleLogout}
                       className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut size={16} />

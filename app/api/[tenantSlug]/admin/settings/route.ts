@@ -3,6 +3,7 @@ import { getErrorMessage } from "@/lib/api";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTenantContextFromRequest } from "@/lib/tenant";
+import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant } from "@/lib/supabase/crud";
 
 type SettingsRecord = {
   restaurant_name?: string | null;
@@ -19,6 +20,13 @@ type SettingsRecord = {
   invoice_prefix?: string | null;
   invoice_number_format?: string | null;
 };
+
+type InvoiveData = {
+  invoice_prefix?: string | null;
+  invoice_number_format?: string | null;
+  end_date?: string | null;
+
+}
 
 function normalizeSettings(record: SettingsRecord | null) {
   return {
@@ -42,7 +50,10 @@ function normalizeSettings(record: SettingsRecord | null) {
 export async function GET(request: Request) {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
+      return NextResponse.json(
+        { error: "Supabase is not configured" },
+        { status: 503 }
+      );
     }
 
     const { tenantId } = await getTenantContextFromRequest(request);
@@ -55,11 +66,52 @@ export async function GET(request: Request) {
       .maybeSingle();
 
     if (error) throw error;
+
     const settingsRecord = data as SettingsRecord | null;
-    return NextResponse.json({ settings: normalizeSettings(settingsRecord) });
+
+    const getStoreData = await fetchTenantsDataByTenantID(tenantId);
+    const invoicesData = await fetchSubcriptionsByTenant(tenantId);
+
+    const invoice = invoicesData?.[0];
+
+    let subscriptionExpiringMessage = "";
+
+    if (invoice?.end_date) {
+      const expiryDate = new Date(invoice.end_date);
+      const today = new Date();
+
+      // Remove time part for accurate day comparison
+      expiryDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      const remainingDays = Math.ceil(
+        (expiryDate.getTime() - today.getTime()) /
+        (1000 * 60 * 60 * 24)
+      );
+
+      if (remainingDays <= 2 && remainingDays >= 0) {
+        subscriptionExpiringMessage = `Your subscription expires on ${expiryDate
+          .toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })
+          .replace(/ /g, "-")}`;
+      }
+    }
+
+    return NextResponse.json({
+      settings: normalizeSettings(settingsRecord),
+      getStoreData,
+      invoicesData: invoicesData || [],
+      subscriptionExpiringMessage,
+    });
   } catch (error) {
     return NextResponse.json(
-      { error: "Unable to load settings", detail: getErrorMessage(error) },
+      {
+        error: "Unable to load settings",
+        detail: getErrorMessage(error),
+      },
       { status: 500 }
     );
   }
@@ -95,14 +147,8 @@ export async function PUT(request: Request) {
           contact_number: settings.contact_number ?? "",
           email: settings.email_address ?? "",
           gst_number: settings.gst_number ?? "",
-          gst_percentage:
-            settings.gst_percentage === ""
-              ? null
-              : Number(settings.gst_percentage),
-          service_charge:
-            settings.service_charge === ""
-              ? null
-              : Number(settings.service_charge),
+          gst_percentage: settings.gst_percentage === "" ? null : Number(settings.gst_percentage),
+          service_charge: settings.service_charge === "" ? null : Number(settings.service_charge),
           discount_rules: settings.discount_rules ?? "",
           invoice_prefix: settings.invoice_prefix ?? "",
           invoice_number_format: settings.invoice_number_format ?? "",
