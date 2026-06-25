@@ -30,6 +30,7 @@ export default function CafeProfileProvider() {
             contactNumber: data.settings.contact_number || "",
             gstPercentage: data.settings.gst_percentage || "",
             subscriptionExpiringDate: data.subscriptionExpiringMessage || "",
+            subscriptionStatus: data.subscriptionStatus || "",
 
           });
         }

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import SubscriptionInvoice from "@/components/Subscriptioninvoice";
 import { tenantApiFetch } from "@/lib/tenant";
+import { useCafeStore } from "@/src/store/useCafeStore";
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -68,7 +69,8 @@ export default function AdminSubscriptions() {
   const [showInvoice, setShowInvoice] = useState(false);
   const [invoicesData, setInvoicesData] = useState<InvoiceData | null>(null);
   const [storeData, setStoreData] = useState<StoreData | null>(null);
-  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan[]>([]);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan[]>([]);  
+  const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
 
   const getInvoice = useCallback(async () => {
     const response = await tenantApiFetch("/api/admin/subscriptions", {
@@ -197,17 +199,19 @@ export default function AdminSubscriptions() {
               <span className="text-sm text-slate-500">Subscription Status</span>
               <CheckCircle className="text-emerald-500" size={18} />
             </div>
-            <h3 className="mt-3 text-lg font-bold text-emerald-600">
-              <span
-                className={
-                  invoicesData?.status == 1
-                    ? "text-green-600 font-semibold"
-                    : "text-red-600 font-semibold"
-                }
-              >
-                {invoicesData?.status == 1 ? "Active" : "Inactive"}
-              </span>
-            </h3>
+          <h3 className="mt-3 text-lg font-bold">
+  <span
+    className={`font-semibold ${
+      subscriptionStatus === "Active"
+        ? "text-green-600"
+        : subscriptionStatus === "Expired"
+        ? "text-red-600"
+        : "text-amber-600"
+    }`}
+  >
+    {subscriptionStatus}
+  </span>
+</h3>
           </div>
 
         </div>
