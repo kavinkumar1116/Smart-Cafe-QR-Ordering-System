@@ -75,10 +75,15 @@ export async function GET(request: Request) {
     const invoice = invoicesData?.[0];
 
     let subscriptionExpiringMessage = "";
+    let subscriptionStatus = "Active";
 
     if (invoice?.end_date) {
       const expiryDate = new Date(invoice.end_date);
       const today = new Date();
+
+      if (expiryDate < today) {
+        subscriptionStatus = "Expired";
+      }
 
       // Remove time part for accurate day comparison
       expiryDate.setHours(0, 0, 0, 0);
@@ -105,6 +110,7 @@ export async function GET(request: Request) {
       getStoreData,
       invoicesData: invoicesData || [],
       subscriptionExpiringMessage,
+      subscriptionStatus,
     });
   } catch (error) {
     return NextResponse.json(

@@ -25,6 +25,7 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { useCafeStore } from "@/src/store/useCafeStore";
 
 type DateFilter = "Today" | "Yesterday" | "This Week" | "This Month" | "Custom Date Range";
 type StatTone = "emerald" | "blue" | "amber" | "rose";
@@ -375,7 +376,9 @@ export default function AdminDashboard() {
   const [dashboard, setDashboard] = useState<DashboardPayload>(defaultDashboard);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [refreshVersion, setRefreshVersion] = useState(0);  
+  const subscriptionExpiringDate = useCafeStore((state) => state.subscriptionExpiringDate);
+  const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
 
   const selectedRange = useMemo(() => getDashboardDateRange(dateFilter, customRange), [customRange, dateFilter]);
   const queryString = useMemo(() => {
@@ -558,15 +561,25 @@ export default function AdminDashboard() {
             tone="amber"
             loading={loading}
           />
-          <StatCard
-            title="Peak Sales Time"
-            value={metrics.peakSalesTime}
-            helper={formatCurrency(metrics.peakSalesAmount)}
-            icon={TrendingUp}
-            tone="emerald"
-            loading={loading}
-          />
-        </div>
+         <StatCard
+  title="Store Status"
+  value={
+    <span
+      className={
+        subscriptionStatus === "Active"
+          ? "text-green-600 font-semibold"
+          : "text-red-600 font-semibold"
+      }
+    >
+      {subscriptionStatus}
+    </span>
+  }
+  helper="subscription status"
+  icon={TrendingUp}
+  tone="emerald"
+  loading={loading}
+/>
+                  </div>
 
         {/* Charts Section */}
         <div className="grid gap-6 lg:grid-cols-3">

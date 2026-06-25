@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Receipt, UtensilsCrossed, ShoppingBag, Minus, Plus, Search, Send, ShoppingCart, Trash2, X, Info } from "lucide-react";
+import { Receipt, UtensilsCrossed, ShoppingBag, Minus, Plus, Search, Send, ShoppingCart, Trash2, X, TriangleAlert, Info } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { calcSubtotal } from "@/lib/order-math";
 import { tenantApiFetch } from "@/lib/tenant";
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCafeStore } from "@/src/store/useCafeStore";
 
 const UNCATEGORIZED = "Uncategorized";
 
@@ -203,8 +204,8 @@ function CategoryChips({ categories, active, onChange }: CategoryChipsProps) {
             type="button"
             onClick={() => onChange(category)}
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${isActive
-                ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
-                : "text-slate-700 hover:bg-slate-100"
+              ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
+              : "text-slate-700 hover:bg-slate-100"
               }`}
           >
             {category}
@@ -378,6 +379,7 @@ function CartItem({ item, onIncrement, onDecrement, onRemove }: CartItemProps) {
 
 function CartSummary({ totalItems, grandTotal, onPlaceOrder, placingOrder }: CartSummaryProps) {
   const isEmpty = totalItems === 0;
+  const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
 
   return (
     <div className="border-t border-slate-200 pt-4">
@@ -391,13 +393,26 @@ function CartSummary({ totalItems, grandTotal, onPlaceOrder, placingOrder }: Car
       </div>
       <button
         type="button"
-        disabled={isEmpty || placingOrder}
+        disabled={subscriptionStatus === "Expired" || isEmpty || placingOrder}
         onClick={onPlaceOrder}
-        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${subscriptionStatus === "Expired"
+            ? "bg-rose-600 hover:bg-rose-700"
+            : "bg-emerald-600 hover:bg-emerald-700"
+          }`}
       >
-        <Send size={18} aria-hidden="true" />
-        {placingOrder ? "Placing..." : "Place Order"}
+        {subscriptionStatus === "Expired" ? (
+          <>
+            <TriangleAlert size={18} aria-hidden="true" />
+            Upgrade Subscription Now
+          </>
+        ) : (
+          <>
+            <Send size={18} aria-hidden="true" />
+            {placingOrder ? "Placing..." : "Place Order"}
+          </>
+        )}
       </button>
+
     </div>
   );
 }
@@ -467,168 +482,167 @@ function CustomerDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-  <div className="w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+      <div className="w-full max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
 
-    {/* Emerald top bar */}
-    <div className="flex items-center justify-between bg-green-600 px-5 py-3.5">
-      <div className="flex items-center gap-2 text-white">
-        <Receipt size={17} aria-hidden="true" />
-        <span className="text-sm font-medium">Customer Billing Details</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800">
-          Smart Cafe
-        </span>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={placingOrder}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-emerald-300 transition hover:text-white disabled:opacity-60"
-          aria-label="Close"
-        >
-          <X size={17} />
-        </button>
-      </div>
-    </div>
-
-    <div className="p-5">
-
-      {error ? (
-        <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-          {error}
-        </p>
-      ) : null}
-
-      <div className="space-y-4">
-
-        {/* Order Type toggle cards — shown first so table field reacts immediately */}
-        <div>
-          <p className="mb-2.5 text-[11px] font-medium uppercase tracking-widest text-slate-400">
-            Order type <span className="text-red-500">*</span>
-          </p>
-          <div className="grid grid-cols-2 gap-2.5">
-            {(["Dine-In", "Takeaway"] as OrderMode[]).map((type) => {
-              const active = customer.order_type === type;
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() =>
-                    onCustomerChange({
-                      ...customer,
-                      order_type: type,
-                      // clear table number when switching away from Dine-In
-                      table_number: type === "Takeaway" ? "" : customer.table_number,
-                    })
-                  }
-                  disabled={placingOrder}
-                  className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 text-sm font-medium transition disabled:opacity-60 ${
-                    active
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
-                  {type === "Dine-In" ? (
-                    <UtensilsCrossed size={20} aria-hidden="true" />
-                  ) : (
-                    <ShoppingBag size={20} aria-hidden="true" />
-                  )}
-                  {type}
-                </button>
-              );
-            })}
+        {/* Emerald top bar */}
+        <div className="flex items-center justify-between bg-green-600 px-5 py-3.5">
+          <div className="flex items-center gap-2 text-white">
+            <Receipt size={17} aria-hidden="true" />
+            <span className="text-sm font-medium">Customer Billing Details</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800">
+              Smart Cafe
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={placingOrder}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-emerald-300 transition hover:text-white disabled:opacity-60"
+              aria-label="Close"
+            >
+              <X size={17} />
+            </button>
           </div>
         </div>
 
-        <div className="h-px bg-slate-100" />
+        <div className="p-5">
 
-        <p className="text-[11px] font-medium uppercase tracking-widest text-slate-400">
-          Customer info
-        </p>
+          {error ? (
+            <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+              {error}
+            </p>
+          ) : null}
 
-        {/* Table Number — only for Dine-In */}
-        {customer.order_type === "Dine-In" ? (
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-slate-500">
-              Table number <span className="text-red-500">*</span>
-            </span>
-            <Select
-              value={customer.table_number}
-              onValueChange={(value) => onCustomerChange({ ...customer, table_number: value })}
-              disabled={placingOrder}
-            >
-              <SelectTrigger className="h-11 w-full border-slate-200 bg-slate-50 text-sm">
-                <SelectValue placeholder="Select table" />
-              </SelectTrigger>
-              <SelectContent className="border-slate-200 bg-white shadow-lg">
-                {tables.map((table) => (
-                  <SelectItem key={table.id} value={String(table.table_number)}>
-                    Table {table.table_number}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </label>
-        ) : null}
+          <div className="space-y-4">
 
-        {/* Mobile Number */}
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-slate-500">
-            Mobile number <span className="text-red-500">*</span>
-          </span>
-          <input
-            type="tel"
-            inputMode="numeric"
-            minLength={10}
-            maxLength={10}
-            value={customer.customer_mobile}
-            onChange={(event) => {
-              const value = event.target.value.replace(/\D/g, "").slice(0, 10);
-              onCustomerChange({ ...customer, customer_mobile: value });
-            }}
-            disabled={placingOrder}
-            placeholder="10-digit number"
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
-          />
-        </label>
+            {/* Order Type toggle cards — shown first so table field reacts immediately */}
+            <div>
+              <p className="mb-2.5 text-[11px] font-medium uppercase tracking-widest text-slate-400">
+                Order type <span className="text-red-500">*</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2.5">
+                {(["Dine-In", "Takeaway"] as OrderMode[]).map((type) => {
+                  const active = customer.order_type === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() =>
+                        onCustomerChange({
+                          ...customer,
+                          order_type: type,
+                          // clear table number when switching away from Dine-In
+                          table_number: type === "Takeaway" ? "" : customer.table_number,
+                        })
+                      }
+                      disabled={placingOrder}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 text-sm font-medium transition disabled:opacity-60 ${active
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20"
+                          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                    >
+                      {type === "Dine-In" ? (
+                        <UtensilsCrossed size={20} aria-hidden="true" />
+                      ) : (
+                        <ShoppingBag size={20} aria-hidden="true" />
+                      )}
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* Customer Name */}
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-slate-500">Customer name</span>
-          <input
-            value={customer.customer_name}
-            onChange={(event) => onCustomerChange({ ...customer, customer_name: event.target.value })}
-            disabled={placingOrder}
-            placeholder="Enter name (optional)"
-            className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
-          />
-        </label>
+            <div className="h-px bg-slate-100" />
 
-        {/* Footer buttons */}
-        <div className="flex gap-2.5 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={placingOrder}
-            className="flex-1 rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={placingOrder}
-            className="flex flex-[2] items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
-          >
-            <Send size={15} aria-hidden="true" />
-            {placingOrder ? "Confirming..." : "Confirm order"}
-          </button>
+            <p className="text-[11px] font-medium uppercase tracking-widest text-slate-400">
+              Customer info
+            </p>
+
+            {/* Table Number — only for Dine-In */}
+            {customer.order_type === "Dine-In" ? (
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-slate-500">
+                  Table number <span className="text-red-500">*</span>
+                </span>
+                <Select
+                  value={customer.table_number}
+                  onValueChange={(value) => onCustomerChange({ ...customer, table_number: value })}
+                  disabled={placingOrder}
+                >
+                  <SelectTrigger className="h-11 w-full border-slate-200 bg-slate-50 text-sm">
+                    <SelectValue placeholder="Select table" />
+                  </SelectTrigger>
+                  <SelectContent className="border-slate-200 bg-white shadow-lg">
+                    {tables.map((table) => (
+                      <SelectItem key={table.id} value={String(table.table_number)}>
+                        Table {table.table_number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </label>
+            ) : null}
+
+            {/* Mobile Number */}
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">
+                Mobile number <span className="text-red-500">*</span>
+              </span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                minLength={10}
+                maxLength={10}
+                value={customer.customer_mobile}
+                onChange={(event) => {
+                  const value = event.target.value.replace(/\D/g, "").slice(0, 10);
+                  onCustomerChange({ ...customer, customer_mobile: value });
+                }}
+                disabled={placingOrder}
+                placeholder="10-digit number"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
+              />
+            </label>
+
+            {/* Customer Name */}
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">Customer name</span>
+              <input
+                value={customer.customer_name}
+                onChange={(event) => onCustomerChange({ ...customer, customer_name: event.target.value })}
+                disabled={placingOrder}
+                placeholder="Enter name (optional)"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
+              />
+            </label>
+
+            {/* Footer buttons */}
+            <div className="flex gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={placingOrder}
+                className="flex-1 rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={placingOrder}
+                className="flex flex-[2] items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+              >
+                <Send size={15} aria-hidden="true" />
+                {placingOrder ? "Confirming..." : "Confirm order"}
+              </button>
+            </div>
+
+          </div>
         </div>
-
       </div>
     </div>
-  </div>
-</div>
   );
 }
 
@@ -868,15 +882,15 @@ export default function Order({ tableId }: MenuExperienceProps) {
         setOrderError("Add at least one item before placing the order.");
         return;
       }
-if (!customerName || !customerMobile) {
-  setOrderError("Customer name and mobile number are required.");
-  return;
-}
+      if (!customerName || !customerMobile) {
+        setOrderError("Customer name and mobile number are required.");
+        return;
+      }
 
-if (customer.order_type === "Dine-In" && !tableNumber) {
-  setOrderError("Table number is required for Dine-In orders.");
-  return;
-}
+      if (customer.order_type === "Dine-In" && !tableNumber) {
+        setOrderError("Table number is required for Dine-In orders.");
+        return;
+      }
       if (customerMobile.length !== 10) {
         setOrderError("Mobile number must be exactly 10 digits.");
         return;
