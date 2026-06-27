@@ -170,7 +170,7 @@ export default function AdminSubscriptions() {
               <Crown className="text-amber-500" size={18} />
             </div>
             <h3 className="mt-3 text-2xl font-bold text-slate-900">
-              {invoicesData?.plan_name ?? "—"}
+              {invoicesData?.plan_name ?? "No Plan"}
             </h3>
           </div>
 
@@ -228,7 +228,7 @@ export default function AdminSubscriptions() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Current Plan</span>
                 <span className="font-medium">
-                  {invoicesData?.plan_name ?? "—"}
+                  {invoicesData?.plan_name ?? "No Plan"}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -396,8 +396,8 @@ function CartSummary({ totalItems, grandTotal, onPlaceOrder, placingOrder }: Car
         disabled={subscriptionStatus === "Expired" || isEmpty || placingOrder}
         onClick={onPlaceOrder}
         className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${subscriptionStatus === "Expired"
-            ? "bg-rose-600 hover:bg-rose-700"
-            : "bg-emerald-600 hover:bg-emerald-700"
+          ? "bg-rose-600 hover:bg-rose-700"
+          : "bg-emerald-600 hover:bg-emerald-700"
           }`}
       >
         {subscriptionStatus === "Expired" ? (
@@ -538,8 +538,8 @@ function CustomerDetailsModal({
                       }
                       disabled={placingOrder}
                       className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 text-sm font-medium transition disabled:opacity-60 ${active
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20"
-                          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500/20"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
                         }`}
                     >
                       {type === "Dine-In" ? (
@@ -669,7 +669,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tables, setTables] = useState<CafeTable[]>([]);
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState("");
   const [cart, setCart] = useState<CartEntry[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -735,7 +735,6 @@ export default function Order({ tableId }: MenuExperienceProps) {
 
   const categoryOptions = useMemo(
     () => [
-      "All",
       ...Array.from(
         new Set([
           ...categories
@@ -750,6 +749,14 @@ export default function Order({ tableId }: MenuExperienceProps) {
     ],
     [categories, items]
   );
+
+  useEffect(() => {
+    if (categoryOptions.length > 0 && !categoryOptions.includes(category)) {
+      setCategory(categoryOptions[0]);
+    }
+  }, [categoryOptions]);
+
+
   const filteredItems = useMemo(
     () =>
       items.filter((item) => {
@@ -758,7 +765,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
 
         if (item.is_available === false) return false;
         if (!Number.isFinite(price) || price < 0) return false;
-        if (category !== "All" && itemCategory !== category) return false;
+        if (itemCategory !== category) return false;  // no "All" check needed
         if (!search.trim()) return true;
 
         const haystack = `${item.name} ${item.description} ${itemCategory}`.toLowerCase();
@@ -768,16 +775,13 @@ export default function Order({ tableId }: MenuExperienceProps) {
   );
 
   const visibleGroups = useMemo<MenuGroup[]>(() => {
-
-    const sourceCategories = category === "All" ? categoryOptions.filter((entry) => entry !== "All") : [category];
-
-    return sourceCategories
-      .map((groupCategory) => ({
-        category: groupCategory,
-        items: filteredItems.filter((item) => getMenuCategory(item) === groupCategory),
-      }))
-      .filter((group) => group.items.length > 0);
-  }, [category, categoryOptions, filteredItems]);
+    return [
+      {
+        category,
+        items: filteredItems,
+      },
+    ].filter((group) => group.items.length > 0);
+  }, [category, filteredItems]);
 
   const cartQuantities = useMemo(
     () => new Map(cart.map((item) => [item.id, Math.max(1, Number(item.quantity || 1))])),

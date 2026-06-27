@@ -20,9 +20,9 @@ export default function CafeProfileProvider() {
         );
 
         const data = await response.json();
-
         if (response.ok && data.settings) {
           setCafeProfile({
+            tenantId: data.settings.tenant_id,
             restaurantName: data.settings.restaurant_name || "",
             branchName: data.settings.branch_name || "",
             logo: data.settings.logo_url || "",
@@ -31,6 +31,7 @@ export default function CafeProfileProvider() {
             gstPercentage: data.settings.gst_percentage || "",
             subscriptionExpiringDate: data.subscriptionExpiringMessage || "",
             subscriptionStatus: data.subscriptionStatus || "",
+            isHeadBranch: data.getStoreData[0].is_head_branch || false
 
           });
         }
