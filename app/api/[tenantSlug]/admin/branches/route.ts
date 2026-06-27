@@ -2,8 +2,28 @@ import { NextResponse } from "next/server";
 import { getErrorMessage } from "@/lib/api";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import bcrypt from "bcrypt";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTenantsByEmail, insertCreateNewAccout, updateTenantBranch } from "@/lib/supabase/crud";
+import { fetchTenantsByEmail, insertCreateNewAccout, updateTenantBranch , fetchTenantsByTenantID} from "@/lib/supabase/crud";
+
+async function generateTenantSlug(length = 10): Promise<string> {
+  const numbers = "0123456789";
+  let id = "";
+
+  for (let i = 0; i < length; i++) {
+    id += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  }
+
+  // Avoid leading zero
+  if (id[0] === "0") return generateTenantSlug(length);
+
+  const existingTenants = await fetchTenantsByTenantID(Number(id));
+  if (existingTenants.length > 0) {
+    return generateTenantSlug(length);
+  }
+
+  return id;
+}
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +38,7 @@ export async function GET(request: Request) {
     const { data: currentTenant, error: tenantError } = await supabase
       .from("tenants")
       .select("email, cafe_name")
-      .eq("tenant_id", tenantId)
+      .eq("parent_tenant_id", tenantId)
       .single();
 
     if (tenantError) throw tenantError;
@@ -90,17 +110,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Auth creation failed", detail: authError.message }, { status: 400 });
     }
 
-    // Generate unique tenant slug
-    const baseSlug = `${currentTenant.cafe_name || "cafe"}-${branch_name}`
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    const randomSuffix = Math.random().toString(36).substring(2, 7);
-    const tenant_slug = `${baseSlug}-${randomSuffix}`;
+    const tenant_slug = await generateTenantSlug();
 
     // Generate numeric tenant ID
     const new_tenant_id = Math.floor(10000000 + Math.random() * 90000000);
+     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create branch tenant record
     const newBranch = await insertCreateNewAccout({
@@ -111,6 +125,7 @@ export async function POST(request: Request) {
       tenant_name: `${currentTenant.cafe_name} - ${branch_name}`.trim(),
       owner_name: currentTenant.owner_name || "",
       email: email.trim(),
+      password_hash: hashedPassword,
       phone: currentTenant.phone || "",
       subscription_plan: currentTenant.subscription_plan || "Free Trial",
       status: status ? 1 : 0,

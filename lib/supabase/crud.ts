@@ -520,7 +520,7 @@ export async function insertCreateNewAccout(item: CreateNewAccoutInsert): Promis
   const { data, error } = await supabase
     .from("tenants")
     .insert({ ...item, reset_otp: null, reset_otp_expiry: null } as any)
-    .select("tenant_id, tenant_slug, tenant_name, owner_name, email, password_hash, phone, subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode, state, whatsapp, designation, gst, fssai, created_at, updated_at")
+    .select("tenant_id, tenant_slug, tenant_name, owner_name, email, password_hash, phone, subscription_plan,is_head_branch, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode, state, whatsapp, designation, gst, fssai, created_at, updated_at")
     .single();
 
   if (error) throw mapSupabaseError(error);
@@ -531,7 +531,7 @@ export async function fetchTenantsByEmail(email: string): Promise<CreateNewAccou
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("tenants")
-    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
+    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan,parent_tenant_id,is_head_branch, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
     .eq("email", email.trim())
     .order("created_at", { ascending: true });
 
@@ -542,7 +542,7 @@ export async function fetchTenantsDataByTenantID(tenantId: number): Promise<Crea
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("tenants")
-    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
+    .select("tenant_id, tenant_slug,tenant_name,owner_name,email, password_hash,phone,subscription_plan,is_head_branch, status, cafe_name, brand, branch, outlet_type, tables, address, city, pincode,  state,  whatsapp,designation,  gst, fssai, reset_otp, reset_otp_expiry, created_at, updated_at")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: true });
 

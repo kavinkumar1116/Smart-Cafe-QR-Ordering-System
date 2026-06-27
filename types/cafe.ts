@@ -135,6 +135,7 @@ export interface AdminMenuForm {
   category: string;
   image_url: string;
   is_available: boolean;
+  menuImageFile?: string; // or File | null
 }
 
 export interface CategoryForm {

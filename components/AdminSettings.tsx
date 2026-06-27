@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { useCafeStore } from "@/src/store/useCafeStore";
 import { tenantApiFetch } from "@/lib/tenant";
+import { useRef , useMemo} from "react";
 import {
   Building2,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Utensils,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {uploadCafeLogo} from "@/lib/supabase/storage";
 
 type ToggleKey = "roundOff" | "splitBilling" | "tips" | "autoBillPrint";
 
@@ -34,6 +36,7 @@ interface SettingsFormData {
 interface BranchFormData {
   tenant_id?: number;
   branch_name: string;
+  phone: string;
   email: string;
   password?: string;
   address: string;
@@ -76,24 +79,6 @@ interface ToggleProps {
   enabled: boolean;
   onChange: () => void;
 }
-
-const sections: SettingsSection[] = [
-  {
-    id: "general",
-    title: "General Settings",
-    icon: Building2,
-  },
-  {
-    id: "billing",
-    title: "Billing & Tax Settings",
-    icon: ReceiptText,
-  },
-  {
-    id: "create_branches",
-    title: "Create Branches",
-    icon: Building2,
-  },
-];
 
 const initialToggles: Record<ToggleKey, boolean> = {
   roundOff: true,
@@ -246,7 +231,25 @@ function ActionButton({
   );
 }
 
-export default function AdminSettings() {
+
+  export default function AdminSettings() {
+  const isHeadBranch = useCafeStore((state) => state.isHeadBranch); // ✅ inside component
+
+  const sections: SettingsSection[] = useMemo(() => {
+    const base: SettingsSection[] = [
+      { id: "general",  title: "General Settings",        icon: Building2   },
+      { id: "billing",  title: "Billing & Tax Settings",  icon: ReceiptText },
+    ];
+
+    if (isHeadBranch) {
+      base.push({ id: "create_branches", title: "Create Branches", icon: Building2 });
+    }
+
+    return base;
+  }, [isHeadBranch]);
+
+  // ... rest of your existing state
+
   const [activeSection, setActiveSection] = useState(sections[0].id);
   const setRestaurantName = useCafeStore((state) => state.setRestaurantName);
   const setBranchName = useCafeStore((state) => state.setBranchName);
@@ -254,6 +257,7 @@ export default function AdminSettings() {
   const setGstNumber = useCafeStore((state) => state.setGstNumber);
   const setContactNumber = useCafeStore((state) => state.setContactNumber);
   const setCafeProfile = useCafeStore((state) => state.setCafeProfile);
+  const tenantId = useCafeStore((state) => state.tenantId);
 
   const [getAllFormsData, setGetAllFormsData] = useState<SettingsFormData>({
     restaurant_name: "",
@@ -275,8 +279,11 @@ export default function AdminSettings() {
   const [branchesError, setBranchesError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<any | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [branchForm, setBranchForm] = useState<BranchFormData>({
     branch_name: "",
+    phone: "",
     email: "",
     password: "",
     address: "",
@@ -287,6 +294,8 @@ export default function AdminSettings() {
     admin_email: "",
     admin_password: "",
   });
+
+
 
   async function loadBranches() {
     setBranchesLoading(true);
@@ -323,6 +332,7 @@ export default function AdminSettings() {
         body: JSON.stringify(isEdit ? {
           tenant_id: editingBranch.tenant_id,
           branch_name: branchForm.branch_name,
+          phone: branchForm.phone,
           email: branchForm.email,
           address: branchForm.address,
           city: branchForm.city,
@@ -331,6 +341,7 @@ export default function AdminSettings() {
           status: branchForm.status,
         } : {
           branch_name: branchForm.branch_name,
+          phone: branchForm.phone,
           email: branchForm.email,
           password: branchForm.password,
           address: branchForm.address,
@@ -358,6 +369,7 @@ export default function AdminSettings() {
 
   const [getNewBranchesFormsData, setGetNewBranchesFormsData] = useState({
     branch_name: "",
+    phone: "",
     email: "",
     address: "",
     city: "",
@@ -426,18 +438,45 @@ export default function AdminSettings() {
     void loadSettings();
   }, []);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+    const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+    const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];   
+
+    if (!file) return;
+    setLogoFile(file);
+    setSelectedFileName(file.name);
+    console.log("Selected File:", file);
+
+    // Upload to Supabase Storage here
+    // uploadLogo(file);
+  };
+
   async function saveSettings() {
     setSaving(true);
     setMessage("");
 
     try {
+      let logoUrl = getAllFormsData.logo_url;
+
+    if (logoFile) {
+      logoUrl = await uploadCafeLogo(logoFile, "cafe_logo", tenantId);
+    }
+    console.log("logoUrl", logoUrl);
       const response = await tenantApiFetch("/api/admin/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          settings: getAllFormsData,
+          settings: {
+          ...getAllFormsData,
+          logo_url: logoUrl,
+        },
         }),
       });
 
@@ -551,13 +590,6 @@ export default function AdminSettings() {
                   onChange={(value) => updateSettingsField("gst_number", value)}
                 />
 
-                <Field
-                  label="Logo URL"
-                  value={getAllFormsData.logo_url}
-                  placeholder="https://example.com/logo.png"
-                  onChange={(value) => updateSettingsField("logo_url", value)}
-                />
-
                 <div className="lg:col-span-2">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                     Restaurant Logo
@@ -568,16 +600,22 @@ export default function AdminSettings() {
                       <Utensils size={24} aria-hidden="true" />
                     </div>
 
-                    <ActionButton
-                      label="Upload Logo"
-                      icon={Upload}
-                    />
+                     <ActionButton
+        label="Upload Logo"
+        icon={Upload}
+        onClick={handleUploadClick}
+      />
 
-                    <ActionButton
-                      label="Remove"
-                      icon={Trash2}
-                      tone="danger"
-                    />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <p className="text-sm text-slate-600">
+        {selectedFileName || "No file selected"}
+      </p>
                   </div>
                 </div>
               </div>
@@ -650,6 +688,7 @@ export default function AdminSettings() {
 
 
             {/* Create Branches */}
+            {isHeadBranch && sections[2] && (
             <Panel
               {...sections[2]}
               active={activeSection === sections[2].id}
@@ -667,6 +706,7 @@ export default function AdminSettings() {
                     setEditingBranch(null);
                     setBranchForm({
                       branch_name: "",
+                      phone: "",
                       email: "",
                       password: "",
                       address: "",
@@ -698,9 +738,11 @@ export default function AdminSettings() {
                   <table className="w-full border-collapse text-left text-sm text-slate-500">
                     <thead className="bg-slate-50 text-xs uppercase text-slate-700">
                       <tr>
-                        <th className="px-5 py-3.5 font-semibold">Branch Name</th>
+                        <th className="px-5 py-3.5 font-semibold">Branch Name</th>  
+                        <th className="px-5 py-3.5 font-semibold">Tenant ID</th> 
                         <th className="px-5 py-3.5 font-semibold">Email</th>
                         <th className="px-5 py-3.5 font-semibold">Location</th>
+                        <th className="px-5 py-3.5 font-semibold">Phone</th>
                         <th className="px-5 py-3.5 font-semibold">Status</th>
                         <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
                       </tr>
@@ -709,10 +751,12 @@ export default function AdminSettings() {
                       {branches.map((b) => (
                         <tr key={b.tenant_id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-5 py-3.5 font-semibold text-slate-900">{b.branch}</td>
+                          <td className="px-5 py-3.5 text-slate-600">{b.tenant_slug}</td>
                           <td className="px-5 py-3.5 text-slate-600">{b.email}</td>
                           <td className="px-5 py-3.5 text-slate-500">
                             {b.city ? `${b.city}, ${b.state || ""}` : "-"}
                           </td>
+                          <td className="px-5 py-3.5 text-slate-600">{b.phone}</td>
                           <td className="px-5 py-3.5">
                             <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === 1 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
                               }`}>
@@ -728,6 +772,7 @@ export default function AdminSettings() {
                                 setEditingBranch(b);
                                 setBranchForm({
                                   branch_name: b.branch || "",
+                                  phone: b.phone || "",
                                   email: b.email || "",
                                   password: "",
                                   address: b.address || "",
@@ -752,6 +797,7 @@ export default function AdminSettings() {
                 </div>
               )}
             </Panel>
+            )}
 
             {/* Save Settings */}
             <section className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -805,23 +851,12 @@ export default function AdminSettings() {
                     onChange={(val) => setBranchForm({ ...branchForm, branch_name: val })}
                   />
                   <Field
-                    label="Email Address"
-                    type="email"
-                    value={branchForm.email}
-                    placeholder="e.g. indiranagar@cafe.com"
-                    onChange={(val) => setBranchForm({ ...branchForm, email: val })}
+                    label="Phone Number"
+                    value={branchForm.phone}
+                    placeholder="Phone Number"
+                    onChange={(val) => setBranchForm({ ...branchForm, branch_name: val })}
                   />
-                  {!editingBranch && (
-                    <div className="sm:col-span-2">
-                      <Field
-                        label="Login Password"
-                        type="password"
-                        value={branchForm.password}
-                        placeholder="Set account login password"
-                        onChange={(val) => setBranchForm({ ...branchForm, password: val })}
-                      />
-                    </div>
-                  )}
+                  
                   <div className="sm:col-span-2">
                     <Field
                       label="Address"
@@ -850,23 +885,22 @@ export default function AdminSettings() {
                       onChange={(val) => setBranchForm({ ...branchForm, state: val })}
                     />
                   </div>
-
-                   
                   <Field
-                    label="Admin Email Address"
+                    label="Email Address"
                     type="email"
-                    value={branchForm.admin_email}
+                    value={branchForm.email}
                     placeholder="e.g. indiranagar@cafe.com"
                     onChange={(val) => setBranchForm({ ...branchForm, email: val })}
-                  /> 
-                  
+                  />
+                  {!editingBranch && (
                       <Field
-                        label="Admin Login Password"
+                        label="Login Password"
                         type="password"
-                        value={branchForm.admin_password}
+                        value={branchForm.password}
                         placeholder="Set account login password"
                         onChange={(val) => setBranchForm({ ...branchForm, password: val })}
-                      /> 
+                      />
+                  )}
 
 
                   {activeSection !== "create_branches" && (
