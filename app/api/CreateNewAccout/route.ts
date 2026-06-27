@@ -86,6 +86,7 @@ export async function POST(req: Request) {
       password_hash: hashedPassword,
       phone,
       subscription_plan: "Free Trial",
+      is_head_branch: true,
       status: 1,
       cafe_name: cafeName,
       brand: brand || null,

@@ -6,6 +6,7 @@ import { getTenantContextFromRequest } from "@/lib/tenant";
 import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant } from "@/lib/supabase/crud";
 
 type SettingsRecord = {
+  tenant_id ?: number;
   restaurant_name?: string | null;
   branch_name?: string | null;
   logo_url?: string | null;
@@ -21,15 +22,9 @@ type SettingsRecord = {
   invoice_number_format?: string | null;
 };
 
-type InvoiveData = {
-  invoice_prefix?: string | null;
-  invoice_number_format?: string | null;
-  end_date?: string | null;
-
-}
-
 function normalizeSettings(record: SettingsRecord | null) {
   return {
+    tenant_id: record?.tenant_id ?? 0,
     restaurant_name: record?.restaurant_name ?? "",
     branch_name: record?.branch_name ?? "",
     logo_url: record?.logo_url ?? "",
@@ -75,7 +70,7 @@ export async function GET(request: Request) {
     const invoice = invoicesData?.[0];
 
     let subscriptionExpiringMessage = "";
-    let subscriptionStatus = "Active";
+    let subscriptionStatus = "Expired";
 
     if (invoice?.end_date) {
       const expiryDate = new Date(invoice.end_date);

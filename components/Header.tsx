@@ -92,7 +92,7 @@ export default function Header() {
     if (pathname.includes("qr")) return "QR Codes";
     if (pathname.includes("customers")) return "Customers";
     if (pathname.includes("setting")) return "Settings";
-    if (pathname.includes("subscriptions")) return "Current Plan";
+    if (pathname.includes("subscriptions")) return "Billing & Subscription";
     return "Smart Cafe";
   };
 
@@ -106,7 +106,7 @@ export default function Header() {
     if (pathname.includes("qr")) return "Generate and manage QR codes";
     if (pathname.includes("customers")) return "View customer information";
     if (pathname.includes("setting")) return "Cafe settings and configuration";
-    if (pathname.includes("subscriptions")) return "Current plan details";
+    if (pathname.includes("subscriptions")) return "Billing and plan details";
     return "QR-based cafe ordering system";
   };
 

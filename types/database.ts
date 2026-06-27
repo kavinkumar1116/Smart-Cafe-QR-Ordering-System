@@ -427,6 +427,7 @@ export interface Database {
 
           owner_name: string;
           email: string;
+          password_hash: string;
           phone: string;
 
           subscription_plan?: string | null;
@@ -469,6 +470,7 @@ export interface Database {
 
           owner_name?: string;
           email?: string;
+          password_hash?: string;
           phone?: string;
 
           subscription_plan?: string | null;
