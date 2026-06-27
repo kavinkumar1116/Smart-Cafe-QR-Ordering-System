@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 // Core restaurant profile shared across the client application.
 export interface CafeProfileState {
+  tenantId: number;
   restaurantName: string;
   branchName: string;
   logo: string;
@@ -10,10 +11,12 @@ export interface CafeProfileState {
   gstPercentage: number;
   subscriptionExpiringDate: string;
   subscriptionStatus: string;
+  isHeadBranch: boolean;
 }
 
 // Store actions are kept explicit so components can subscribe only to what they need.
 interface CafeStore extends CafeProfileState {
+  setTenantId: (tenantId: number) => void;
   setRestaurantName: (restaurantName: string) => void;
   setBranchName: (branchName: string) => void;
   setLogo: (logo: string) => void;
@@ -24,10 +27,12 @@ interface CafeStore extends CafeProfileState {
   resetCafeProfile: () => void;
   setSubscriptionExpiringDate: (subscriptionExpiringDate: string) => void;
   setSubscriptionStatus: (subscriptionStatus: string) => void;
+  setIsHeadBranch: (isHeadBranch: boolean) => void;
 }
 
 // Stable defaults prevent empty header UI before settings are loaded.
 export const defaultCafeProfile: CafeProfileState = {
+  tenantId: 0,
   restaurantName: "",
   branchName: "",
   logo: "",
@@ -36,6 +41,7 @@ export const defaultCafeProfile: CafeProfileState = {
   gstPercentage: 0,
   subscriptionExpiringDate: "",
   subscriptionStatus: "",
+  isHeadBranch: false,
 };
 
 // Zustand hook for global cafe identity state.
@@ -43,6 +49,7 @@ export const defaultCafeProfile: CafeProfileState = {
 export const useCafeStore = create<CafeStore>((set) => ({
   ...defaultCafeProfile,
 
+  setTenantId: (tenantId) => set({ tenantId }),
   setRestaurantName: (restaurantName) => set({ restaurantName }),
   setBranchName: (branchName) => set({ branchName }),
   setLogo: (logo) => set({ logo }),
@@ -51,15 +58,18 @@ export const useCafeStore = create<CafeStore>((set) => ({
   setGstPercentage: (gstPercentage) => set({ gstPercentage }),
   setSubscriptionExpiringDate: (subscriptionExpiringDate) => set({ subscriptionExpiringDate }),
   setSubscriptionStatus: (subscriptionStatus) => set({ subscriptionStatus }),
+  setIsHeadBranch: (isHeadBranch) => set({ isHeadBranch }),
 
   // Batch updates are useful when hydrating from the settings API.
-  setCafeProfile: (profile) =>
-    set((current) => ({
-      ...current,
-      ...Object.fromEntries(
-        Object.entries(profile).filter(([, value]) => typeof value === "string")
-      ),
-    })),
+setCafeProfile: (profile) =>
+  set((current) => ({
+    ...current,
+    ...Object.fromEntries(
+      Object.entries(profile).filter(
+        ([, value]) => value !== undefined && value !== null
+      )
+    ),
+  })),
 
   resetCafeProfile: () => set(defaultCafeProfile),
 }));

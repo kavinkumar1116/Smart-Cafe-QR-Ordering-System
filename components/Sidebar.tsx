@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -28,6 +29,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+import { useCafeStore } from "@/src/store/useCafeStore";
+import defaultLogo from "@/public/assets/logo.png";
+
 
 const navItems: NavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
@@ -87,6 +92,15 @@ export default function Sidebar() {
   const [openDropdown, setOpenDropdown] = useState("");
   const [collapsedFlyout, setCollapsedFlyout] = useState("");
   const { sidebarOpen, closeMobile, isHydrated, isDesktop } = useSidebar();
+  const logo = useCafeStore((state) => state.logo);
+  const restaurantName = useCafeStore((state) => state.restaurantName);
+
+const [myRestaurantName, setMyRestaurantName] = useState("");
+
+useEffect(() => {
+  setMyRestaurantName(restaurantName);
+}, [restaurantName]);
+
 
   const isCollapsed = isHydrated && !sidebarOpen && isDesktop;
   const showLabels = !isCollapsed;
@@ -193,7 +207,13 @@ export default function Sidebar() {
           onClick={handleNavClick}
         >
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-md">
-            <QrCode size={20} />
+            <Image
+              src={logo || defaultLogo}
+              alt="Cafe Logo"
+              width={40}
+              height={40}
+              className="h-full w-full object-cover"
+            />
           </div>
           <div
             className={cn(
@@ -201,8 +221,8 @@ export default function Sidebar() {
               showLabels ? "w-auto opacity-100" : "w-0 opacity-0"
             )}
           >
-            <p className="whitespace-nowrap text-sm font-bold text-slate-900">Smart Cafe</p>
-            <p className="whitespace-nowrap text-xs text-slate-500">QR Billing Suite</p>
+            <p className="whitespace-nowrap text-sm font-bold text-slate-900">{myRestaurantName}</p>
+            <p className="whitespace-nowrap text-xs text-slate-500">Smart QR Billing Team</p>
           </div>
         </Link>
       </div>

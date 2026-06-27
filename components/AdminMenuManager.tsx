@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   Pencil,
   Plus,
   Save,
   Search,
   Trash2,
-  X,
+  X, LucideIcon, Upload
 } from "lucide-react";
 
 import type { FormEvent } from "react";
@@ -17,19 +17,28 @@ import { tenantApiFetch } from "@/lib/tenant";
 import { formatCurrency } from "@/lib/format";
 import { useRealtimeTable } from "@/lib/supabase/realtime";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import type {
   AdminMenuForm,
   MenuItem,
   MenuResponse,
 } from "@/types/cafe";
+
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type Category = {
   id: number;
@@ -44,7 +53,41 @@ const emptyForm: AdminMenuForm = {
   category: "",
   image_url: "",
   is_available: true,
+  menuImageFile: "",
 };
+
+function ActionButton({
+  label,
+  icon: Icon,
+  tone = "secondary",
+  onClick,
+  disabled = false,
+}: {
+  label: string;
+  icon: LucideIcon;
+  tone?: "primary" | "secondary" | "danger";
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  const toneClass =
+    tone === "primary"
+      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+      : tone === "danger"
+        ? "border border-rose-200 bg-rose-100 text-rose-700 hover:bg-rose-200"
+        : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${toneClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+    >
+      <Icon size={16} aria-hidden="true" />
+      {label}
+    </button>
+  );
+}
 
 export default function AdminMenuManager() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -57,6 +100,10 @@ export default function AdminMenuManager() {
   const [search, setSearch] = useState("");
 
   const [showModal, setShowModal] = useState(false);
+  const [openCategory, setOpenCategory] = useState(false);
+
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [menuImageFile, setmenuImageFile] = useState<File | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -130,7 +177,7 @@ export default function AdminMenuManager() {
     const duplicate = items.find(
       (item) =>
         item.name.toLowerCase() ===
-          form.name.toLowerCase() &&
+        form.name.toLowerCase() &&
         item.id !== form.id
     );
 
@@ -154,34 +201,74 @@ export default function AdminMenuManager() {
     return valid;
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+    setmenuImageFile(file);
+    setSelectedFileName(file.name);
+  };
+
+  function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
+}
   async function saveItem(
-    event: FormEvent<HTMLFormElement>
-  ): Promise<void> {
-    event.preventDefault();
+  event: FormEvent<HTMLFormElement>
+): Promise<void> {
+  event.preventDefault();
 
-    if (!validateForm()) return;
-
-    setSaving(true);
-
-    const method = form.id ? "PUT" : "POST";
-
-    const response = await tenantApiFetch("/api/admin/menu", {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(form),
-    });
-
-    setSaving(false);
-
-    if (response.ok) {
-      setForm(emptyForm);
-      setShowModal(false);
-      loadItems();
-    }
+  // Image is required only when creating a new menu item
+  if (!form.id && !menuImageFile) {
+    alert("Please upload an image");
+    return;
   }
 
+  if (!validateForm()) return;
+
+  let imageBase64 = "";
+
+  // Convert to Base64 only if a new image is selected
+  if (menuImageFile) {
+    imageBase64 = await fileToBase64(menuImageFile);
+  }
+
+  setSaving(true);
+
+  const method = form.id ? "PUT" : "POST";
+
+  const response = await tenantApiFetch("/api/admin/menu", {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...form,
+      menuImageFile: imageBase64,
+    }),
+  });
+
+  setSaving(false);
+
+  if (response.ok) {
+    setForm(emptyForm);
+    setmenuImageFile(null); // Reset selected file
+    setShowModal(false);
+    loadItems();
+  }
+}
   async function deleteItem(id: number): Promise<void> {
     await tenantApiFetch(`/api/admin/menu?id=${id}`, {
       method: "DELETE",
@@ -191,6 +278,8 @@ export default function AdminMenuManager() {
   }
 
   function handleEdit(item: MenuItem) {
+    setmenuImageFile(null);
+    setSelectedFileName("");
     setForm({
       ...item,
       price: String(item.price),
@@ -241,30 +330,30 @@ export default function AdminMenuManager() {
         {/* TABLE */}
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
-            <p className="text-sm text-slate-600">
-              Total Items: {items.length}
-            </p>
-            <div className="relative">
-              <Search
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
+              <p className="text-sm text-slate-600">
+                Total Items: {items.length}
+              </p>
+              <div className="relative">
+                <Search
+                  size={18}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
 
-              <input
-                type="text"
-                placeholder="Search menu..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 sm:w-72"
-              />
+                <input
+                  type="text"
+                  placeholder="Search menu..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 sm:w-72"
+                />
+              </div>
             </div>
-          </div>
             <table className="min-w-full border-collapse">
-              
+
               <thead className="sticky top-0 bg-slate-50 border-b border-slate-200">
                 <tr className="border-b border-slate-200">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
@@ -352,11 +441,10 @@ export default function AdminMenuManager() {
 
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                            item.is_available
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${item.is_available
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                            }`}
                         >
                           {item.is_available
                             ? "Available"
@@ -556,53 +644,90 @@ export default function AdminMenuManager() {
                   </div>
 
                   <div>
-                    <Select
-                      value={form.category}
-                      onValueChange={(value) =>
-                        setForm((current) => ({
-                          ...current,
-                          category: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="h-[50px] w-full border border-slate-200 bg-white text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20">
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
+                    <Popover open={openCategory} onOpenChange={setOpenCategory}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openCategory}
+                          className={cn(
+                            "h-[50px] w-full justify-between border border-slate-200 bg-white font-normal text-slate-900 hover:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20",
+                            !form.category && "text-slate-400"
+                          )}
+                        >
+                          {form.category
+                            ? categories.find((c) => c.id.toString() === form.category)?.name
+                            : "Select Category"}
+                          <ChevronsUpDown size={16} className="ml-2 shrink-0 text-slate-400" />
+                        </Button>
+                      </PopoverTrigger>
 
-                      <SelectContent>
-                        {categories.map(
-                          (category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id.toString()}
-                            >
-                              {category.name}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search category..."
+                            className="h-10 border-none text-sm focus:ring-0"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <p className="py-4 text-center text-sm text-slate-500">
+                                No category found.
+                              </p>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {categories.map((category) => (
+                                <CommandItem
+                                  key={category.id}
+                                  value={category.name}           // searched against this
+                                  onSelect={() => {
+                                    setForm((current) => ({
+                                      ...current,
+                                      category:
+                                        current.category === category.id.toString()
+                                          ? ""
+                                          : category.id.toString(),
+                                    }));
+                                    setOpenCategory(false);
+                                  }}
+                                >
+                                  <Check
+                                    size={16}
+                                    className={cn(
+                                      "mr-2 shrink-0 text-emerald-600",
+                                      form.category === category.id.toString()
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {category.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
 
                     {errors.category && (
-                      <p className="mt-1 text-xs text-red-600">
-                        {errors.category}
-                      </p>
+                      <p className="mt-1 text-xs text-red-600">{errors.category}</p>
                     )}
                   </div>
                 </div>
-
-                <input
-                  value={form.image_url}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      image_url:
-                        event.target.value,
-                    }))
-                  }
-                  placeholder="Image URL"
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                <ActionButton
+                  label="Upload Logo"
+                  icon={Upload}
+                  onClick={handleUploadClick}
                 />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <p className="text-sm text-slate-600">
+                  {selectedFileName || "No file selected"}
+                </p>
 
                 <label className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-4">
                   <span className="text-sm text-slate-900">
@@ -636,8 +761,8 @@ export default function AdminMenuManager() {
                   {saving
                     ? "Saving..."
                     : form.id
-                    ? "Save Changes"
-                    : "Add Menu"}
+                      ? "Save Changes"
+                      : "Add Menu"}
                 </button>
               </form>
             </div>
