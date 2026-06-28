@@ -68,17 +68,21 @@ export async function GET(request: Request) {
     const invoicesData = await fetchSubcriptionsByTenant(tenantId);
 
     const invoice = invoicesData?.[0];
-    console.log("invoice", invoice);
 
     let subscriptionExpiringMessage = "";
     let subscriptionStatus = "Active";
+
+    if (!invoice) {
+      subscriptionStatus = "Expired";
+    }
 
     if (invoice?.end_date) {
       const expiryDate = new Date(invoice.end_date);
       const today = new Date();
       if (today > expiryDate) {
         subscriptionStatus = "Expired";
-      } else {
+      }
+       else {
         subscriptionStatus = "Active";
       }
       // Remove time part for accurate day comparison

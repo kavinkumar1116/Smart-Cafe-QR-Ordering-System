@@ -156,9 +156,9 @@ const nextBillingDate = plan.plan_name === "Free Trial" ? new Date(startDate.get
       amount: plan.monthly_price,
       gst_percentage: 0,
       start_date: startDate.toISOString().split("T")[0],
-      end_date: endDate.toISOString().split("T")[0],   // ✅ Fixed: proper end_date
+      end_date: nextBillingDate,   // ✅ 14 days after complete
       status: 1,
-      payment_status: "Paid",
+      payment_status: true,
       transaction_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

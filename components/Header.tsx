@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useCafeStore } from "@/src/store/useCafeStore";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/utils";
 
 // ─── Notification helpers ─────────────────────────────────────────────────────
 
@@ -50,7 +51,7 @@ export default function Header() {
   const pathname = usePathname();
   const [openProfile, setOpenProfile] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const { toggleMenu, sidebarOpen, isDesktop, mobileOpen } = useSidebar();
+  const { toggleMenu, sidebarOpen, isDesktop, mobileOpen, isHydrated } = useSidebar();
   const [openNotifications, setOpenNotifications] = useState(false);
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -242,8 +243,14 @@ export default function Header() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
-      <div className="px-4 py-4 sm:px-6 lg:px-8">
+    <>
+      {/* Spacer to prevent main content from layout shifting under the fixed header */}
+      <div className="h-[88px]" aria-hidden="true" />
+      <header className={cn(
+        "fixed top-0 right-0 z-30 left-0 border-b border-slate-200 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out",
+        (!isHydrated || sidebarOpen) ? "lg:left-[280px]" : "lg:left-[80px]"
+      )}>
+        <div className="px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
 
           {/* Left: Menu toggle + Page Title */}
@@ -399,6 +406,7 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
 
