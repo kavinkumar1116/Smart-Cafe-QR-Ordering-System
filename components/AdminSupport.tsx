@@ -84,7 +84,7 @@ const handleCreateTicket = async () => {
               href="mailto:support@smartcafe.com"
               className="mt-4 inline-block text-sm font-medium text-emerald-600 hover:underline"
             >
-              support@smartcafe.com
+              smartcafesaas@gmail.com
             </a>
           </div>
 

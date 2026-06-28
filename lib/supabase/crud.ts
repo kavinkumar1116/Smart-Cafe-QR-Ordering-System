@@ -643,25 +643,61 @@ export async function insertSubscriptions(
 
   return data as CreateSubscriptionPlan;
 }
-export async function updateSubscriptions(tenantId: number,item: TenantCreateSubscriptionPlan
+export async function updateSubscriptions(
+  tenantId: number,
+  item: TenantCreateSubscriptionPlan
 ): Promise<CreateSubscriptionPlan> {
   const supabase = createServerSupabaseClient();
 
+  // ── Guard: check if subscription row exists first ──────────────────
+  const { data: existing, error: fetchError } = await supabase
+    .from("subscriptions")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .single();
+
+  if (fetchError || !existing) {
+    throw new Error(`No subscription found for tenant_id: ${tenantId}`);
+  }
+
+  // ── Perform update ─────────────────────────────────────────────────
   const { data, error } = await supabase
     .from("subscriptions")
     .update(item)
     .eq("tenant_id", tenantId)
-    .select("id,tenant_id,plan_name,plan_code, next_billing_cycle, amount,gst_percentage, start_date, end_date,status,payment_status,transaction_id,created_at,updated_at")
-        .single();
+    .select(
+      `id,
+       tenant_id,
+       plan_name,
+       plan_code,
+       next_billing_cycle,
+       amount,
+       gst_percentage,
+       start_date,
+       end_date,
+       status,
+       payment_status,
+       transaction_id,
+       razorpay_order_id,
+       razorpay_payment_id,
+       razorpay_signature,
+       created_at,
+       updated_at`
+    )
+    .single();
 
   if (error) {
     throw mapSupabaseError(error);
   }
 
+  if (!data) {
+    throw new Error("Subscription update returned no data.");
+  }
+
   return data as CreateSubscriptionPlan;
 }
 
-export async function fetchSubcriptionsByPlan(id ? : number): Promise<GetSubscriptions[]> {
+export async function fetchSubcriptionsByPlan(id?: number): Promise<GetSubscriptions[]> {
   const supabase = createServerSupabaseClient();
   let query = supabase
     .from("subscription_plans")
@@ -683,7 +719,7 @@ export async function fetchSubcriptionsByTenant(TenantId: number): Promise<Subsc
   let query = supabase
     .from("subscriptions")
     .select("*");
-    query = query.eq("tenant_id", TenantId);
+  query = query.eq("tenant_id", TenantId);
   const { data, error } = await query;
 
   if (error) throw mapSupabaseError(error);
