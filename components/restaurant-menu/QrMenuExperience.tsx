@@ -57,15 +57,15 @@ interface QrMenuExperienceProps {
 
 function SkeletonCard() {
   return (
-    <div className="min-h-[27rem] overflow-hidden rounded-2xl border border-white bg-white p-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-      <div className="h-52 animate-pulse rounded-xl bg-slate-100" />
-      <div className="space-y-3 p-2 pt-5">
-        <div className="h-5 w-2/3 animate-pulse rounded-full bg-slate-100" />
-        <div className="h-4 w-full animate-pulse rounded-full bg-slate-100" />
-        <div className="h-4 w-4/5 animate-pulse rounded-full bg-slate-100" />
-        <div className="flex items-end justify-between pt-16">
-          <div className="h-8 w-24 animate-pulse rounded-full bg-slate-100" />
-          <div className="h-12 w-32 animate-pulse rounded-full bg-slate-100" />
+    <div className="min-h-[20rem] sm:min-h-[27rem] overflow-hidden rounded-2xl border border-white bg-white p-2 sm:p-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+      <div className="h-32 sm:h-52 animate-pulse rounded-xl bg-slate-100" />
+      <div className="space-y-3 p-2 pt-3 sm:pt-5">
+        <div className="h-4 sm:h-5 w-2/3 animate-pulse rounded-full bg-slate-100" />
+        <div className="h-3 sm:h-4 w-full animate-pulse rounded-full bg-slate-100" />
+        <div className="h-3 sm:h-4 w-4/5 animate-pulse rounded-full bg-slate-100" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between pt-6 sm:pt-16">
+          <div className="h-6 sm:h-8 w-16 sm:w-24 animate-pulse rounded-full bg-slate-100" />
+          <div className="h-10 sm:h-12 w-full sm:w-32 animate-pulse rounded-full bg-slate-100" />
         </div>
       </div>
     </div>
@@ -118,73 +118,73 @@ function MenuCard({
   const imageUrl = item.image_url || QR_MENU_PLACEHOLDER_IMAGE;
 
   return (
-    <article className="group flex h-full min-h-[27rem] flex-col overflow-hidden rounded-2xl border border-white bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
-      <div className="relative m-3 h-52 overflow-hidden rounded-xl bg-slate-100">
+    <article className="group flex h-full min-h-[20rem] sm:min-h-[27rem] flex-col overflow-hidden rounded-2xl border border-white bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
+      <div className="relative m-2 sm:m-3 h-32 sm:h-52 overflow-hidden rounded-xl bg-slate-100">
         <img
           src={imageUrl}
           alt={item.name}
           loading="lazy"
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/60 to-transparent" />
-        <div className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm backdrop-blur">
+        <div className="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-slate-950/60 to-transparent" />
+        <div className="absolute left-2 top-2 sm:left-3 sm:top-3 rounded-full bg-white/90 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-black text-emerald-700 shadow-sm backdrop-blur">
           {categoryName}
         </div>
         {item.is_available ? null : (
-          <div className="absolute inset-0 grid place-items-center bg-slate-950/55 px-4 text-center text-sm font-black text-white backdrop-blur-[1px]">
-            Currently Unavailable
+          <div className="absolute inset-0 grid place-items-center bg-slate-950/55 px-2 sm:px-4 text-center text-xs sm:text-sm font-black text-white backdrop-blur-[1px]">
+            Unavailable
           </div>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-5 pt-2">
-        <h2 className="line-clamp-1 text-xl font-black text-slate-950">{item.name}</h2>
-        <p className="mt-1 line-clamp-2 min-h-10 text-sm font-medium leading-5 text-slate-500">
+      <div className="flex flex-1 flex-col p-3 sm:p-5 pt-2">
+        <h2 className="line-clamp-1 text-base sm:text-xl font-black text-slate-950">{item.name}</h2>
+        <p className="mt-1 line-clamp-2 min-h-8 sm:min-h-10 text-xs sm:text-sm font-medium leading-4 sm:leading-5 text-slate-500">
           {item.description || "Freshly prepared by the kitchen."}
         </p>
 
-        <div className="mt-auto flex items-end justify-between gap-4 pt-5">
+        <div className="mt-auto flex flex-col gap-2.5 sm:flex-row sm:items-end sm:justify-between sm:gap-4 pt-3 sm:pt-5">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Price</p>
-            <p className="text-2xl font-black text-slate-950">{formatCurrency(item.price)}</p>
+            <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-slate-400">Price</p>
+            <p className="text-lg sm:text-2xl font-black text-slate-950">{formatCurrency(item.price)}</p>
           </div>
 
-          <div className="h-12 w-36">
+          <div className="h-10 sm:h-12 w-full sm:w-36">
             {!item.is_available ? (
               <button
                 type="button"
                 disabled
-                className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-full bg-slate-200 px-3 text-center text-xs font-black leading-4 text-slate-500"
+                className="flex h-10 sm:h-12 w-full cursor-not-allowed items-center justify-center rounded-full bg-slate-200 px-3 text-center text-[10px] sm:text-xs font-black leading-4 text-slate-500"
               >
-                Currently Unavailable
+                Unavailable
               </button>
             ) : quantity > 0 ? (
-              <div className="flex h-12 items-center justify-between rounded-full bg-emerald-600 p-1 text-white shadow-lg shadow-emerald-200">
+              <div className="flex h-10 sm:h-12 items-center justify-between rounded-full bg-emerald-600 p-1 text-white shadow-lg shadow-emerald-200">
                 <button
                   type="button"
                   onClick={onDecrease}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-white/15 transition hover:bg-white/25"
+                  className="grid h-8 w-8 sm:h-10 sm:w-10 place-items-center rounded-full bg-white/15 transition hover:bg-white/25"
                   aria-label={`Decrease ${item.name}`}
                 >
-                  <Minus size={16} />
+                  <Minus size={14} />
                 </button>
-                <span className="text-sm font-black">{quantity}</span>
+                <span className="text-xs sm:text-sm font-black">{quantity}</span>
                 <button
                   type="button"
                   onClick={onIncrease}
-                  className="grid h-10 w-10 place-items-center rounded-full bg-white text-emerald-700 transition hover:bg-emerald-50"
+                  className="grid h-8 w-8 sm:h-10 sm:w-10 place-items-center rounded-full bg-white text-emerald-700 transition hover:bg-emerald-50"
                   aria-label={`Increase ${item.name}`}
                 >
-                  <Plus size={16} />
+                  <Plus size={14} />
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={onAdd}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-black text-white shadow-lg shadow-slate-200 transition hover:bg-emerald-700"
+                className="flex h-10 sm:h-12 w-full items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-slate-950 px-3 sm:px-4 text-xs sm:text-sm font-black text-white shadow-lg shadow-slate-200 transition hover:bg-emerald-700"
               >
-                <ShoppingBag size={17} />
+                <ShoppingBag size={15} />
                 Add
               </button>
             )}
@@ -459,7 +459,7 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
   const [menu, setMenu] = useState<QrMenuResponse | null>(null);
   const [status, setStatus] = useState<MenuStatus>("loading");
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [cart, setCart] = useState<QrCartItem[]>([]);
@@ -505,7 +505,9 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
 
         setMenu(data);
         setStatus(data.menuItems.length === 0 ? "empty" : "ready");
-        setGetRestaurantDetails(data.restaurantDetails);  
+        console.log(data);
+        setGetRestaurantDetails(data.restaurantDetails); 
+
       } catch {
         if (!controller.signal.aborted) {
           setStatus("error");
@@ -521,25 +523,22 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
   const tenantName = useMemo(() => getTenantDisplayName(tenantSlug), [tenantSlug]);
   const categoryNameById = useMemo(() => getCategoryNameById(menu?.category || []), [menu]);
   const categoryOptions = useMemo(
-    () => [
-      "All",
-      ...(menu?.category || [])
+    () =>
+      (menu?.category || [])
         .filter((category) => category.is_available)
         .map((category) => category.name)
         .filter((category) => category.trim() !== ""),
-    ],
     [menu]
   );
-  const activeCategory =
-    selectedCategory !== "All" && !categoryOptions.includes(selectedCategory)
-      ? "All"
-      : selectedCategory;
+  const activeCategory = categoryOptions.includes(selectedCategory)
+    ? selectedCategory
+    : (categoryOptions[0] || "");
 
   const visibleItems = useMemo(
     () =>
       (menu?.menuItems || []).filter((item) => {
         const categoryName = categoryNameById.get(item.category) || item.category;
-        const matchesCategory = activeCategory === "All" || categoryName === activeCategory;
+        const matchesCategory = categoryName === activeCategory;
         const query = search.trim().toLowerCase();
         const matchesSearch =
           query === "" ||
@@ -716,8 +715,8 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff7ed_0,#f8fafc_32%,#ecfdf5_100%)] text-slate-950">
       <div className="mx-auto flex w-full max-w-[1600px] gap-6 p-4 lg:p-6">
-        <aside className="sticky top-6 hidden h-[calc(100vh-3rem)] w-80 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 text-white shadow-2xl lg:block">
-          <div className="p-6">
+        <aside className="sticky top-6 hidden h-[calc(100vh-3rem)] w-80 shrink-0 flex-col overflow-hidden rounded-2xl bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 text-white shadow-2xl lg:flex">
+          <div className="p-6 shrink-0">
             <div className="flex items-center gap-3">
               <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-2xl font-black text-emerald-800 shadow-xl shadow-black/20">
                 {tenantName.charAt(0)}
@@ -731,7 +730,7 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
             </div>
           </div>
 
-          <nav className="space-y-2 overflow-y-auto px-4 pb-6">
+          <nav className="flex-1 space-y-2 overflow-y-auto px-4 pb-6">
             <p className="px-3 text-xs font-black uppercase tracking-[0.25em] text-emerald-200/80">
               Categories
             </p>
@@ -874,7 +873,7 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
             ) : null}
 
             {isLoading ? (
-              <div className="mt-5 grid grid-cols-1 gap-5 pb-24 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:pb-8">
+              <div className="mt-5 grid grid-cols-2 gap-3 pb-24 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 2xl:grid-cols-4 lg:pb-8">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <SkeletonCard key={index} />
                 ))}
@@ -909,7 +908,7 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
                 ))}
               </div>
             ) : (
-              <div className="mt-5 grid grid-cols-1 gap-5 pb-24 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 lg:pb-8">
+              <div className="mt-5 grid grid-cols-2 gap-3 pb-24 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 2xl:grid-cols-4 lg:pb-8">
                 {visibleItems.map((item) => {
                   const categoryName = categoryNameById.get(item.category) || item.category;
                   const quantity = quantities.get(item.id) || 0;
@@ -949,8 +948,8 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
             className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
             onClick={() => setMobileCategoriesOpen(false)}
           />
-          <aside className="relative h-full w-[min(86vw,22rem)] overflow-hidden bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 p-4 text-white shadow-2xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
+          <aside className="relative flex h-full w-[min(86vw,22rem)] flex-col overflow-hidden bg-gradient-to-b from-emerald-950 via-teal-950 to-slate-950 p-4 text-white shadow-2xl">
+            <div className="mb-4 flex items-center justify-between gap-3 shrink-0">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200">
                   Table No: {tableNo}
@@ -967,7 +966,7 @@ export default function QrMenuExperience({ tenantSlug, tableNo }: QrMenuExperien
               </button>
             </div>
 
-            <nav className="space-y-2">
+            <nav className="flex-1 space-y-2 overflow-y-auto pb-6">
               {categoryOptions.map((category) => (
                 <button
                   key={category}

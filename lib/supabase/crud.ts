@@ -404,7 +404,7 @@ export async function fetchAdminSalesReports(tenantId?: number): Promise<any[]> 
 export async function getRestaurantDetails(tenantId?: number): Promise<any[]> {
   const supabase = createServerSupabaseClient();
   const query = supabase.from("app_settings" as any)
-    .select("id, restaurant_name, logo_url, address").select("id, restaurant_name, logo_url, address").order("created_at", { ascending: false });
+    .select("id, restaurant_name, logo_url, address").select("id, restaurant_name, logo_url, address").eq("tenant_id", tenantId);
   const { data, error } = await query;
   if (error) throw mapSupabaseError(error);
   return data || [];
