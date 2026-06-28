@@ -6,7 +6,7 @@ import { getTenantContextFromRequest } from "@/lib/tenant";
 import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant } from "@/lib/supabase/crud";
 
 type SettingsRecord = {
-  tenant_id ?: number;
+  tenant_id?: number;
   restaurant_name?: string | null;
   branch_name?: string | null;
   logo_url?: string | null;
@@ -68,18 +68,19 @@ export async function GET(request: Request) {
     const invoicesData = await fetchSubcriptionsByTenant(tenantId);
 
     const invoice = invoicesData?.[0];
+    console.log("invoice", invoice);
 
     let subscriptionExpiringMessage = "";
-    let subscriptionStatus = "Expired";
+    let subscriptionStatus = "Active";
 
     if (invoice?.end_date) {
       const expiryDate = new Date(invoice.end_date);
       const today = new Date();
-
-      if (expiryDate < today) {
+      if (today > expiryDate) {
         subscriptionStatus = "Expired";
+      } else {
+        subscriptionStatus = "Active";
       }
-
       // Remove time part for accurate day comparison
       expiryDate.setHours(0, 0, 0, 0);
       today.setHours(0, 0, 0, 0);
