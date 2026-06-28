@@ -96,7 +96,7 @@ export default function SubscriptionInvoice({
   const gstAmount = (amount * gstRate) / 100;
   const totalAmount = amount + gstAmount;
 
-  const isPaid = paymentStatus?.toLowerCase() === "paid";
+  const isPaid = paymentStatus? paymentStatus:false;
   const isExpired = daysRemaining < 0;
   const isExpiringSoon = daysRemaining >= 0 && daysRemaining <= 3;
 
