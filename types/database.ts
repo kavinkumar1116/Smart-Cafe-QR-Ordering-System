@@ -519,6 +519,9 @@ export interface Database {
           status: string;
           payment_status: boolean;
           transaction_id: string | null;
+          razorpay_order_id: string | null;
+          razorpay_payment_id: string | null;
+          razorpay_signature: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -536,6 +539,9 @@ export interface Database {
           status?: string;
           payment_status?: boolean;
           transaction_id?: string | null;
+          razorpay_order_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_signature?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -553,6 +559,9 @@ export interface Database {
           status?: string;
           payment_status?: boolean;
           transaction_id?: string | null;
+          razorpay_order_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_signature?: string | null;
           created_at?: string;
           updated_at?: string;
         };
