@@ -197,12 +197,12 @@ useEffect(() => {
 
   const SidebarContent = () => (
     <>
-      <div className={cn(isCollapsed ? "px-2" : "px-4")}>
+      <div className={cn(isCollapsed ? "px-2" : "px-4 -mt-2")}>
         <Link
           href={withTenantSlug("/", tenantSlug)}
           className={cn(
             "flex items-center rounded-lg transition-colors duration-300 hover:bg-slate-100",
-            isCollapsed ? "justify-center p-2" : "gap-3 p-3"
+            isCollapsed ? "justify-center p-2 mt-8" : "gap-3 p-3 mt-8"
           )}
           onClick={handleNavClick}
         >
