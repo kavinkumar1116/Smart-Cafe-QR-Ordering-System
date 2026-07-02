@@ -3,7 +3,7 @@ import { getErrorMessage } from "@/lib/api";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant } from "@/lib/supabase/crud";
+import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant, fetchRequiredFiled, saveRequiredField, fetchRequiredFieldsByTenant } from "@/lib/supabase/crud";
 
 type SettingsRecord = {
   tenant_id?: number;
@@ -66,7 +66,8 @@ export async function GET(request: Request) {
 
     const getStoreData = await fetchTenantsDataByTenantID(tenantId);
     const invoicesData = await fetchSubcriptionsByTenant(tenantId);
-
+    const getRequiredFieldsSavedData = await fetchRequiredFieldsByTenant(tenantId);
+    const getRequiredFieldsData = await fetchRequiredFiled();
     const invoice = invoicesData?.[0];
 
     let subscriptionExpiringMessage = "";
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
       if (today > expiryDate) {
         subscriptionStatus = "Expired";
       }
-       else {
+      else {
         subscriptionStatus = "Active";
       }
       // Remove time part for accurate day comparison
@@ -111,6 +112,8 @@ export async function GET(request: Request) {
       invoicesData: invoicesData || [],
       subscriptionExpiringMessage,
       subscriptionStatus,
+      getRequiredFieldsData,
+      getRequiredFieldsSavedData
     });
   } catch (error) {
     return NextResponse.json(
@@ -136,8 +139,9 @@ export async function PUT(request: Request) {
     const body = await request.json();
 
     const settings = body.settings || {};
+    const requiredFields = body.requiredFields || [];
 
-    console.log("Received settings to save:", settings);
+    console.log("Received requiredFields to save:", requiredFields);
 
     const supabase = createServerSupabaseClient();
 
@@ -167,11 +171,22 @@ export async function PUT(request: Request) {
       .select()
       .single();
 
+
     if (error) {
       console.error("Supabase Error:", error);
       throw error;
     }
-
+    // ✅ Save each required field
+    if (requiredFields.length > 0) {
+      await Promise.all(
+        requiredFields.map((item: { required_field_id: number; checked: number }) =>
+          saveRequiredField(tenantId, {
+            required_field_id: item.required_field_id,
+            checked: item.checked,
+          } as any)
+        )
+      );
+    }
     return NextResponse.json({
       success: true,
       settings: data,
