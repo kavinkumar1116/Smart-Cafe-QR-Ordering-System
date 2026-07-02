@@ -1,7 +1,7 @@
 import type { PostgrestBuilder, PostgrestError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { OrderReportFilters } from "@/lib/order-report";
-import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout, CreateSettings, CreateSubscriptionPlan } from "@/types/cafe";
+import type { BillingMethod, CafeOrder, CafeTable, Category, MenuItem, OrderMode, OrderStatus, PaymentStatus, SessionStatus, CreateNewAccout, CreateSettings, CreateSubscriptionPlan , RequiresFiledCreateProps} from "@/types/cafe";
 import type { Database } from "@/types/database";
 
 type CategoryInsert = Database["public"]["Tables"]["categories"]["Insert"];
@@ -35,10 +35,9 @@ type CreateNewAccoutUpdate = Database["public"]["Tables"]["tenants"]["Update"];
 type TenantCreateSettingsPatch = Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
 type TenantCreateSubscriptionPlan = Partial<Database["public"]["Tables"]["subscriptions"]["Insert"]>;
 type SubscriptionInsert = Database["public"]["Tables"]["subscriptions"]["Row"];
-
 type GetSubscriptions = Partial<Database["public"]["Tables"]["subscription_plans"]["Row"]>;
-
-
+type GetRequiedFields = Database["public"]["Tables"]["required_fields"]["Row"];
+type RequiredFieldPayload =  Database["public"]["Tables"]["required_field_data"]["Update"];
 function mapSupabaseError(error: PostgrestError): Error {
   return new Error(error.message || "Supabase request failed");
 }
@@ -727,4 +726,60 @@ export async function fetchSubcriptionsByTenant(TenantId: number): Promise<Subsc
   return (data ?? []) as SubscriptionInsert[];
 }
 
+export async function fetchRequiredFiled(): Promise<GetRequiedFields[]> {
+  const supabase = createServerSupabaseClient();
+  let query = supabase
+    .from("required_fields")
+    .select("*");
+  const { data, error } = await query;
+
+  if (error) throw mapSupabaseError(error);
+
+  return (data ?? []) as GetRequiedFields[];
+}
+
+export async function saveRequiredField(tenantId: number, item: RequiredFieldPayload) {
+  const supabase = createServerSupabaseClient();
+
+  const { data: existing } = await supabase
+    .from("required_field_data")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("required_field_id", item.required_field_id)  // ✅ match per field
+    .maybeSingle();
+
+  let result;
+
+  if (existing) {
+    result = await supabase
+      .from("required_field_data")
+      .update({ checked: item.checked } as any)
+      .eq("tenant_id", tenantId)
+      .eq("required_field_id", item.required_field_id)  // ✅
+      .select()
+      .single();
+  } else {
+    result = await supabase
+      .from("required_field_data")
+      .insert({ ...item, tenant_id: tenantId })
+      .select()
+      .single();
+  }
+
+  if (result.error) throw mapSupabaseError(result.error);
+  return result.data;
+}
+
+export async function fetchRequiredFieldsByTenant(TenantId: number): Promise<RequiredFieldPayload[]> {
+  const supabase = createServerSupabaseClient();
+  let query = supabase
+    .from("required_field_data")
+    .select("*");
+  query = query.eq("tenant_id", TenantId);
+  const { data, error } = await query;
+
+  if (error) throw mapSupabaseError(error);
+
+  return (data ?? []) as RequiredFieldPayload[];
+}
 

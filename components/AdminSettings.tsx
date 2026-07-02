@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
 import { useCafeStore } from "@/src/store/useCafeStore";
 import { tenantApiFetch } from "@/lib/tenant";
-import { useRef , useMemo} from "react";
+import { useRef, useMemo } from "react";
 import {
   Building2,
   CheckCircle2,
@@ -14,7 +14,7 @@ import {
   Utensils,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {uploadCafeLogo} from "@/lib/supabase/storage";
+import { uploadCafeLogo } from "@/lib/supabase/storage";
 
 type ToggleKey = "roundOff" | "splitBilling" | "tips" | "autoBillPrint";
 
@@ -33,6 +33,19 @@ interface SettingsFormData {
   invoice_number_format: string;
 }
 
+interface RequiredFormData {
+  id: number;
+  label: string;
+  value: string;
+  checked?: number | null;
+}
+
+interface RequiredSaveFormData {
+  id: number;
+  tenant_id: string;
+  required_field_id: string;
+  checked?: number | null;
+}
 interface BranchFormData {
   tenant_id?: number;
   branch_name: string;
@@ -64,6 +77,7 @@ interface InputProps {
   value?: string;
   placeholder?: string;
   type?: string;
+  readOnly?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -92,6 +106,7 @@ function Field({
   value = "",
   placeholder = "",
   type = "text",
+  readOnly = false,
   onChange,
 }: InputProps) {
   return (
@@ -103,9 +118,10 @@ function Field({
       <input
         type={type}
         value={value}
+        readOnly={readOnly}
         placeholder={placeholder}
         onChange={(e) => onChange?.(e.target.value)}
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+        className="mt-2 w-full rounded-[5px] border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       />
     </label>
   );
@@ -120,7 +136,7 @@ function SelectField({ label, defaultValue, options }: SelectProps) {
 
       <select
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+        className="mt-2 w-full rounded-[5px] border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       >
         {options.map((option) => (
           <option key={option}>{option}</option>
@@ -178,11 +194,11 @@ function Panel({
   return (
     <section
       id={id}
-      className={`scroll-mt-28 rounded-xl border border-slate-200 bg-white p-5 shadow-sm ${active ? "block" : "hidden"
+      className={`scroll-mt-28 rounded-[5px] border border-slate-200 bg-white p-5 shadow-sm ${active ? "block" : "hidden"
         }`}
     >
       <div className="mb-5 flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[5px] bg-emerald-600 text-white">
           <Icon size={21} aria-hidden="true" />
         </div>
 
@@ -223,7 +239,7 @@ function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${toneClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+      className={`inline-flex items-center justify-center gap-2 rounded-[5px] px-3 py-2 text-sm font-semibold transition ${toneClass} disabled:opacity-60 disabled:cursor-not-allowed`}
     >
       <Icon size={16} aria-hidden="true" />
       {label}
@@ -232,13 +248,14 @@ function ActionButton({
 }
 
 
-  export default function AdminSettings() {
+export default function AdminSettings() {
   const isHeadBranch = useCafeStore((state) => state.isHeadBranch); // ✅ inside component
 
   const sections: SettingsSection[] = useMemo(() => {
     const base: SettingsSection[] = [
-      { id: "general",  title: "General Settings",        icon: Building2   },
-      { id: "billing",  title: "Billing & Tax Settings",  icon: ReceiptText },
+      { id: "general", title: "General Settings", icon: Building2 },
+      { id: "billing", title: "Billing & Tax Settings", icon: ReceiptText },
+      { id: "setRequiredFields", title: "Set Required Fields", icon: ReceiptText },
     ];
 
     if (isHeadBranch) {
@@ -294,8 +311,9 @@ function ActionButton({
     admin_email: "",
     admin_password: "",
   });
-
-
+  const [getRequiredFields, setGetRequiredFields] = useState<RequiredFormData[]>([]);
+  const [getRequiredSavedFields, setGetRequiredSavedFields] = useState<RequiredSaveFormData[]>([]);
+  console.log("getRequiredSavedFields====", getRequiredSavedFields)
 
   async function loadBranches() {
     setBranchesLoading(true);
@@ -404,6 +422,8 @@ function ActionButton({
 
         const data = (await response.json()) as {
           settings?: Partial<SettingsFormData>;
+          getRequiredFieldsData?: Array<RequiredFormData>;
+          getRequiredFieldsSavedData?: Array<RequiredSaveFormData>;
           error?: string;
           detail?: string;
         };
@@ -411,6 +431,20 @@ function ActionButton({
         if (!response.ok) {
           throw new Error(
             data.error || data.detail || "Unable to load settings."
+          );
+        }
+        if (data.getRequiredFieldsData) {
+          setGetRequiredFields(
+            data.getRequiredFieldsData.map((item) => ({
+              ...item
+            }))
+          );
+        }
+        if (data.getRequiredFieldsSavedData) {
+          setGetRequiredSavedFields(
+            data.getRequiredFieldsSavedData.map((item) => ({
+              ...item
+            }))
           );
         }
 
@@ -439,13 +473,13 @@ function ActionButton({
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-    const handleUploadClick = () => {
+  const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
-    const handleFileChange = (
+  const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];   
+    const file = event.target.files?.[0];
 
     if (!file) return;
     setLogoFile(file);
@@ -463,10 +497,10 @@ function ActionButton({
     try {
       let logoUrl = getAllFormsData.logo_url;
 
-    if (logoFile) {
-      logoUrl = await uploadCafeLogo(logoFile, "cafe_logo", tenantId);
-    }
-    console.log("logoUrl", logoUrl);
+      if (logoFile) {
+        logoUrl = await uploadCafeLogo(logoFile, "cafe_logo", tenantId);
+      }
+      console.log("logoUrl", logoUrl);
       const response = await tenantApiFetch("/api/admin/settings", {
         method: "PUT",
         headers: {
@@ -474,9 +508,18 @@ function ActionButton({
         },
         body: JSON.stringify({
           settings: {
-          ...getAllFormsData,
-          logo_url: logoUrl,
-        },
+            ...getAllFormsData,
+            logo_url: logoUrl,
+          },
+          requiredFields: getRequiredFields.map((field) => {
+            const saved = getRequiredSavedFields.find(
+              (s) => Number(s?.required_field_id) === Number(field.id)
+            );
+            return {
+              required_field_id: field.id,
+              checked: saved?.checked ? 1 : 0,
+            };
+          }),
         }),
       });
 
@@ -503,9 +546,9 @@ function ActionButton({
   return (
     <AdminGuard>
       <div className="space-y-5">
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-[5px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[5px] bg-emerald-600 text-white">
               <Building2 size={20} aria-hidden="true" />
             </div>
 
@@ -519,7 +562,7 @@ function ActionButton({
         </section>
 
         <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
-          <aside className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24 xl:self-start">
+          <aside className="rounded-[5px] border border-slate-200 bg-white p-3 shadow-sm xl:sticky xl:top-24 xl:self-start">
             <nav className="space-y-1">
               {sections.map((section) => {
                 const Icon = section.icon;
@@ -530,9 +573,9 @@ function ActionButton({
                     key={section.id}
                     type="button"
                     onClick={() => setActiveSection(section.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${selected
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    className={`flex w-full items-center gap-3 rounded-[5px] px-3 py-3 text-left text-sm font-semibold transition ${selected
+                      ? "bg-emerald-600 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                   >
                     <Icon size={17} aria-hidden="true" />
@@ -581,6 +624,7 @@ function ActionButton({
                   label="Email Address"
                   type="email"
                   value={getAllFormsData.email_address}
+                  readOnly={true}
                   onChange={(value) => updateSettingsField("email_address", value)}
                 />
 
@@ -596,26 +640,26 @@ function ActionButton({
                   </span>
 
                   <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-emerald-600">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-[5px] border border-slate-200 bg-slate-50 text-emerald-600">
                       <Utensils size={24} aria-hidden="true" />
                     </div>
 
-                     <ActionButton
-        label="Upload Logo"
-        icon={Upload}
-        onClick={handleUploadClick}
-      />
+                    <ActionButton
+                      label="Upload Logo"
+                      icon={Upload}
+                      onClick={handleUploadClick}
+                    />
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      <p className="text-sm text-slate-600">
-        {selectedFileName || "No file selected"}
-      </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    <p className="text-sm text-slate-600">
+                      {selectedFileName || "No file selected"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -686,128 +730,194 @@ function ActionButton({
               </div>
             </Panel>
 
-
-            {/* Create Branches */}
-            {isHeadBranch && sections[2] && (
+            {/* Required Fields Settings */}
             <Panel
               {...sections[2]}
               active={activeSection === sections[2].id}
             >
-              <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Branches List
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">Manage cafe locations and statuses</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingBranch(null);
-                    setBranchForm({
-                      branch_name: "",
-                      phone: "",
-                      email: "",
-                      password: "",
-                      address: "",
-                      city: "",
-                      pincode: "",
-                      state: "",
-                      status: true,
-                      admin_email: "",
-                      admin_password: "",
-                    }); 
-                    setModalOpen(true);
-                  }}
-                  className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
-                >
-                  Create New Branch
-                </button>
-              </div>
+              <div className="overflow-x-auto rounded-[5px] border border-slate-200 bg-white">
+                <table className="w-full border-collapse text-left text-sm text-slate-500">
+                  <thead className="bg-slate-50 text-xs uppercase text-slate-700">
+                    <tr>
+                      <th className="px-5 py-3.5 font-semibold">Si.No</th>
+                      <th className="px-5 py-3.5 font-semibold">Field Name</th>
+                      <th className="px-5 py-3.5 font-semibold">Required</th>
+                    </tr>
+                  </thead>
 
-              {branchesLoading ? (
-                <div className="text-sm text-slate-500 py-6 text-center">Loading branches...</div>
-              ) : branchesError ? (
-                <div className="text-sm text-rose-500 py-6 text-center">{branchesError}</div>
-              ) : branches.length === 0 ? (
-                <div className="text-sm text-slate-500 py-10 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                  No branches created yet. Click "Create New Branch" to add one.
-                </div>
-              ) : (
-                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                  <table className="w-full border-collapse text-left text-sm text-slate-500">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-700">
-                      <tr>
-                        <th className="px-5 py-3.5 font-semibold">Branch Name</th>  
-                        <th className="px-5 py-3.5 font-semibold">Tenant ID</th> 
-                        <th className="px-5 py-3.5 font-semibold">Email</th>
-                        <th className="px-5 py-3.5 font-semibold">Location</th>
-                        <th className="px-5 py-3.5 font-semibold">Phone</th>
-                        <th className="px-5 py-3.5 font-semibold">Status</th>
-                        <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {branches.map((b) => (
-                        <tr key={b.tenant_id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-5 py-3.5 font-semibold text-slate-900">{b.branch}</td>
-                          <td className="px-5 py-3.5 text-slate-600">{b.tenant_slug}</td>
-                          <td className="px-5 py-3.5 text-slate-600">{b.email}</td>
-                          <td className="px-5 py-3.5 text-slate-500">
-                            {b.city ? `${b.city}, ${b.state || ""}` : "-"}
-                          </td>
-                          <td className="px-5 py-3.5 text-slate-600">{b.phone}</td>
-                          <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === 1 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
-                              }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${b.status === 1 ? "bg-emerald-500" : "bg-slate-400"
-                                }`} />
-                              {b.status === 1 ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5 text-right">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingBranch(b);
-                                setBranchForm({
-                                  branch_name: b.branch || "",
-                                  phone: b.phone || "",
-                                  email: b.email || "",
-                                  password: "",
-                                  address: b.address || "",
-                                  city: b.city || "",
-                                  pincode: b.pincode || "",
-                                  state: b.state || "",
-                                  status: b.status === 1,
-                                  admin_email: b.admin_email || "",
-                                  admin_password: "",
+                  <tbody className="divide-y divide-slate-200">
+                    {getRequiredFields.map((field, index) => (
+                      <tr key={field.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-5 py-3.5 text-slate-600">{index + 1}</td>
+                        <td className="px-5 py-3.5 text-slate-600">{field.label}</td>
+                        <td className="px-5 py-3.5 text-slate-600">
+                          <label className="inline-flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              checked={
+                                getRequiredSavedFields.find(
+                                  (value) => Number(value.required_field_id) === Number(field.id)
+                                )?.checked === 1
+                              }
+                              onChange={(e) => {
+                                const isChecked = e.target.checked ? 1 : 0;
+                                const fieldId = field.id;
+                                setGetRequiredSavedFields((prev) => {
+                                  const existingIndex = prev.findIndex(
+                                    (item) => Number(item.required_field_id) === Number(fieldId)
+                                  );
+                                  if (existingIndex > -1) {
+                                    const updated = [...prev];
+                                    updated[existingIndex] = {
+                                      ...updated[existingIndex],
+                                      checked: isChecked,
+                                    };
+                                    return updated;
+                                  } else {
+                                    return [
+                                      ...prev,
+                                      {
+                                        id: 0,
+                                        tenant_id: String(tenantId),
+                                        required_field_id: String(fieldId),
+                                        checked: isChecked,
+                                      },
+                                    ];
+                                  }
                                 });
-                                setModalOpen(true);
                               }}
-                              className="font-semibold text-emerald-600 hover:text-emerald-700 transition"
-                            >
-                              Edit
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                              className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </label>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Panel>
+
+            {/* Create Branches */}
+            {isHeadBranch && sections[3] && (
+              <Panel
+                {...sections[3]}
+                active={activeSection === sections[3].id}
+              >
+                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Branches List
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">Manage cafe locations and statuses</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingBranch(null);
+                      setBranchForm({
+                        branch_name: "",
+                        phone: "",
+                        email: "",
+                        password: "",
+                        address: "",
+                        city: "",
+                        pincode: "",
+                        state: "",
+                        status: true,
+                        admin_email: "",
+                        admin_password: "",
+                      });
+                      setModalOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center rounded-[5px] bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
+                  >
+                    Create New Branch
+                  </button>
+                </div>
+
+                {branchesLoading ? (
+                  <div className="text-sm text-slate-500 py-6 text-center">Loading branches...</div>
+                ) : branchesError ? (
+                  <div className="text-sm text-rose-500 py-6 text-center">{branchesError}</div>
+                ) : branches.length === 0 ? (
+                  <div className="text-sm text-slate-500 py-10 text-center border border-dashed border-slate-200 rounded-[5px] bg-slate-50/50">
+                    No branches created yet. Click "Create New Branch" to add one.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-[5px] border border-slate-200 bg-white">
+                    <table className="w-full border-collapse text-left text-sm text-slate-500">
+                      <thead className="bg-slate-50 text-xs uppercase text-slate-700">
+                        <tr>
+                          <th className="px-5 py-3.5 font-semibold">Branch Name</th>
+                          <th className="px-5 py-3.5 font-semibold">Tenant ID</th>
+                          <th className="px-5 py-3.5 font-semibold">Email</th>
+                          <th className="px-5 py-3.5 font-semibold">Location</th>
+                          <th className="px-5 py-3.5 font-semibold">Phone</th>
+                          <th className="px-5 py-3.5 font-semibold">Status</th>
+                          <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {branches.map((b) => (
+                          <tr key={b.tenant_id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-5 py-3.5 font-semibold text-slate-900">{b.branch}</td>
+                            <td className="px-5 py-3.5 text-slate-600">{b.tenant_slug}</td>
+                            <td className="px-5 py-3.5 text-slate-600">{b.email}</td>
+                            <td className="px-5 py-3.5 text-slate-500">
+                              {b.city ? `${b.city}, ${b.state || ""}` : "-"}
+                            </td>
+                            <td className="px-5 py-3.5 text-slate-600">{b.phone}</td>
+                            <td className="px-5 py-3.5">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${b.status === 1 ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-700"
+                                }`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${b.status === 1 ? "bg-emerald-500" : "bg-slate-400"
+                                  }`} />
+                                {b.status === 1 ? "Active" : "Inactive"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingBranch(b);
+                                  setBranchForm({
+                                    branch_name: b.branch || "",
+                                    phone: b.phone || "",
+                                    email: b.email || "",
+                                    password: "",
+                                    address: b.address || "",
+                                    city: b.city || "",
+                                    pincode: b.pincode || "",
+                                    state: b.state || "",
+                                    status: b.status === 1,
+                                    admin_email: b.admin_email || "",
+                                    admin_password: "",
+                                  });
+                                  setModalOpen(true);
+                                }}
+                                className="font-semibold text-emerald-600 hover:text-emerald-700 transition"
+                              >
+                                Edit
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Panel>
             )}
 
             {/* Save Settings */}
-            <section className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <section className="flex flex-col gap-3 rounded-[5px] border border-slate-200 bg-slate-50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
                   Save restaurant configuration
                 </h2>
 
                 {message ? (
-                  <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+                  <p className="mt-4 rounded-[5px] bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
                     {message}
                   </p>
                 ) : null}
@@ -835,7 +945,7 @@ function ActionButton({
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition"
+                  className="rounded-[5px] p-1 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition"
                   aria-label="Close modal"
                 >
                   ✕
@@ -856,7 +966,7 @@ function ActionButton({
                     placeholder="Phone Number"
                     onChange={(val) => setBranchForm({ ...branchForm, branch_name: val })}
                   />
-                  
+
                   <div className="sm:col-span-2">
                     <Field
                       label="Address"
@@ -893,13 +1003,13 @@ function ActionButton({
                     onChange={(val) => setBranchForm({ ...branchForm, email: val })}
                   />
                   {!editingBranch && (
-                      <Field
-                        label="Login Password"
-                        type="password"
-                        value={branchForm.password}
-                        placeholder="Set account login password"
-                        onChange={(val) => setBranchForm({ ...branchForm, password: val })}
-                      />
+                    <Field
+                      label="Login Password"
+                      type="password"
+                      value={branchForm.password}
+                      placeholder="Set account login password"
+                      onChange={(val) => setBranchForm({ ...branchForm, password: val })}
+                    />
                   )}
 
 
@@ -927,14 +1037,14 @@ function ActionButton({
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    className="rounded-[5px] border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-60 shadow-sm"
+                    className="rounded-[5px] bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition disabled:opacity-60 shadow-sm"
                   >
                     {saving ? "Saving..." : "Save Branch"}
                   </button>

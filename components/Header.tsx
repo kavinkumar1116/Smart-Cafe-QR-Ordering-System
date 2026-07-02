@@ -21,6 +21,10 @@ import { cn } from "@/lib/utils";
 // ─── Notification helpers ─────────────────────────────────────────────────────
 
 type NotifType = "expired" | "expiring_soon" | "expiring" | null;
+interface CafeStore {
+  tenantSlug: string;
+  setTenantSlug: (tenantSlug: string) => void;
+}
 
 function getSubscriptionNotif(
   status: string | number,
@@ -63,6 +67,8 @@ export default function Header() {
   const resetCafeProfile = useCafeStore((state) => state.resetCafeProfile);
   const subscriptionExpiringDate = useCafeStore((state) => state.subscriptionExpiringDate);
   const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
+const tenantSlug = useCafeStore((state) => state.tenantSlug);
+const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
 
   // ── Derived notification state ──────────────────────────────────────────────
   const notifType = getSubscriptionNotif(subscriptionStatus, subscriptionExpiringDate);
@@ -120,7 +126,8 @@ export default function Header() {
       document.cookie = AUTH_KEY;
       localStorage.setItem(AUTH_KEY, "false");
       document.cookie = "smart-cafe-admin=;";
-      window.location.href = "/mycafe/login";
+      window.location.href = `/${encodeURIComponent(tenantSlug)}/login`;
+      // window.location.href = "/mycafe/login";
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -410,10 +417,10 @@ export default function Header() {
   );
 }
 
-function getAdminLoginPath(pathname: string): string {
-  const parts = pathname.split("/").filter(Boolean);
-  if (parts[0] && parts[0] !== "admin" && parts[0] !== "super-admin") {
-    return `/${encodeURIComponent(parts[0])}/admin`;
-  }
-  return "/admin";
-}
+// function getAdminLoginPath(pathname: string): string {
+//   const parts = pathname.split("/").filter(Boolean);
+//   if (parts[0] && parts[0] !== "admin" && parts[0] !== "super-admin") {
+//     return `/${encodeURIComponent(parts[0])}/admin`;
+//   }
+//   return "/admin";
+// }

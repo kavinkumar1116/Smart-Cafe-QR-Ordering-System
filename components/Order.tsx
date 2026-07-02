@@ -21,7 +21,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { calcSubtotal, calcTax, calcGrandTotal, getGstRate } from "@/lib/order-math";
 import { tenantApiFetch } from "@/lib/tenant";
-import type { CafeTable, CartItem as CartEntry, Category, MenuItem, OrderMode } from "@/types/cafe";
+import type { CafeTable, CartItem as CartEntry, Category, MenuItem, OrderMode, CafeOrder } from "@/types/cafe";
 import {
   Select,
   SelectContent,
@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import jsPDF from "jspdf";
 import { useCafeStore } from "@/src/store/useCafeStore";
 
 const UNCATEGORIZED = "Uncategorized";
@@ -678,6 +679,203 @@ function StickyCartBar({ href, itemCount, total }: StickyCartBarProps) {
   );
 }
 
+const formatDateTime = (date: string | Date) => {
+  const d = new Date(date);
+
+  return `${d
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/ /g, "-")}, ${d.toLocaleTimeString("en-US", {
+      hour12: true,
+    })}`;
+}
+
+const downloadReceipt = async (
+  order: CafeOrder,
+  gstPercentage: number,
+  billingMethod: string
+) => {
+  const items = order.items ?? [];
+
+  // Calculate subtotal
+  const subTotal = items.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price_at_time || 0) *
+        Number(item.quantity || 0),
+    0
+  );
+
+  // GST Calculation
+  const gstAmount = (subTotal * gstPercentage) / 100;
+
+  // Final Total
+  const total = subTotal + gstAmount;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: [80, 200],
+  });
+
+  let y = 10;
+
+  // Header
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(16);
+  pdf.text("SMART CAFE", 40, y, {
+    align: "center",
+  });
+
+  y += 7;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+  pdf.text("Chennai", 40, y, {
+    align: "center",
+  });
+
+  y += 8;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
+  // Order Details
+  pdf.text(`Order ID: ${order.order_id}`, 5, y);
+  y += 6;
+
+  pdf.text(
+    `Date: ${formatDateTime(order.created_at)}`,
+    5,
+    y
+  );
+  y += 6;
+
+  pdf.text(
+    `Customer: ${order.customer_name}`,
+    5,
+    y
+  );
+  y += 6;
+
+  pdf.text(
+    `Mobile: ${order.customer_mobile || "-"}`,
+    5,
+    y
+  );
+  y += 6;
+
+  pdf.text(
+    `Order Type: ${
+      order.order_type === "Dine-In"
+        ? `Table ${order.table_number}`
+        : "Takeaway"
+    }`,
+    5,
+    y
+  );
+
+  y += 6;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
+  // Item Header
+  pdf.setFont("helvetica", "bold");
+
+  pdf.text("Item", 5, y);
+  pdf.text("Qty", 45, y);
+  pdf.text("Amount", 75, y, {
+    align: "right",
+  });
+
+  y += 5;
+
+  pdf.line(5, y, 75, y);
+
+  y += 5;
+
+  pdf.setFont("helvetica", "normal");
+
+  // Items
+  items.forEach((item) => {
+    const qty = Number(item.quantity || 0);
+
+    const amount =
+      Number(item.price_at_time || 0) * qty;
+
+    pdf.text(item.name, 5, y);
+
+    pdf.text(String(qty), 45, y);
+
+    pdf.text(amount.toFixed(2), 70, y, {
+      align: "right",
+    });
+
+    y += 6;
+  });
+
+  y += 2;
+
+  pdf.line(5, y, 75, y);
+
+  y += 8;
+
+  // Summary Section
+  pdf.setFont("helvetica", "normal");
+
+  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`,5, y);
+  y += 8;
+
+  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5,y);
+  y += 8;
+
+  pdf.line(5, y, 75, y);
+
+  y += 6;
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(12);
+
+  pdf.text(
+    `Grand Total : ${total.toFixed(2)}`,
+    5,
+    y
+  );
+
+  y += 8;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
+
+  pdf.text(
+    `Billing Method : ${billingMethod}`,
+    5,
+    y
+  );
+
+  y += 12;
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(12);
+
+  pdf.text(
+    "THANK YOU!",
+    40,
+    y,
+    {
+      align: "center",
+    }
+  );
+
+  pdf.save(`${order.order_id}.pdf`);
+};
+
 /* ── Main Order Page ─────────────────────────────── */
 
 export default function Order({ tableId }: MenuExperienceProps) {
@@ -699,6 +897,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
     order_type: "Dine-In",
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const gstPercentage = useCafeStore((state) => state.gstPercentage);
 
   useEffect(() => {
     async function loadMenu() {
@@ -885,6 +1084,32 @@ export default function Order({ tableId }: MenuExperienceProps) {
         const data = (await response.json()) as { order?: { order_id?: string; id?: number }; error?: string; detail?: string };
         if (!response.ok) throw new Error(data.error || data.detail || "Unable to place order.");
 
+        // Construct CafeOrder for receipt download
+        const orderIdVal = data.order?.id || Date.now();
+        const orderIdStr = data.order?.order_id || `ORD-${Date.now()}`;
+        const newOrder: CafeOrder = {
+          id: orderIdVal,
+          order_id: orderIdStr,
+          table_id: Number(tableId || validCart[0]?.table_id || 1),
+          table_number: tableNumber,
+          customer_name: customerName,
+          customer_mobile: customerMobile,
+          status: "Pending",
+          payment_status: "Pending",
+          order_type: customer.order_type,
+          total_amount: validCart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0),
+          created_at: new Date().toISOString(),
+          items: validCart.map((item) => ({
+            menu_item_id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price_at_time: item.price,
+          })),
+        };
+
+        // Download receipt with gstPercentage
+        await downloadReceipt(newOrder, gstPercentage, "Kitchen Order Tracking");
+
         setCart([]);
         setOrderSuccess(`Order placed successfully${data.order?.order_id ? `: ${data.order.order_id}` : ""}.`);
         setIsCartOpen(false);
@@ -894,7 +1119,7 @@ export default function Order({ tableId }: MenuExperienceProps) {
         setPlacingOrder(false);
       }
     },
-    [cart, customer, tableId]
+    [cart, customer, tableId, gstPercentage]
   );
 
   return (
@@ -1007,4 +1232,5 @@ export default function Order({ tableId }: MenuExperienceProps) {
 
     </div>
   );
+
 }
