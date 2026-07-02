@@ -23,6 +23,7 @@ export default function CafeProfileProvider() {
         if (response.ok && data.settings) {
           setCafeProfile({
             tenantId: data.settings.tenant_id,
+            tenantSlug: data.getStoreData[0].tenant_slug,
             restaurantName: data.settings.restaurant_name || "",
             branchName: data.settings.branch_name || "",
             logo: data.settings.logo_url || "",

@@ -613,6 +613,49 @@ export interface Database {
 
         Relationships: [];
       };
+      required_fields: {
+        Row: {
+          id: number;
+          value: string;
+          label: string;
+        };
+
+        Insert: {
+          id?: number;
+          value: string;
+          label: string;
+        };
+
+        Update: {
+          id?: number;
+          value?: string;
+          label?: string;
+        };
+        Relationships: [];
+      }
+      required_field_data: {
+        Row: {
+          id: number;
+          tenant_id: number;
+          required_field_id: number;
+          checked:number;
+        };
+
+        Insert: {
+          id: number;
+          tenant_id: number;
+          required_field_id: number;
+          checked:number;
+        };
+
+        Update: {
+          id: number;
+          tenant_id: number;
+          required_field_id: number;
+          checked:number;
+        };
+        Relationships: [];
+      }
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -3,6 +3,7 @@ import { create } from "zustand";
 // Core restaurant profile shared across the client application.
 export interface CafeProfileState {
   tenantId: number;
+  tenantSlug: string;
   restaurantName: string;
   branchName: string;
   logo: string;
@@ -17,6 +18,7 @@ export interface CafeProfileState {
 // Store actions are kept explicit so components can subscribe only to what they need.
 interface CafeStore extends CafeProfileState {
   setTenantId: (tenantId: number) => void;
+  setTenantSlug: (tenantSlug: string) => void;
   setRestaurantName: (restaurantName: string) => void;
   setBranchName: (branchName: string) => void;
   setLogo: (logo: string) => void;
@@ -33,6 +35,7 @@ interface CafeStore extends CafeProfileState {
 // Stable defaults prevent empty header UI before settings are loaded.
 export const defaultCafeProfile: CafeProfileState = {
   tenantId: 0,
+  tenantSlug: "",
   restaurantName: "",
   branchName: "",
   logo: "",
@@ -50,6 +53,7 @@ export const useCafeStore = create<CafeStore>((set) => ({
   ...defaultCafeProfile,
 
   setTenantId: (tenantId) => set({ tenantId }),
+  setTenantSlug : (tenantSlug) => set({ tenantSlug }),
   setRestaurantName: (restaurantName) => set({ restaurantName }),
   setBranchName: (branchName) => set({ branchName }),
   setLogo: (logo) => set({ logo }),

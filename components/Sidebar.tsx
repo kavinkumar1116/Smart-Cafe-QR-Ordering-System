@@ -153,7 +153,7 @@ useEffect(() => {
       <Link
         href={item.href || "#"}
         className={cn(
-          "group/sidebar-nav relative flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-all duration-300",
+          "group/sidebar-nav relative flex items-center gap-3 rounded-[5px] py-2.5 text-sm font-medium transition-all duration-300",
           linkPadding,
           isActive
             ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
@@ -201,12 +201,12 @@ useEffect(() => {
         <Link
           href={withTenantSlug("/", tenantSlug)}
           className={cn(
-            "flex items-center rounded-lg transition-colors duration-300 hover:bg-slate-100",
+            "flex items-center rounded-[5px] transition-colors duration-300 hover:bg-slate-100",
             isCollapsed ? "justify-center p-2 mt-8" : "gap-3 p-3 mt-8"
           )}
           onClick={handleNavClick}
         >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-md">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[5px] bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-md">
             <Image
               src={logo || defaultLogo}
               alt="Cafe Logo"
@@ -257,7 +257,7 @@ useEffect(() => {
                           setCollapsedFlyout(flyoutOpen ? "" : item.label)
                         }
                         className={cn(
-                          "flex w-full items-center justify-center rounded-lg py-2.5 text-sm font-medium transition-all duration-300",
+                          "flex w-full items-center justify-center rounded-[5px] py-2.5 text-sm font-medium transition-all duration-300",
                           childActive
                             ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md"
                             : "text-slate-700 hover:bg-slate-100 hover:shadow-sm"
@@ -270,7 +270,7 @@ useEffect(() => {
                     <TooltipContent>{item.label}</TooltipContent>
                   </Tooltip>
                   {flyoutOpen && (
-                    <div className="absolute left-full top-0 z-[55] ml-2 w-52 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
+                    <div className="absolute left-full top-0 z-[55] ml-2 w-52 rounded-[5px] border border-slate-200 bg-white py-2 shadow-lg">
                       <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         {item.label}
                       </p>
@@ -289,7 +289,7 @@ useEffect(() => {
                   type="button"
                   onClick={() => setOpenDropdown(isOpen ? "" : item.label)}
                   className={cn(
-                    "group/sidebar-nav flex w-full items-center gap-3 rounded-lg py-2.5 text-sm font-medium text-slate-700 transition-all duration-300 hover:bg-slate-100",
+                    "group/sidebar-nav flex w-full items-center gap-3 rounded-[5px] py-2.5 text-sm font-medium text-slate-700 transition-all duration-300 hover:bg-slate-100",
                     linkPadding
                   )}
                 >
