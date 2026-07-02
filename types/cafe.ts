@@ -288,3 +288,12 @@ export interface SubscriptionPlan {
 
   updated_at: string;
 }
+
+export interface RequiresFiledCreateProps {
+ id:number;
+ tenant_id:number;
+ required_field_id:number;
+ checked:number;
+ created_at: string;
+updated_at: string;
+}
