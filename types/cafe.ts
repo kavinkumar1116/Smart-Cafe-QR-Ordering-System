@@ -85,6 +85,7 @@ export interface CafeTable {
   id: number;
   table_number: number;
   qr_code_url: string | null;
+  status?: string;
 }
 
 export interface TableForm {
