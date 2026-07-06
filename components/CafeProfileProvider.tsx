@@ -32,8 +32,8 @@ export default function CafeProfileProvider() {
             gstPercentage: data.settings.gst_percentage || "",
             subscriptionExpiringDate: data.subscriptionExpiringMessage || "",
             subscriptionStatus: data.subscriptionStatus || "",
-            isHeadBranch: data.getStoreData[0].is_head_branch || false
-
+            isHeadBranch: data.getStoreData[0].is_head_branch || false,
+            tableData: data.tableData || [],
           });
         }
       } catch (error) {

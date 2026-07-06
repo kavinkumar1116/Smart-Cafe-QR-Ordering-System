@@ -13,6 +13,7 @@ export interface CafeProfileState {
   subscriptionExpiringDate: string;
   subscriptionStatus: string;
   isHeadBranch: boolean;
+  tableData: any[];
 }
 
 // Store actions are kept explicit so components can subscribe only to what they need.
@@ -30,6 +31,7 @@ interface CafeStore extends CafeProfileState {
   setSubscriptionExpiringDate: (subscriptionExpiringDate: string) => void;
   setSubscriptionStatus: (subscriptionStatus: string) => void;
   setIsHeadBranch: (isHeadBranch: boolean) => void;
+  setTableData: (tableData: any[]) => void;
 }
 
 // Stable defaults prevent empty header UI before settings are loaded.
@@ -45,6 +47,7 @@ export const defaultCafeProfile: CafeProfileState = {
   subscriptionExpiringDate: "",
   subscriptionStatus: "",
   isHeadBranch: false,
+  tableData: [],
 };
 
 // Zustand hook for global cafe identity state.
@@ -63,7 +66,7 @@ export const useCafeStore = create<CafeStore>((set) => ({
   setSubscriptionExpiringDate: (subscriptionExpiringDate) => set({ subscriptionExpiringDate }),
   setSubscriptionStatus: (subscriptionStatus) => set({ subscriptionStatus }),
   setIsHeadBranch: (isHeadBranch) => set({ isHeadBranch }),
-
+  setTableData: (tableData) => set({ tableData }),
   // Batch updates are useful when hydrating from the settings API.
 setCafeProfile: (profile) =>
   set((current) => ({

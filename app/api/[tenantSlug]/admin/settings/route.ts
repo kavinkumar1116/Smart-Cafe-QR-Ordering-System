@@ -3,7 +3,7 @@ import { getErrorMessage } from "@/lib/api";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant, fetchRequiredFiled, saveRequiredField, fetchRequiredFieldsByTenant } from "@/lib/supabase/crud";
+import { fetchTenantsDataByTenantID, fetchSubcriptionsByTenant, fetchRequiredFiled, saveRequiredField, fetchRequiredFieldsByTenant, fetchTables} from "@/lib/supabase/crud";
 
 type SettingsRecord = {
   tenant_id?: number;
@@ -69,6 +69,7 @@ export async function GET(request: Request) {
     const getRequiredFieldsSavedData = await fetchRequiredFieldsByTenant(tenantId);
     const getRequiredFieldsData = await fetchRequiredFiled();
     const invoice = invoicesData?.[0];
+    const tableData = await fetchTables(tenantId);
 
     let subscriptionExpiringMessage = "";
     let subscriptionStatus = "Active";
@@ -113,7 +114,8 @@ export async function GET(request: Request) {
       subscriptionExpiringMessage,
       subscriptionStatus,
       getRequiredFieldsData,
-      getRequiredFieldsSavedData
+      getRequiredFieldsSavedData,
+      tableData : tableData || [],
     });
   } catch (error) {
     return NextResponse.json(
