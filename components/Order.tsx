@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import jsPDF from "jspdf";
 import { useCafeStore } from "@/src/store/useCafeStore";
+import TableShowing from "@/components/TabelShowing";
 
 const UNCATEGORIZED = "Uncategorized";
 
@@ -161,11 +162,10 @@ function CategoryNav({ categories, active, onChange }: CategoryNavProps) {
               key={cat}
               type="button"
               onClick={() => onChange(cat)}
-              className={`shrink-0 px-4 py-3 text-[13px] font-semibold border-b-2 transition whitespace-nowrap ${
-                isActive
+              className={`shrink-0 px-4 py-3 text-[13px] font-semibold border-b-2 transition whitespace-nowrap ${isActive
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -373,7 +373,7 @@ transition-all
 duration-200
 hover:shadow-lg
 ">
-        
+
         {/* Order Type */}
         <Select
           value={customer.order_type}
@@ -386,7 +386,7 @@ hover:shadow-lg
           }
           disabled={placingOrder}
         >
-          <SelectTrigger className="flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+          <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-xs text-[#8B5E3C]">
               {customer.order_type === "Dine-In" ? <UtensilsCrossed size={18} /> : <ShoppingBag size={18} />}
             </div>
@@ -410,7 +410,7 @@ hover:shadow-lg
             onValueChange={(value) => onCustomerChange({ ...customer, table_number: value })}
             disabled={placingOrder}
           >
-            <SelectTrigger className="flex items-center gap-3 bg-[#F2F8F4] border border-[#E2EFE6] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#F2F8F4]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+            <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#F2F8F4] border border-[#E2EFE6] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#F2F8F4]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs text-[#2E7D32]">
                 <UtensilsCrossed size={18} />
               </div>
@@ -488,11 +488,11 @@ hover:shadow-lg
 
       {/* Main split grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
-        
+
         {/* Left Column: Ordered Items */}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col min-h-[300px] lg:min-h-0 bg-white border border-slate-100 rounded-3xl shadow-xs p-6">
           <h3 className="text-[12px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Ordered Items</h3>
-          
+
           <div className="flex-1 overflow-y-auto pr-1">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -591,11 +591,11 @@ hover:shadow-lg
 
         {/* Right Column: Order Summary & Action */}
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
-          
+
           {/* Summary Card */}
           <div className="bg-white border border-slate-100 rounded-3xl shadow-xs p-6 space-y-4">
             <h3 className="text-[12px] font-extrabold text-slate-400 uppercase tracking-widest">Order Summary</h3>
-            
+
             <div className="space-y-2.5">
               <div className="flex justify-between text-[13px] text-slate-500">
                 <span>Total Items</span>
@@ -638,9 +638,8 @@ hover:shadow-lg
               type="button"
               onClick={onCheckout}
               disabled={isExpired || cart.length === 0 || placingOrder}
-              className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[14px] font-bold text-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 active:scale-98 ${
-                isExpired ? "bg-rose-600 hover:bg-rose-700 shadow-rose-950/10" : "bg-[#20be5a] hover:bg-[#066c06] shadow-amber-950/15"
-              }`}
+              className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[14px] font-bold text-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 active:scale-98 ${isExpired ? "bg-rose-600 hover:bg-rose-700 shadow-rose-950/10" : "bg-[#20be5a] hover:bg-[#066c06] shadow-amber-950/15"
+                }`}
             >
               {isExpired ? (
                 <><TriangleAlert size={16} /> Upgrade Now</>
@@ -651,14 +650,14 @@ hover:shadow-lg
                 </>
               )}
             </button>
+          </div>
+
         </div>
 
       </div>
 
-    </div>
-
-  </aside>
-);
+    </aside>
+  );
 }
 
 /* ── Sticky Mobile Cart Bar ──────────────────────── */
@@ -705,7 +704,7 @@ const downloadReceipt = async (
     (sum, item) =>
       sum +
       Number(item.price_at_time || 0) *
-        Number(item.quantity || 0),
+      Number(item.quantity || 0),
     0
   );
 
@@ -770,10 +769,9 @@ const downloadReceipt = async (
   y += 6;
 
   pdf.text(
-    `Order Type: ${
-      order.order_type === "Dine-In"
-        ? `Table ${order.table_number}`
-        : "Takeaway"
+    `Order Type: ${order.order_type === "Dine-In"
+      ? `Table ${order.table_number}`
+      : "Takeaway"
     }`,
     5,
     y
@@ -829,10 +827,10 @@ const downloadReceipt = async (
   // Summary Section
   pdf.setFont("helvetica", "normal");
 
-  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`,5, y);
+  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`, 5, y);
   y += 8;
 
-  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5,y);
+  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5, y);
   y += 8;
 
   pdf.line(5, y, 75, y);
@@ -898,36 +896,60 @@ export default function Order({ tableId }: MenuExperienceProps) {
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const gstPercentage = useCafeStore((state) => state.gstPercentage);
+const tableData = useCafeStore((state) => state.tableData);
+
+useEffect(() => {
+  if (tableData) {
+    setTables(tableData);
+  }
+}, [tableData]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [selectedTable, setSelectedTable] = useState("");
+  const [orderType, setOrderType] = useState<"Dine-In" | "Takeaway">("Dine-In");
+
+  useEffect(() => {
+    setCustomer((current) => ({
+      ...current,
+      order_type: orderType,
+      table_number: selectedTable,
+    }));
+  }, [orderType, selectedTable]);
+
+  const handleCustomerChange = useCallback((updatedCustomer: CustomerForm) => {
+    setCustomer(updatedCustomer);
+    setOrderType(updatedCustomer.order_type as "Dine-In" | "Takeaway");
+    setSelectedTable(updatedCustomer.table_number);
+  }, []);
 
   useEffect(() => {
     async function loadMenu() {
       setLoading(true);
       setError("");
       try {
-        const [categoryResponse, menuResponse, tablesResponse] = await Promise.all([
+        const [categoryResponse, menuResponse] = await Promise.all([
           tenantApiFetch("/api/admin/category"),
           tenantApiFetch("/api/admin/menu_master"),
-          tenantApiFetch("/api/admin/tables"),
         ]);
         const categoryData = (await categoryResponse.json()) as CategoriesResponse;
         const menuData = (await menuResponse.json()) as MenuMasterResponse;
-        const tablesData = (await tablesResponse.json()) as TablesResponse;
 
-        if (!categoryResponse.ok || !menuResponse.ok || !tablesResponse.ok) {
+        if (!categoryResponse.ok || !menuResponse.ok) {
           throw new Error(
             categoryData.error || categoryData.detail ||
             menuData.error || menuData.detail ||
-            tablesData.error || tablesData.detail ||
             "Unable to load menu."
           );
         }
 
         const safeCategories = categoryData.items || [];
-        const safeTables = tablesData.tables || [];
-        const requestedTable = safeTables.find((table) => table.id === Number(tableId));
+        const requestedTable = tables.find((table) => table.id === Number(tableId));
 
         setCategories(safeCategories);
-        setTables(safeTables);
+        if (requestedTable) {
+          setSelectedTable(String(requestedTable.table_number));
+          setOrderType("Dine-In");
+          setShowMenu(true);
+        }
         setCustomer((current) => ({
           ...current,
           table_number: current.table_number || String(requestedTable?.table_number || ""),
@@ -1123,114 +1145,136 @@ export default function Order({ tableId }: MenuExperienceProps) {
   );
 
   return (
-    /* Full-screen POS layout: left menu + right cart panel */
-    <div className="relative flex h-screen overflow-hidden bg-slate-100">
-
-      {/* ── Left: scrollable menu area ─────────── */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-
-        {/* Top bar: title + search */}
-        <div className="flex items-center gap-3 bg-white border-b border-slate-200 px-4 py-2.5 shrink-0">
-          <h2 className="text-[15px] font-bold text-slate-800 whitespace-nowrap">Customer Order</h2>
-          <div className="flex-1 max-w-xs ml-auto">
-            <MenuSearchBar value={search} onChange={setSearch} />
-          </div>
-        </div>
-
-        {/* Category nav */}
-        <div className="bg-white shrink-0 shadow-sm">
-          <CategoryNav categories={categoryOptions} active={category} onChange={setCategory} />
-        </div>
-
-        {/* Success toast */}
-        {orderSuccess && (
-          <div className="mx-4 mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-medium text-emerald-800 shrink-0">
-            {orderSuccess}
-          </div>
-        )}
-
-        {/* Menu items — scrollable */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
-            <div className="flex h-40 items-center justify-center text-[13px] text-slate-400">
-              Loading menu...
-            </div>
-          ) : error ? (
-            <div className="rounded-md border border-rose-200 bg-rose-50 p-6 text-center text-[13px] text-rose-700">
-              {error}
-            </div>
-          ) : visibleGroups.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-[13px] text-slate-400">
-              No items found.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {visibleGroups.map((group) => (
-                <CategorySection
-                  key={group.category}
-                  category={group.category}
-                  items={group.items}
-                  cartQuantities={cartQuantities}
-                  onAdd={addToCart}
-                  onChangeQuantity={changeQuantity}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Overlay ── */}
-      <div
-        className={`fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 transition-opacity duration-300 ${
-          isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setIsCartOpen(false)}
-      />
-
-      {/* ── Right: drawer ─────────────── */}
-      <div
-        className={`fixed top-0 right-0 h-screen w-full sm:w-[90vw] md:w-[80vw] lg:w-[65vw] xl:w-[65vw] bg-[#FDFBF7] shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-in-out transform ${
-          isCartOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <CurrentCart
-          cart={cart}
-          totalItems={totalItems}
-          grandTotal={cartSubtotal}
-          onIncrement={handleIncrement}
-          onDecrement={handleDecrement}
-          onRemove={handleRemove}
-          onCheckout={placeOrder}
-          placingOrder={placingOrder}
-          orderError={orderError}
-          customer={customer}
-          tables={tables}
-          onCustomerChange={setCustomer}
-          onClose={() => setIsCartOpen(false)}
+    <>
+      {!showMenu ? (
+        <TableShowing
+          onTableSelect={(tableNumber) => {
+            setSelectedTable(String(tableNumber));
+            setOrderType("Dine-In");
+            setShowMenu(true);
+          }}
+          onTakeAway={() => {
+            setSelectedTable("");
+            setOrderType("Takeaway");
+            setShowMenu(true);
+          }}
         />
-      </div>
+      ) : (
+        <div className="relative flex h-screen overflow-hidden bg-slate-100">
 
-      {/* ── Floating Confirm Order Button ── */}
-      {cart.length > 0 && !isCartOpen && (
-        <button
-          onClick={() => setIsCartOpen(true)}
-          className="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-[#20be5a] text-white px-6 py-4 rounded-2xl shadow-xl shadow-amber-950/20 transition-all duration-300 hover:scale-105 active:scale-95"
-        >
-          <div className="relative text-black">
-            <ShoppingCart size={20} />
-            <span className="absolute -top-2.5 -right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-950 shadow">
-              {totalItems}
-            </span>
+          {/* ── Left: scrollable menu area ─────────── */}
+          <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+
+            {/* Top bar: title + search */}
+            <div className="flex items-center gap-3 bg-white border-b border-slate-200 px-4 py-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowMenu(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-sm shrink-0"
+                aria-label="Back to tables"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <h2 className="text-[15px] font-bold text-slate-800 whitespace-nowrap">Menu</h2>
+              <div className="flex-1 max-w-xs ml-auto">
+                <MenuSearchBar value={search} onChange={setSearch} />
+              </div>
+            </div>
+
+            {/* Category nav */}
+            <div className="bg-white shrink-0 shadow-sm">
+              <CategoryNav categories={categoryOptions} active={category} onChange={setCategory} />
+            </div>
+
+            {/* Success toast */}
+            {orderSuccess && (
+              <div className="mx-4 mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[13px] font-medium text-emerald-800 shrink-0">
+                {orderSuccess}
+              </div>
+            )}
+
+            {/* Menu items — scrollable */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {loading ? (
+                <div className="flex h-40 items-center justify-center text-[13px] text-slate-400">
+                  Loading menu...
+                </div>
+              ) : error ? (
+                <div className="rounded-md border border-rose-200 bg-rose-50 p-6 text-center text-[13px] text-rose-700">
+                  {error}
+                </div>
+              ) : visibleGroups.length === 0 ? (
+                <div className="flex h-40 items-center justify-center text-[13px] text-slate-400">
+                  No items found.
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {visibleGroups.map((group) => (
+                    <CategorySection
+                      key={group.category}
+                      category={group.category}
+                      items={group.items}
+                      cartQuantities={cartQuantities}
+                      onAdd={addToCart}
+                      onChangeQuantity={changeQuantity}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-start leading-none text-left">
-            <span className="text-[10px] text-black uppercase tracking-wider font-bold opacity-75">Confirm Order</span>
-            <span className="text-[15px] text-black font-extrabold mt-0.5">{formatCurrency(cartSubtotal)}</span>
+
+          {/* ── Overlay ── */}
+          <div
+            className={`fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 transition-opacity duration-300 ${isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+              }`}
+            onClick={() => setIsCartOpen(false)}
+          />
+
+          {/* ── Right: drawer ─────────────── */}
+          <div
+            className={`fixed top-0 right-0 h-screen w-full sm:w-[90vw] md:w-[80vw] lg:w-[65vw] xl:w-[65vw] bg-[#FDFBF7] shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-in-out transform ${isCartOpen ? "translate-x-0" : "translate-x-full"
+              }`}
+          >
+            <CurrentCart
+              cart={cart}
+              totalItems={totalItems}
+              grandTotal={cartSubtotal}
+              onIncrement={handleIncrement}
+              onDecrement={handleDecrement}
+              onRemove={handleRemove}
+              onCheckout={placeOrder}
+              placingOrder={placingOrder}
+              orderError={orderError}
+              customer={customer}
+              tables={tables}
+              onCustomerChange={handleCustomerChange}
+              onClose={() => setIsCartOpen(false)}
+            />
           </div>
-        </button>
+
+          {/* ── Floating Confirm Order Button ── */}
+          {cart.length > 0 && !isCartOpen && (
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-[#20be5a] text-white px-6 py-4 rounded-2xl shadow-xl shadow-amber-950/20 transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <div className="relative text-black">
+                <ShoppingCart size={20} />
+                <span className="absolute -top-2.5 -right-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-200 text-[10px] font-bold text-amber-950 shadow">
+                  {totalItems}
+                </span>
+              </div>
+              <div className="flex flex-col items-start leading-none text-left">
+                <span className="text-[10px] text-black uppercase tracking-wider font-bold opacity-75">Confirm Order</span>
+                <span className="text-[15px] text-black font-extrabold mt-0.5">{formatCurrency(cartSubtotal)}</span>
+              </div>
+            </button>
+          )}
+
+        </div>
       )}
-
-    </div>
+    </>
   );
 
 }
