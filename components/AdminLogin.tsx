@@ -200,7 +200,7 @@ export default function AdminLogin() {
 
   // ── Shared input class ────────────────────────────────────────────────────
   const inputClass =
-    "w-full rounded-lg border border-white/30 bg-white/90 px-3 py-3 text-black placeholder:text-black/60 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20";
+    "w-full rounded border border-white/30 bg-white/90 px-3 py-3 text-black placeholder:text-black/60 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20";
 
   return (
     <div
@@ -220,7 +220,7 @@ export default function AdminLogin() {
         <div className="relative z-10 w-full max-w-md px-4">
           <form
             onSubmit={submit}
-            className="rounded-xl border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md"
+            className="rounded border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md"
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
               <LockKeyhole size={24} aria-hidden="true" />
@@ -303,7 +303,7 @@ export default function AdminLogin() {
 
             <button
               disabled={loading}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <LogIn size={18} aria-hidden="true" />
               {loading ? "Signing in..." : "Login"}
@@ -322,7 +322,7 @@ export default function AdminLogin() {
             aria-hidden="true"
           />
 
-          <div className="relative w-full max-w-md rounded-xl border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md ">
+          <div className="relative w-full max-w-md rounded border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md ">
 
             {/* ── Step indicator ────────────────────────────────────────── */}
             <div className="mb-5 flex items-center gap-2">
@@ -330,10 +330,10 @@ export default function AdminLogin() {
                 <div key={step} className="flex items-center gap-2">
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${forgotStep === step
-                        ? "bg-emerald-600 text-white"
-                        : ["email", "otp", "newPassword"].indexOf(forgotStep) > i
-                          ? "bg-emerald-800 text-emerald-300"
-                          : "bg-white/10 text-white/40"
+                      ? "bg-emerald-600 text-white"
+                      : ["email", "otp", "newPassword"].indexOf(forgotStep) > i
+                        ? "bg-emerald-800 text-emerald-300"
+                        : "bg-white/10 text-white/40"
                       }`}
                   >
                     {i + 1}
@@ -341,8 +341,8 @@ export default function AdminLogin() {
                   {i < 2 && (
                     <div
                       className={`h-px w-8 transition-colors ${["email", "otp", "newPassword"].indexOf(forgotStep) > i
-                          ? "bg-emerald-600"
-                          : "bg-white/20"
+                        ? "bg-emerald-600"
+                        : "bg-white/20"
                         }`}
                     />
                   )}
@@ -585,8 +585,8 @@ export default function AdminLogin() {
                     {forgotData.confirmPassword && (
                       <p
                         className={`mt-1.5 text-xs ${forgotData.newPassword === forgotData.confirmPassword
-                            ? "text-emerald-400"
-                            : "text-red-400"
+                          ? "text-emerald-400"
+                          : "text-red-400"
                           }`}
                       >
                         {forgotData.newPassword === forgotData.confirmPassword
