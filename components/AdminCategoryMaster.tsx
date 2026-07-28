@@ -16,9 +16,9 @@ const emptyForm: CategoryForm = {
 };
 
 export default function AdminCategoryManager() {
-  const [form, setForm]               = useState<CategoryForm>(emptyForm);
-  const [saving, setSaving]           = useState(false);
-  const [modalOpen, setModalOpen]     = useState(false);
+  const [form, setForm] = useState<CategoryForm>(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [CategoriesList, setCategoriesList] = useState<Category[]>([]);
   const [validationError, setValidationError] = useState("");
 
@@ -103,7 +103,7 @@ export default function AdminCategoryManager() {
       {/* ── Modal ─────────────────────────────────────────────── */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+          <div className="w-full max-w-md rounded border border-slate-200 bg-white p-6 shadow-lg">
 
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -137,9 +137,8 @@ export default function AdminCategoryManager() {
                     setValidationError("");
                   }}
                   placeholder="e.g. Beverages"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 bg-white transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${
-                    validationError ? "border-red-500/60" : "border-slate-300"
-                  }`}
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 bg-white transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${validationError ? "border-red-500/60" : "border-slate-300"
+                    }`}
                 />
                 {validationError && (
                   <p className="text-xs text-rose-600">{validationError}</p>
@@ -186,7 +185,7 @@ export default function AdminCategoryManager() {
       <section className="space-y-5">
 
         {/* Header */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">Categories Management</p>
@@ -204,7 +203,7 @@ export default function AdminCategoryManager() {
         </div>
 
         {/* Table panel */}
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+        <div className="rounded border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[480px] border-collapse text-sm">
 
@@ -214,12 +213,11 @@ export default function AdminCategoryManager() {
                   {["SI.No", "Category Name", "Status", "Edit", "Delete"].map((col, i) => (
                     <th
                       key={col}
-                      className={`border-b border-slate-200 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 whitespace-nowrap ${
-                        i === 0 ? "w-16 text-center" :
+                      className={`border-b border-slate-200 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 whitespace-nowrap ${i === 0 ? "w-16 text-center" :
                         i === 2 ? "w-28 text-center" :
-                        i >= 3  ? "w-20 text-center" :
-                        "text-left"
-                      }`}
+                          i >= 3 ? "w-20 text-center" :
+                            "text-left"
+                        }`}
                     >
                       {col}
                     </th>
@@ -252,11 +250,10 @@ export default function AdminCategoryManager() {
 
                       {/* Status */}
                       <td className="px-6 py-4 text-center">
-                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                          item.is_available
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${item.is_available
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                          }`}>
                           {item.is_available ? "Active" : "Inactive"}
                         </span>
                       </td>

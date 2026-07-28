@@ -66,7 +66,7 @@ interface UpgradeFormData {
   last_name: string;
   email: string;
   phone: string;
-  tenant_id:number;
+  tenant_id: number;
   billing_cycle: "monthly" | "yearly";
 }
 
@@ -103,27 +103,27 @@ function useRazorpayScript(): boolean {
 
 function UpgradeModal({ plan, storeData, onClose, onSuccess }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);  
+  const [error, setError] = useState<string | null>(null);
   const razorpayReady = useRazorpayScript();
   const tenantId = useCafeStore((state) => state.tenantId);
 
-const [form, setForm] = useState<UpgradeFormData>({
-  first_name: storeData?.owner_name?.split(" ")[0] ?? "",
-  last_name: storeData?.owner_name?.split(" ").slice(1).join(" ") ?? "",
-  email: storeData?.email ?? "",
-  phone: storeData?.phone ?? "",
-  tenant_id: 0,
-  billing_cycle: "monthly",
-});
+  const [form, setForm] = useState<UpgradeFormData>({
+    first_name: storeData?.owner_name?.split(" ")[0] ?? "",
+    last_name: storeData?.owner_name?.split(" ").slice(1).join(" ") ?? "",
+    email: storeData?.email ?? "",
+    phone: storeData?.phone ?? "",
+    tenant_id: 0,
+    billing_cycle: "monthly",
+  });
 
-useEffect(() => {
-  if (tenantId) {
-    setForm((prev) => ({
-      ...prev,
-      tenant_id: tenantId,
-    }));
-  }
-}, [tenantId]);
+  useEffect(() => {
+    if (tenantId) {
+      setForm((prev) => ({
+        ...prev,
+        tenant_id: tenantId,
+      }));
+    }
+  }, [tenantId]);
 
   const price =
     form.billing_cycle === "yearly" ? plan.yearly_price : plan.monthly_price;
@@ -131,16 +131,16 @@ useEffect(() => {
   const yearlySavingsPct =
     plan.yearly_price > 0 && plan.monthly_price > 0
       ? Math.round(
-          ((plan.monthly_price * 12 - plan.yearly_price) /
-            (plan.monthly_price * 12)) *
-            100
-        )
+        ((plan.monthly_price * 12 - plan.yearly_price) /
+          (plan.monthly_price * 12)) *
+        100
+      )
       : 0;
 
   const set =
     (field: keyof UpgradeFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async () => {
     setError(null);
@@ -163,7 +163,7 @@ useEffect(() => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            tenant_id:tenantId,
+            tenant_id: tenantId,
             plan_code: plan.plan_code,
             plan_name: plan.plan_name,
             billing_cycle: form.billing_cycle,
@@ -216,7 +216,7 @@ useEffect(() => {
                   billing_cycle: form.billing_cycle,
                   amount: price,
                   contact: {
-                    
+
                     name: `${form.first_name} ${form.last_name}`.trim(),
                     email: form.email,
                     phone: form.phone,
@@ -305,31 +305,28 @@ useEffect(() => {
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, billing_cycle: "monthly" }))}
-                className={`flex-1 py-2.5 font-medium transition-colors ${
-                  form.billing_cycle === "monthly"
+                className={`flex-1 py-2.5 font-medium transition-colors ${form.billing_cycle === "monthly"
                     ? "bg-emerald-600 text-white"
                     : "text-slate-500 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 Monthly
               </button>
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, billing_cycle: "yearly" }))}
-                className={`flex-1 py-2.5 font-medium transition-colors ${
-                  form.billing_cycle === "yearly"
+                className={`flex-1 py-2.5 font-medium transition-colors ${form.billing_cycle === "yearly"
                     ? "bg-emerald-600 text-white"
                     : "text-slate-500 hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 Yearly
                 {yearlySavingsPct > 0 && (
                   <span
-                    className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${
-                      form.billing_cycle === "yearly"
+                    className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${form.billing_cycle === "yearly"
                         ? "bg-white/20 text-white"
                         : "bg-emerald-100 text-emerald-700"
-                    }`}
+                      }`}
                   >
                     save {yearlySavingsPct}%
                   </span>
@@ -377,7 +374,7 @@ useEffect(() => {
               onChange={set("email")}
               placeholder="you@example.com"
               className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-             readOnly/>
+              readOnly />
           </div>
 
           {/* Phone */}
@@ -483,48 +480,48 @@ export default function AdminSubscriptions() {
 
   const remainingDays = invoicesData?.end_date
     ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(invoicesData.end_date).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
-        )
+      0,
+      Math.ceil(
+        (new Date(invoicesData.end_date).getTime() - Date.now()) /
+        (1000 * 60 * 60 * 24)
       )
+    )
     : 0;
 
   const NextBillingDate = invoicesData?.end_date
     ? new Date(invoicesData.end_date).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
     : "";
 
   const startingData = invoicesData?.start_date
     ? new Date(invoicesData.start_date).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
     : "";
 
   const renewalDateFormatted = invoicesData?.end_date
     ? new Date(invoicesData.end_date)
-        .toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
-        .replace(/ /g, "-")
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+      .replace(/ /g, "-")
     : "—";
 
   const invoiveUpdatedDateFormatted = invoicesData?.updated_at
     ? new Date(invoicesData.updated_at)
-        .toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
-        .replace(/ /g, "-")
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+      .replace(/ /g, "-")
     : "—";
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -555,7 +552,7 @@ export default function AdminSubscriptions() {
 
         {/* Stats Cards */}
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">Current Plan</span>
               <Crown className="text-amber-500" size={18} />
@@ -565,7 +562,7 @@ export default function AdminSubscriptions() {
             </h3>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">Trial Remaining</span>
               <Calendar className="text-blue-500" size={18} />
@@ -575,7 +572,7 @@ export default function AdminSubscriptions() {
             </h3>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">Renewal Date</span>
               <CreditCard className="text-violet-500" size={18} />
@@ -585,20 +582,19 @@ export default function AdminSubscriptions() {
             </h3>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">Subscription Status</span>
               <CheckCircle className="text-emerald-500" size={18} />
             </div>
             <h3 className="mt-3 text-lg font-bold">
               <span
-                className={`font-semibold ${
-                  subscriptionStatus === "Active"
+                className={`font-semibold ${subscriptionStatus === "Active"
                     ? "text-green-600"
                     : subscriptionStatus === "Expired"
-                    ? "text-red-600"
-                    : "text-amber-600"
-                }`}
+                      ? "text-red-600"
+                      : "text-amber-600"
+                  }`}
               >
                 {subscriptionStatus}
               </span>
@@ -692,11 +688,10 @@ export default function AdminSubscriptions() {
                 return (
                   <div
                     key={plan.id}
-                    className={`relative rounded-2xl border p-6 ${
-                      isPopular
+                    className={`relative rounded-2xl border p-6 ${isPopular
                         ? "border-emerald-500 shadow-lg"
                         : "border-slate-200"
-                    }`}
+                      }`}
                   >
                     {isPopular && (
                       <span className="absolute right-4 top-4 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -710,9 +705,8 @@ export default function AdminSubscriptions() {
                     )}
 
                     <h3
-                      className={`text-xl font-bold text-slate-900 ${
-                        isCurrentPlan ? "mt-6" : ""
-                      }`}
+                      className={`text-xl font-bold text-slate-900 ${isCurrentPlan ? "mt-6" : ""
+                        }`}
                     >
                       {plan.plan_name}
                     </h3>
@@ -728,7 +722,7 @@ export default function AdminSubscriptions() {
                         {Math.round(
                           ((plan.monthly_price * 12 - plan.yearly_price) /
                             (plan.monthly_price * 12)) *
-                            100
+                          100
                         )}
                         %
                       </p>
@@ -749,11 +743,10 @@ export default function AdminSubscriptions() {
                     <button
                       disabled={isCurrentPlan}
                       onClick={() => !isCurrentPlan && setUpgradePlan(plan)}
-                      className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-medium transition-colors ${
-                        isCurrentPlan
+                      className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-medium transition-colors ${isCurrentPlan
                           ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                           : "bg-emerald-600 text-white hover:bg-emerald-700"
-                      }`}
+                        }`}
                     >
                       {isCurrentPlan ? "Current Plan" : "Upgrade Plan"}
                       {!isCurrentPlan && <ArrowUpRight size={16} />}

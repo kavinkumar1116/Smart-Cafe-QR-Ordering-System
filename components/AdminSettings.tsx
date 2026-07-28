@@ -814,6 +814,7 @@ export default function AdminSettings() {
                     type="button"
                     onClick={() => {
                       setEditingBranch(null);
+                      setMessage("");
                       setBranchForm({
                         branch_name: "",
                         phone: "",
@@ -880,6 +881,7 @@ export default function AdminSettings() {
                                 type="button"
                                 onClick={() => {
                                   setEditingBranch(b);
+                                  setMessage("");
                                   setBranchForm({
                                     branch_name: b.branch || "",
                                     phone: b.phone || "",
@@ -937,7 +939,7 @@ export default function AdminSettings() {
         {/* Modal Popup */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-[2px]">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-full max-w-lg rounded border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <h3 className="text-lg font-semibold text-slate-900">
                   {editingBranch ? "Edit Cafe Branch" : "Create New Cafe Branch"}
@@ -964,7 +966,7 @@ export default function AdminSettings() {
                     label="Phone Number"
                     value={branchForm.phone}
                     placeholder="Phone Number"
-                    onChange={(val) => setBranchForm({ ...branchForm, branch_name: val })}
+                    onChange={(val) => setBranchForm({ ...branchForm, phone: val })}
                   />
 
                   <div className="sm:col-span-2">
@@ -1011,7 +1013,6 @@ export default function AdminSettings() {
                       onChange={(val) => setBranchForm({ ...branchForm, password: val })}
                     />
                   )}
-
 
                   {activeSection !== "create_branches" && (
                     <div className="sm:col-span-2 py-2 border-t border-b border-slate-100 my-1">

@@ -67,8 +67,8 @@ export default function Header() {
   const resetCafeProfile = useCafeStore((state) => state.resetCafeProfile);
   const subscriptionExpiringDate = useCafeStore((state) => state.subscriptionExpiringDate);
   const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
-const tenantSlug = useCafeStore((state) => state.tenantSlug);
-const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
+  const tenantSlug = useCafeStore((state) => state.tenantSlug);
+  const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
 
   // ── Derived notification state ──────────────────────────────────────────────
   const notifType = getSubscriptionNotif(subscriptionStatus, subscriptionExpiringDate);
@@ -154,9 +154,9 @@ const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
 
     const daysLabel =
       daysLeft === null ? null :
-      daysLeft <= 0     ? "less than 1 day" :
-      daysLeft === 1    ? "1 day" :
-                          `${daysLeft} days`;
+        daysLeft <= 0 ? "less than 1 day" :
+          daysLeft === 1 ? "1 day" :
+            `${daysLeft} days`;
 
     if (!hasNotification) {
       return (
@@ -245,8 +245,8 @@ const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
     notifType === "expired"
       ? "bg-red-500"
       : notifType === "expiring_soon"
-      ? "bg-amber-500"
-      : "bg-blue-500";
+        ? "bg-amber-500"
+        : "bg-blue-500";
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -258,161 +258,160 @@ const setTenantSlug = useCafeStore((state) => state.setTenantSlug);
         (!isHydrated || sidebarOpen) ? "lg:left-[280px]" : "lg:left-[80px]"
       )}>
         <div className="px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
 
-          {/* Left: Menu toggle + Page Title */}
-          <div className="flex flex-1 min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={toggleMenu}
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200"
-              aria-label={menuAriaLabel}
-              aria-controls="mobile-sidebar-drawer"
-              aria-expanded={isDesktop ? sidebarOpen : mobileOpen}
-            >
-              <Menu size={20} />
-            </button>
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-2xl font-bold text-slate-900">
-                {getPageTitle()}
-              </h1>
-              <p className="mt-1 truncate text-sm text-slate-600">
-                {getPageSubtitle()}
-              </p>
-            </div>
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
-
-            {/* ── Notification Bell ── */}
-            <div className="relative" ref={notifRef}>
+            {/* Left: Menu toggle + Page Title */}
+            <div className="flex flex-1 min-w-0 items-center gap-3">
               <button
-                onClick={() => {
-                  setOpenNotifications(!openNotifications);
-                  setOpenProfile(false);
-                }}
-                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100"
-                aria-label="Notifications"
+                type="button"
+                onClick={toggleMenu}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200"
+                aria-label={menuAriaLabel}
+                aria-controls="mobile-sidebar-drawer"
+                aria-expanded={isDesktop ? sidebarOpen : mobileOpen}
               >
-                <Bell size={20} />
-
-                {/* ✅ Dot — only shown when there's a real notification */}
-                {hasNotification && (
-                  <span
-                    className={`absolute right-2 top-2 flex h-2 w-2 rounded-full ${bellDotClass} ring-2 ring-white`}
-                  />
-                )}
+                <Menu size={20} />
               </button>
-
-              {openNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-96 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-
-                  {/* Notif header */}
-                  <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-slate-900">
-                        Notifications
-                      </h3>
-                      {hasNotification && (
-                        <span
-                          className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
-                            notifType === "expired" ? "bg-red-500" :
-                            notifType === "expiring_soon" ? "bg-amber-500" : "bg-blue-500"
-                          }`}
-                        >
-                          1
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Notification cards */}
-                  <div className="max-h-[350px] overflow-y-auto">
-                    <NotificationCard />
-                  </div>
-
-                  {/* Footer */}
-                  <div className="border-t border-slate-100 p-3">
-                    <button className="w-full rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200">
-                      View All Notifications
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-2xl font-bold text-slate-900">
+                  {getPageTitle()}
+                </h1>
+                <p className="mt-1 truncate text-sm text-slate-600">
+                  {getPageSubtitle()}
+                </p>
+              </div>
             </div>
 
-            {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 sm:gap-4">
 
-            {/* ── Profile dropdown ── */}
-            <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setOpenProfile(!openProfile)}
-                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-semibold">
-                  {userInitial}
-                </div>
-                <span className="hidden sm:inline">{restaurantName}</span>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform duration-200 ${openProfile ? "rotate-180" : ""}`}
-                />
-              </button>
+              {/* ── Notification Bell ── */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => {
+                    setOpenNotifications(!openNotifications);
+                    setOpenProfile(false);
+                  }}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100"
+                  aria-label="Notifications"
+                >
+                  <Bell size={20} />
 
-              {openProfile && (
-                <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white shadow-lg">
-                  <div className="border-b border-slate-200 px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-lg">
-                        {userInitial}
-                      </div>
-                      <div>
+                  {/* ✅ Dot — only shown when there's a real notification */}
+                  {hasNotification && (
+                    <span
+                      className={`absolute right-2 top-2 flex h-2 w-2 rounded-full ${bellDotClass} ring-2 ring-white`}
+                    />
+                  )}
+                </button>
+
+                {openNotifications && (
+                  <div className="absolute right-0 top-full mt-2 w-96 overflow-hidden rounded border border-slate-200 bg-white shadow-xl">
+
+                    {/* Notif header */}
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                      <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-slate-900">
-                          {restaurantName}
+                          Notifications
                         </h3>
-                        <p className="text-xs text-slate-500">Admin Account</p>
+                        {hasNotification && (
+                          <span
+                            className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${notifType === "expired" ? "bg-red-500" :
+                              notifType === "expiring_soon" ? "bg-amber-500" : "bg-blue-500"
+                              }`}
+                          >
+                            1
+                          </span>
+                        )}
                       </div>
                     </div>
-                  </div>
 
-                  <div className="border-b border-slate-200 px-4 py-4">
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-medium text-slate-500 uppercase">Cafe Name</p>
-                        <p className="text-sm font-medium text-slate-900">{restaurantName}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-slate-500 uppercase">Branch</p>
-                        <p className="text-sm font-medium text-slate-900">{branchName}</p>
-                      </div>
+                    {/* Notification cards */}
+                    <div className="max-h-[350px] overflow-y-auto">
+                      <NotificationCard />
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-slate-100 p-3">
+                      <button className="w-full rounded-lg bg-slate-100 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200">
+                        View All Notifications
+                      </button>
                     </div>
                   </div>
+                )}
+              </div>
 
-                  <div className="px-2 py-2 space-y-1">
-                    <div className="border-t border-slate-200 my-1" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut size={16} />
-                      Sign Out
-                    </button>
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+
+              {/* ── Profile dropdown ── */}
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setOpenProfile(!openProfile)}
+                  className="flex items-center gap-2 rounded border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-semibold">
+                    {userInitial}
                   </div>
-                </div>
-              )}
+                  <span className="hidden sm:inline">{restaurantName}</span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${openProfile ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {openProfile && (
+                  <div className="absolute right-0 top-full mt-2 w-72 rounded border border-slate-200 bg-white shadow-lg">
+                    <div className="border-b border-slate-200 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-lg">
+                          {userInitial}
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-900">
+                            {restaurantName}
+                          </h3>
+                          <p className="text-xs text-slate-500">Admin Account</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-b border-slate-200 px-4 py-4">
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 uppercase">Cafe Name</p>
+                          <p className="text-sm font-medium text-slate-900">{restaurantName}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 uppercase">Branch</p>
+                          <p className="text-sm font-medium text-slate-900">{branchName}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-2 py-2 space-y-1">
+                      <div className="border-t border-slate-200 my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
-
           </div>
         </div>
-      </div>
-    </header>
+      </header>
     </>
   );
 }
