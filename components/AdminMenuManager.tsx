@@ -216,59 +216,59 @@ export default function AdminMenuManager() {
   };
 
   function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
 
-    reader.readAsDataURL(file);
-  });
-}
+      reader.readAsDataURL(file);
+    });
+  }
   async function saveItem(
-  event: FormEvent<HTMLFormElement>
-): Promise<void> {
-  event.preventDefault();
+    event: FormEvent<HTMLFormElement>
+  ): Promise<void> {
+    event.preventDefault();
 
-  // Image is required only when creating a new menu item
-  if (!form.id && !menuImageFile) {
-    alert("Please upload an image");
-    return;
+    // Image is required only when creating a new menu item
+    if (!form.id && !menuImageFile) {
+      alert("Please upload an image");
+      return;
+    }
+
+    if (!validateForm()) return;
+
+    let imageBase64 = "";
+
+    // Convert to Base64 only if a new image is selected
+    if (menuImageFile) {
+      imageBase64 = await fileToBase64(menuImageFile);
+    }
+
+    setSaving(true);
+
+    const method = form.id ? "PUT" : "POST";
+
+    const response = await tenantApiFetch("/api/admin/menu", {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...form,
+        menuImageFile: imageBase64,
+      }),
+    });
+
+    setSaving(false);
+
+    if (response.ok) {
+      setForm(emptyForm);
+      setmenuImageFile(null); // Reset selected file
+      setShowModal(false);
+      loadItems();
+    }
   }
-
-  if (!validateForm()) return;
-
-  let imageBase64 = "";
-
-  // Convert to Base64 only if a new image is selected
-  if (menuImageFile) {
-    imageBase64 = await fileToBase64(menuImageFile);
-  }
-
-  setSaving(true);
-
-  const method = form.id ? "PUT" : "POST";
-
-  const response = await tenantApiFetch("/api/admin/menu", {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...form,
-      menuImageFile: imageBase64,
-    }),
-  });
-
-  setSaving(false);
-
-  if (response.ok) {
-    setForm(emptyForm);
-    setmenuImageFile(null); // Reset selected file
-    setShowModal(false);
-    loadItems();
-  }
-}
   async function deleteItem(id: number): Promise<void> {
     await tenantApiFetch(`/api/admin/menu?id=${id}`, {
       method: "DELETE",
@@ -304,7 +304,7 @@ export default function AdminMenuManager() {
     <AdminGuard>
       <div className="space-y-5">
         {/* HEADER */}
-        <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 rounded border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-medium text-emerald-600">
               Menu Management
@@ -328,7 +328,7 @@ export default function AdminMenuManager() {
         </div>
 
         {/* TABLE */}
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
               <p className="text-sm text-slate-600">
@@ -556,7 +556,7 @@ export default function AdminMenuManager() {
         {/* MODAL */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+            <div className="w-full max-w-2xl rounded border border-slate-200 bg-white p-6 shadow-lg">
               {/* HEADER */}
               <div className="flex items-center justify-between">
                 <div>

@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import bcrypt from "bcrypt";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTenantsByEmail, insertCreateNewAccout, updateTenantBranch , fetchTenantsByTenantID} from "@/lib/supabase/crud";
+import { fetchTenantsByEmail, insertCreateNewAccout, updateTenantBranch, fetchTenantsByTenantID } from "@/lib/supabase/crud";
 
 async function generateTenantSlug(length = 10): Promise<string> {
   const numbers = "0123456789";
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     // Generate numeric tenant ID
     const new_tenant_id = Math.floor(10000000 + Math.random() * 90000000);
-     const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create branch tenant record
     const newBranch = await insertCreateNewAccout({
@@ -142,8 +142,8 @@ export async function POST(request: Request) {
       designation: currentTenant.designation || null,
       gst: currentTenant.gst || null,
       fssai: currentTenant.fssai || null,
-      reset_otp: null,           // ← add this
-      reset_otp_expiry: null, 
+      reset_otp: null,
+      reset_otp_expiry: null,
     });
 
     return NextResponse.json({ success: true, branch: newBranch });

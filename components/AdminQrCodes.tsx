@@ -23,7 +23,7 @@ export default function AdminQrCodes() {
   return (
     <AdminGuard>
       <section className="space-y-5">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
               <QrCode size={25} aria-hidden="true" />

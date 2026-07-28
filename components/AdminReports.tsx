@@ -144,7 +144,7 @@ export default function AdminReports() {
     <AdminGuard>
       <section className="space-y-5">
         {/* HEADER */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">
@@ -166,91 +166,91 @@ export default function AdminReports() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 
-    {/* Filters */}
-    <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {/* Filters */}
+            <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 
-      {/* Order Type */}
-      <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Order Type
-        </label>
-        <select
-          value={orderType}
-          onChange={(e) => setOrderType(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-        >
-          <option value="">All Orders</option>
-          <option value="Dine-In">Dine-In</option>
-          <option value="Takeaway">Take-Away</option>
-          <option value="Delivery">Delivery</option>
-        </select>
-      </div>
+              {/* Order Type */}
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Order Type
+                </label>
+                <select
+                  value={orderType}
+                  onChange={(e) => setOrderType(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                >
+                  <option value="">All Orders</option>
+                  <option value="Dine-In">Dine-In</option>
+                  <option value="Takeaway">Take-Away</option>
+                  <option value="Delivery">Delivery</option>
+                </select>
+              </div>
 
-      {/* Date */}
-      <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Sales Date
-        </label>
-        <input
-          type="date"
-          value={getDate}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-        />
-      </div>
+              {/* Date */}
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Sales Date
+                </label>
+                <input
+                  type="date"
+                  value={getDate}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
+              </div>
 
-      {/* Search Invoice */}
-      <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Invoice No
-        </label>
-        <input
-          type="text"
-          value={invoiceNo}
-          onChange={(e) => setInvoiceNo(e.target.value)}
-          placeholder="Search invoice..."
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-        />
-      </div>
-    </div>
+              {/* Search Invoice */}
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Invoice No
+                </label>
+                <input
+                  type="text"
+                  value={invoiceNo}
+                  onChange={(e) => setInvoiceNo(e.target.value)}
+                  placeholder="Search invoice..."
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                />
+              </div>
+            </div>
 
-    {/* Actions */}
-    <div className="flex flex-wrap gap-3">
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3">
 
-      <button
-        onClick={loadSalesReports}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
-      >
-        Search
-      </button>
+              <button
+                onClick={loadSalesReports}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
+              >
+                Search
+              </button>
 
-      <button
-        onClick={() => {
-          setOrderType("");
-          setDate("");
-          setInvoiceNo("");
-        }}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-      >
-        Reset
-      </button>
+              <button
+                onClick={() => {
+                  setOrderType("");
+                  setDate("");
+                  setInvoiceNo("");
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                Reset
+              </button>
 
-      <ExportDropdown
-        data={filtered}
-        columns={SALES_REPORT_EXPORT_COLUMNS}
-        filename={exportFilename}
-        disabled={loading}
-      />
+              <ExportDropdown
+                data={filtered}
+                columns={SALES_REPORT_EXPORT_COLUMNS}
+                filename={exportFilename}
+                disabled={loading}
+              />
 
-    </div>
-  </div>
-</div>
+            </div>
+          </div>
+        </div>
 
         {/* TABLE */}
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
           {/* TOOLBAR */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
             <p className="text-sm text-slate-500">
@@ -306,7 +306,7 @@ export default function AdminReports() {
                   </th>
 
                   <th className="w-24 border-b border-slate-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Total Amount
+                    Total Amount
                   </th>
 
                   <th className="w-24 border-b border-slate-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
@@ -353,7 +353,7 @@ export default function AdminReports() {
 
                       {/* ORDER ID */}
                       <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-slate-900">
-                      {formatReportDate(report.created_at ?? "")}
+                        {formatReportDate(report.created_at ?? "")}
                       </td>
 
                       {/* CUSTOMER */}
@@ -379,7 +379,7 @@ export default function AdminReports() {
                       </td>
 
                       {/* DISCOUNT AMOUNT */}
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-500">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-500">
                         {report.total_amount}
                       </td>
 
@@ -432,14 +432,13 @@ export default function AdminReports() {
               <span className="text-sm text-slate-600">
                 {filtered.length === 0
                   ? "0"
-                  : `${
-                      (safePage - 1) *
-                        pageSize +
-                      1
-                    }–${Math.min(
-                      safePage * pageSize,
-                      filtered.length
-                    )}`}{" "}
+                  : `${(safePage - 1) *
+                  pageSize +
+                  1
+                  }–${Math.min(
+                    safePage * pageSize,
+                    filtered.length
+                  )}`}{" "}
                 of {filtered.length}
               </span>
 
