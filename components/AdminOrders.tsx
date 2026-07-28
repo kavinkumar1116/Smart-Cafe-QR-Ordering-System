@@ -88,21 +88,21 @@ function ReceiptDialog({ order, gstPercentage, loading, saving, error, onClose, 
   if (!order && !loading) return null;
 
   const items = order?.items || [];
-const subTotal = items.reduce(
-  (sum, item) =>
-    sum +
-    Number(item.price_at_time || 0) *
+  const subTotal = items.reduce(
+    (sum, item) =>
+      sum +
+      Number(item.price_at_time || 0) *
       Number(item.quantity || 0),
-  0
-);
+    0
+  );
 
-const gstAmount = (subTotal * Number(gstPercentage || 0)) / 100;
+  const gstAmount = (subTotal * Number(gstPercentage || 0)) / 100;
 
-const totalAmount = subTotal + gstAmount;
+  const totalAmount = subTotal + gstAmount;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+      <div className="w-full max-w-2xl rounded border border-slate-200 bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-emerald-600">Receipt</p>
@@ -256,7 +256,7 @@ const downloadReceipt = async (
     (sum, item) =>
       sum +
       Number(item.price_at_time || 0) *
-        Number(item.quantity || 0),
+      Number(item.quantity || 0),
     0
   );
 
@@ -321,10 +321,9 @@ const downloadReceipt = async (
   y += 6;
 
   pdf.text(
-    `Order Type: ${
-      order.order_type === "Dine-In"
-        ? `Table ${order.table_number}`
-        : "Takeaway"
+    `Order Type: ${order.order_type === "Dine-In"
+      ? `Table ${order.table_number}`
+      : "Takeaway"
     }`,
     5,
     y
@@ -380,10 +379,10 @@ const downloadReceipt = async (
   // Summary Section
   pdf.setFont("helvetica", "normal");
 
-  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`,5, y);
+  pdf.text(`Subtotal : ${subTotal.toFixed(2)}`, 5, y);
   y += 8;
 
-  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5,y);
+  pdf.text(`GST (${gstPercentage}%) : ${gstAmount.toFixed(2)}`, 5, y);
   y += 8;
 
   pdf.line(5, y, 75, y);
@@ -497,7 +496,7 @@ export default function AdminOrders() {
       const updatedOrder = { ...receiptOrder, ...data.order, items: receiptOrder.items, billing_method: method, payment_status: "Paid" as PaymentStatus, status: "Paid" as OrderStatus, session_status: "CLOSED" as SessionStatus };
       console.log("Updated Order:", updatedOrder);
       setReceiptOrder(updatedOrder);
-      await downloadReceipt(updatedOrder,gstPercentage, method);
+      await downloadReceipt(updatedOrder, gstPercentage, method);
       setOrders((current) =>
         current.map((order) => (order.id === receiptOrder.id ? { ...order, ...updatedOrder } : order))
       );
@@ -558,7 +557,7 @@ export default function AdminOrders() {
       <section className="space-y-5">
 
         {/* Header panel */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">Kitchen Counter</p>
@@ -575,7 +574,7 @@ export default function AdminOrders() {
         </div>
 
         {/* Table panel */}
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+        <div className="rounded border border-slate-200 bg-white overflow-hidden shadow-sm">
 
           {/* Toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 px-6 py-4 bg-slate-50">

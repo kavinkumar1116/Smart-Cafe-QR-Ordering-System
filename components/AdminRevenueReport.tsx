@@ -524,7 +524,7 @@ export default function AdminRevenueReport() {
   return (
     <div className="space-y-6 pb-12">
       {/* Filters Sticky Panel */}
-      <div className="sticky top-[73px] z-20 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95">
+      <div className="sticky top-[73px] z-20 rounded border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             {quickFilters.map((q) => (
@@ -532,11 +532,10 @@ export default function AdminRevenueReport() {
                 key={q.type}
                 type="button"
                 onClick={() => handleQuickFilter(q.type)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                  selectedQuickFilter === q.type
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedQuickFilter === q.type
                     ? "bg-emerald-600 text-black shadow-sm"
                     : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-                }`}
+                  }`}
               >
                 {q.label}
               </button>
@@ -544,11 +543,10 @@ export default function AdminRevenueReport() {
             <button
               type="button"
               onClick={() => setSelectedQuickFilter("custom")}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                selectedQuickFilter === "custom"
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${selectedQuickFilter === "custom"
                   ? "bg-emerald-600 text-black shadow-sm"
                   : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-              }`}
+                }`}
             >
               Custom Date
             </button>
@@ -610,7 +608,7 @@ export default function AdminRevenueReport() {
                 disabled={loading || orders.length === 0}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Download size={14} className="text-white"/>
+                <Download size={14} className="text-white" />
                 <span className="text-white">Export Excel</span>
               </button>
             </div>
@@ -629,7 +627,7 @@ export default function AdminRevenueReport() {
       )}
 
       {/* KPI Performance Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" style={{marginTop:"60px"}}>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" style={{ marginTop: "60px" }}>
         {/* Highest Revenue Card */}
         <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:from-slate-950 dark:to-slate-900">
           <div className="flex items-start justify-between">
@@ -902,15 +900,14 @@ export default function AdminRevenueReport() {
                       paginatedItems.map((item) => (
                         <tr key={item.rank} className="hover:bg-slate-50/50 transition dark:hover:bg-slate-900/20">
                           <td className="px-6 py-4">
-                            <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                              item.rank === 1 
+                            <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${item.rank === 1
                                 ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-black"
                                 : item.rank === 2
-                                ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
-                                : item.rank === 3
-                                ? "bg-orange-100 text-orange-850 dark:bg-orange-950/20 dark:text-orange"
-                                : "text-slate-600 dark:text-slate-400"
-                            }`}>
+                                  ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-300"
+                                  : item.rank === 3
+                                    ? "bg-orange-100 text-orange-850 dark:bg-orange-950/20 dark:text-orange"
+                                    : "text-slate-600 dark:text-slate-400"
+                              }`}>
                               {item.rank}
                             </span>
                           </td>

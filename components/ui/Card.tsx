@@ -2,7 +2,7 @@ import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const cardVariants = cva("rounded-xl border transition-all duration-200", {
+const cardVariants = cva("rounded border transition-all duration-200", {
   variants: {
     variant: {
       default: "border-slate-200 bg-white shadow-sm hover:shadow-md",
@@ -24,7 +24,7 @@ const cardVariants = cva("rounded-xl border transition-all duration-200", {
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+  VariantProps<typeof cardVariants> { }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant, interactive, ...props }, ref) => (
