@@ -149,7 +149,7 @@ function SummaryCard({ label, value, icon, tone }: SummaryCardProps) {
   };
 
   return (
-    <div className={`rounded-xl border p-4 shadow-sm ${tones[tone]}`}>
+    <div className={`rounded border p-4 shadow-sm ${tones[tone]}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
@@ -206,7 +206,7 @@ function OrderDetailsDialog({ order, loading, onClose }: OrderDetailsDialogProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded border border-slate-200 bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-emerald-600">Order Details</p>
@@ -337,9 +337,8 @@ function OrderDetailsDialog({ order, loading, onClose }: OrderDetailsDialogProps
                   {timeline.map((entry) => (
                     <div key={entry.title} className="flex gap-3">
                       <div
-                        className={`mt-1 h-2.5 w-2.5 rounded-full ${
-                          entry.active ? "bg-emerald-500" : "bg-slate-300"
-                        }`}
+                        className={`mt-1 h-2.5 w-2.5 rounded-full ${entry.active ? "bg-emerald-500" : "bg-slate-300"
+                          }`}
                       />
                       <div>
                         <p className="text-sm font-medium text-slate-900">
@@ -557,7 +556,7 @@ export default function AdminOrderReports() {
   return (
     <AdminGuard>
       <section className="space-y-5">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">
@@ -617,7 +616,7 @@ export default function AdminOrderReports() {
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -627,7 +626,7 @@ export default function AdminOrderReports() {
                 type="date"
                 value={dateFrom}
                 onChange={(event) => setDateFrom(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </div>
             <div>
@@ -638,7 +637,7 @@ export default function AdminOrderReports() {
                 type="date"
                 value={dateTo}
                 onChange={(event) => setDateTo(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </div>
             <div>
@@ -648,7 +647,7 @@ export default function AdminOrderReports() {
               <select
                 value={orderStatus}
                 onChange={(event) => setOrderStatus(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               >
                 <option value="">All Statuses</option>
                 <option value="Completed">Completed</option>
@@ -668,7 +667,7 @@ export default function AdminOrderReports() {
                 value={tableNumber}
                 onChange={(event) => setTableNumber(event.target.value)}
                 placeholder="e.g. 5"
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </div>
             <div>
@@ -678,7 +677,7 @@ export default function AdminOrderReports() {
               <select
                 value={paymentMethod}
                 onChange={(event) => setPaymentMethod(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               >
                 <option value="">All Methods</option>
                 <option value="UPI">UPI</option>
@@ -694,7 +693,7 @@ export default function AdminOrderReports() {
                 value={customerName}
                 onChange={(event) => setCustomerName(event.target.value)}
                 placeholder="Search customer..."
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </div>
             <div>
@@ -704,7 +703,7 @@ export default function AdminOrderReports() {
               <select
                 value={orderType}
                 onChange={(event) => setOrderType(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded border border-slate-200 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               >
                 <option value="">All Types</option>
                 <option value="Dine-In">Dine-In</option>
@@ -718,14 +717,14 @@ export default function AdminOrderReports() {
             <button
               type="button"
               onClick={loadOrderReports}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
+              className="inline-flex items-center gap-2 rounded bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg"
             >
               Search
             </button>
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Reset
             </button>
@@ -739,7 +738,7 @@ export default function AdminOrderReports() {
               type="button"
               onClick={handlePrintReport}
               disabled={loading || sorted.length === 0}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Printer size={16} />
               Print Report
@@ -747,7 +746,7 @@ export default function AdminOrderReports() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4">
             <p className="text-sm text-slate-500">
               {sorted.length} order{sorted.length !== 1 ? "s" : ""}
@@ -841,7 +840,7 @@ export default function AdminOrderReports() {
               <select
                 value={pageSize}
                 onChange={(event) => setPageSize(Number(event.target.value))}
-                className="rounded-xl border border-slate-200 bg-white px-2 py-1 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                className="rounded border border-slate-200 bg-white px-2 py-1 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>
@@ -856,9 +855,9 @@ export default function AdminOrderReports() {
                 {sorted.length === 0
                   ? "0"
                   : `${(safePage - 1) * pageSize + 1}–${Math.min(
-                      safePage * pageSize,
-                      sorted.length
-                    )}`}{" "}
+                    safePage * pageSize,
+                    sorted.length
+                  )}`}{" "}
                 of {sorted.length}
               </span>
               <button

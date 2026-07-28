@@ -319,7 +319,7 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
   return (
     <AdminGuard>
       <section className="space-y-5">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="mt-1 text-2xl font-semibold text-emerald-900 sm:text-3xl">
@@ -364,12 +364,11 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
             return (
               <div
                 key={table.id}
-                className={`rounded-2xl border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1
-                ${
-                  isRunning
+                className={`rounded border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1
+                ${isRunning
                     ? "bg-emerald-600 border-emerald-600 text-white"
                     : "bg-white border-slate-200 text-slate-900"
-                }`}
+                  }`}
               >
                 <button
                   type="button"
@@ -377,9 +376,8 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
                   className="flex w-full flex-col items-center pt-6"
                 >
                   <span
-                    className={`text-xs uppercase tracking-widest ${
-                      isRunning ? "text-emerald-100" : "text-slate-500"
-                    }`}
+                    className={`text-xs uppercase tracking-widest ${isRunning ? "text-emerald-100" : "text-slate-500"
+                      }`}
                   >
                     Table
                   </span>
@@ -399,11 +397,10 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
                       }
                     }}
                     className={`flex h-12 w-12 items-center justify-center rounded-full border transition
-                    ${
-                      isRunning
+                    ${isRunning
                         ? "border-white/60 text-white hover:bg-white hover:text-emerald-600 cursor-pointer"
                         : "pointer-events-none opacity-40 border-slate-200 text-slate-300 cursor-default"
-                    }`}
+                      }`}
                   >
                     {loadingPrintTable === table.table_number ? (
                       <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -421,11 +418,10 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
                       }
                     }}
                     className={`flex h-12 w-12 items-center justify-center rounded-full border transition
-                    ${
-                      isRunning
+                    ${isRunning
                         ? "border-white/60 text-white hover:bg-white hover:text-emerald-600 cursor-pointer"
                         : "pointer-events-none opacity-40 border-slate-200 text-slate-300 cursor-default"
-                    }`}
+                      }`}
                   >
                     <Eye size={22} />
                   </button>
@@ -616,4 +612,4 @@ export default function TableShowing({ onTableSelect, onTakeAway }: TableShowing
       </section>
     </AdminGuard>
   );
-}
+}

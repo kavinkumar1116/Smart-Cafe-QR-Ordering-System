@@ -100,7 +100,7 @@ export default function AdminTableMaster() {
       {/* Modal */}
       {modalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+          <div className="w-full max-w-md rounded border border-slate-200 bg-white p-6 shadow-lg">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-emerald-600">Table</p>
@@ -132,9 +132,8 @@ export default function AdminTableMaster() {
                   }}
                   inputMode="numeric"
                   placeholder="e.g. 12"
-                  className={`w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 bg-white transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${
-                    validationError ? "border-red-500/60" : "border-slate-300"
-                  }`}
+                  className={`w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 bg-white transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${validationError ? "border-red-500/60" : "border-slate-300"
+                    }`}
                 />
                 {validationError ? (
                   <p className="text-[12px] text-rose-600">{validationError}</p>
@@ -166,7 +165,7 @@ export default function AdminTableMaster() {
 
       <section className="space-y-5">
         {/* Header */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-emerald-600">Table Management</p>
@@ -184,7 +183,7 @@ export default function AdminTableMaster() {
         </div>
 
         {/* Card Grid */}
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="rounded border border-slate-200 bg-white shadow-sm overflow-hidden">
           {tables.length === 0 ? (
             <div className="px-6 py-16 text-center text-sm text-slate-500">
               No tables yet. Click{" "}
@@ -196,7 +195,7 @@ export default function AdminTableMaster() {
                 {tables.map((table) => (
                   <div
                     key={table.id}
-                    className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-green-600 p-4 transition hover:border-slate-300 hover:shadow-sm"
+                    className="flex flex-col items-center gap-3 rounded border border-slate-200 bg-green-600 p-4 transition hover:border-slate-300 hover:shadow-sm"
                   >
                     {/* Table Number Badge */}
                     <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700">
