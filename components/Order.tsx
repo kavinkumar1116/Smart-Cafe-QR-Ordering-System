@@ -163,8 +163,8 @@ function CategoryNav({ categories, active, onChange }: CategoryNavProps) {
               type="button"
               onClick={() => onChange(cat)}
               className={`shrink-0 px-4 py-3 text-[13px] font-semibold border-b-2 transition whitespace-nowrap ${isActive
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
                 }`}
             >
               {cat}
@@ -363,7 +363,7 @@ relative
 flex
 items-center
 gap-4
-rounded-3xl
+rounded
 border
 bg-white
 px-5
@@ -386,7 +386,7 @@ hover:shadow-lg
           }
           disabled={placingOrder}
         >
-          <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+          <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-xs text-[#8B5E3C]">
               {customer.order_type === "Dine-In" ? <UtensilsCrossed size={18} /> : <ShoppingBag size={18} />}
             </div>
@@ -410,7 +410,7 @@ hover:shadow-lg
             onValueChange={(value) => onCustomerChange({ ...customer, table_number: value })}
             disabled={placingOrder}
           >
-            <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#F2F8F4] border border-[#E2EFE6] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#F2F8F4]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+            <SelectTrigger className="pointer-events-none flex items-center gap-3 bg-[#F2F8F4] border border-[#E2EFE6] rounded p-3 !w-full !h-auto text-left hover:bg-[#F2F8F4]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs text-[#2E7D32]">
                 <UtensilsCrossed size={18} />
               </div>
@@ -430,7 +430,7 @@ hover:shadow-lg
             </SelectContent>
           </Select>
         ) : (
-          <div className="flex items-center gap-3 bg-slate-100/50 border border-slate-200/60 rounded-2xl p-3 h-full opacity-60">
+          <div className="flex items-center gap-3 bg-slate-100/50 border border-slate-200/60 rounded p-3 h-full opacity-60">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs text-slate-400">
               <UtensilsCrossed size={18} />
             </div>
@@ -444,7 +444,7 @@ hover:shadow-lg
         )}
 
         {/* Customer Name */}
-        <div className="flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+        <div className="flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs text-[#1565C0]">
             <UserRound size={18} />
           </div>
@@ -461,7 +461,7 @@ hover:shadow-lg
         </div>
 
         {/* Mobile Number */}
-        <div className="flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded-2xl p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
+        <div className="flex items-center gap-3 bg-[#FAF3EE] border border-[#EFE1D5] rounded p-3 !w-full !h-auto text-left hover:bg-[#FAF3EE]/80 transition shadow-xs focus:ring-0 focus:ring-offset-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs text-[#7B1FA2]">
             <Phone size={18} />
           </div>
@@ -490,7 +490,7 @@ hover:shadow-lg
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
 
         {/* Left Column: Ordered Items */}
-        <div className="lg:col-span-7 xl:col-span-8 flex flex-col min-h-[300px] lg:min-h-0 bg-white border border-slate-100 rounded-3xl shadow-xs p-6">
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col min-h-[300px] lg:min-h-0 bg-white border border-slate-100 rounded shadow-xs p-6">
           <h3 className="text-[12px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Ordered Items</h3>
 
           <div className="flex-1 overflow-y-auto pr-1">
@@ -522,7 +522,7 @@ hover:shadow-lg
                               <img
                                 src={item.image_url}
                                 alt={item.name}
-                                className="h-12 w-12 rounded-xl object-cover shadow-xs bg-slate-50 shrink-0"
+                                className="h-12 w-12 rounded object-cover shadow-xs bg-slate-50 shrink-0"
                               />
                             ) : (
                               <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
@@ -593,7 +593,7 @@ hover:shadow-lg
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6">
 
           {/* Summary Card */}
-          <div className="bg-white border border-slate-100 rounded-3xl shadow-xs p-6 space-y-4">
+          <div className="bg-white border border-slate-100 rounded shadow-xs p-6 space-y-4">
             <h3 className="text-[12px] font-extrabold text-slate-400 uppercase tracking-widest">Order Summary</h3>
 
             <div className="space-y-2.5">
@@ -628,7 +628,7 @@ hover:shadow-lg
           {/* Action button & Error banner */}
           <div className="space-y-4">
             {orderError && (
-              <div className="rounded-2xl border border-red-200 bg-red-50/70 p-4 text-[12px] text-red-700 leading-snug flex items-start gap-2 shadow-xs">
+              <div className="rounded border border-red-200 bg-red-50/70 p-4 text-[12px] text-red-700 leading-snug flex items-start gap-2 shadow-xs">
                 <TriangleAlert size={16} className="shrink-0 text-red-500 mt-0.5" />
                 <span>{orderError}</span>
               </div>
@@ -638,7 +638,7 @@ hover:shadow-lg
               type="button"
               onClick={onCheckout}
               disabled={isExpired || cart.length === 0 || placingOrder}
-              className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-[14px] font-bold text-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 active:scale-98 ${isExpired ? "bg-rose-600 hover:bg-rose-700 shadow-rose-950/10" : "bg-[#20be5a] hover:bg-[#066c06] shadow-amber-950/15"
+              className={`w-full flex items-center justify-center gap-2 rounded py-4 text-[14px] font-bold text-white shadow-md transition-all duration-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 active:scale-98 ${isExpired ? "bg-rose-600 hover:bg-rose-700 shadow-rose-950/10" : "bg-[#20be5a] hover:bg-[#066c06] shadow-amber-950/15"
                 }`}
             >
               {isExpired ? (
@@ -896,13 +896,13 @@ export default function Order({ tableId }: MenuExperienceProps) {
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const gstPercentage = useCafeStore((state) => state.gstPercentage);
-const tableData = useCafeStore((state) => state.tableData);
+  const tableData = useCafeStore((state) => state.tableData);
 
-useEffect(() => {
-  if (tableData) {
-    setTables(tableData);
-  }
-}, [tableData]);
+  useEffect(() => {
+    if (tableData) {
+      setTables(tableData);
+    }
+  }, [tableData]);
   const [showMenu, setShowMenu] = useState(false);
   const [selectedTable, setSelectedTable] = useState("");
   const [orderType, setOrderType] = useState<"Dine-In" | "Takeaway">("Dine-In");
@@ -1257,7 +1257,7 @@ useEffect(() => {
           {cart.length > 0 && !isCartOpen && (
             <button
               onClick={() => setIsCartOpen(true)}
-              className="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-[#20be5a] text-white px-6 py-4 rounded-2xl shadow-xl shadow-amber-950/20 transition-all duration-300 hover:scale-105 active:scale-95"
+              className="fixed bottom-6 right-6 z-30 flex items-center gap-3 bg-[#20be5a] text-white px-6 py-4 rounded shadow-xl shadow-amber-950/20 transition-all duration-300 hover:scale-105 active:scale-95"
             >
               <div className="relative text-black">
                 <ShoppingCart size={20} />
