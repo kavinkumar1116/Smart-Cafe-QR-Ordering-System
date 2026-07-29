@@ -121,7 +121,7 @@ export default function AdminSupport() {
             </p>
 
             <p className="mt-4 text-sm font-medium text-slate-900">
-              +91 7708027444
+              {/* +91 7708027444 */}
             </p>
           </div>
         </div>
@@ -162,13 +162,13 @@ export default function AdminSupport() {
 
             <div className="mt-4 space-y-3 text-sm text-slate-600">
               <p>
-                Monday - Friday:
+                Monday - Sunday
                 <span className="ml-2 font-medium text-slate-900">
-                  9:00 AM - 6:00 PM
+                  9:00 AM - 10:00 pm
                 </span>
               </p>
 
-              <p>
+              {/* <p>
                 Saturday:
                 <span className="ml-2 font-medium text-slate-900">
                   10:00 AM - 4:00 PM
@@ -180,7 +180,7 @@ export default function AdminSupport() {
                 <span className="ml-2 font-medium text-red-600">
                   Closed
                 </span>
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
