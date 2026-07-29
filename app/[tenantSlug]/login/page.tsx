@@ -1,14 +1,5 @@
-import AppShell from "@/components/AppShell";
-import AdminLogin from "@/components/AdminLogin";
+import { redirect } from "next/navigation";
 
-type TenantCartPageProps = {
-  params: Promise<{ tenantSlug: string }>;
-};
-
-export default async function TenantCartPage({ params }: TenantCartPageProps) {
-  const { tenantSlug } = await params;
-
-  return (
-      <AdminLogin />
-  );
+export default function TenantLoginPage() {
+  redirect("/login");
 }

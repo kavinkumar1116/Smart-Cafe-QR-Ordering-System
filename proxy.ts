@@ -8,6 +8,7 @@ const EXEMPT_PATHS = [
   "/favicon.ico",
   "/robots.txt",
   "/super-admin",
+  "/login",
   "/api/auth",
   "/api/auth/",
   "/api/CreateNewAccout",

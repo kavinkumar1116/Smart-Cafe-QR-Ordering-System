@@ -172,8 +172,7 @@ const nextBillingDate = plan.plan_name === "Free Trial" ? new Date(startDate.get
   console.error("Subscription insert failed:", subscriptionError);
 }
 
-    // ✅ FIX 7: Login URL uses tenant_slug (correct — slug is for URL routing)
-    const loginUrl = `https://smart-cafe-qr-ordering-system.vercel.app/${tenant_slug}/login`;
+    const loginUrl = `https://smart-cafe-qr-ordering-system.vercel.app/login`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",

@@ -3,7 +3,13 @@ interface PriceQuantityItem {
   quantity?: number | string | null;
 }
 
-export function getGstRate(): number {
+export function getGstRate(gstPercentage?: number | string | null): number {
+  if (gstPercentage !== undefined && gstPercentage !== null && gstPercentage !== "") {
+    const num = Number(gstPercentage);
+    if (Number.isFinite(num) && num >= 0) {
+      return num > 1 ? num / 100 : num;
+    }
+  }
   const fromEnv = Number(process.env.NEXT_PUBLIC_GST_RATE);
   if (Number.isFinite(fromEnv) && fromEnv >= 0 && fromEnv <= 0.5) return fromEnv;
   return 0.05;

@@ -126,8 +126,7 @@ export default function Header() {
       document.cookie = AUTH_KEY;
       localStorage.setItem(AUTH_KEY, "false");
       document.cookie = "smart-cafe-admin=;";
-      window.location.href = `/${encodeURIComponent(tenantSlug)}/login`;
-      // window.location.href = "/mycafe/login";
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
     }

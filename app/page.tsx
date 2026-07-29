@@ -167,11 +167,10 @@ function ReviewEditField({
           onBlur={onBlur}
           placeholder={placeholder}
           rows={2}
-          className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 bg-white placeholder:text-slate-400 outline-none transition-all ${
-            error
-              ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-              : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          }`}
+          className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 bg-white placeholder:text-slate-400 outline-none transition-all ${error
+            ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            }`}
           autoFocus
         />
       ) : options ? (
@@ -181,11 +180,10 @@ function ReviewEditField({
             value={value}
             onChange={(e) => onValueChange(id, e.target.value)}
             onBlur={onBlur}
-            className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm text-slate-800 bg-white outline-none transition-all appearance-none ${
-              error
-                ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            }`}
+            className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm text-slate-800 bg-white outline-none transition-all appearance-none ${error
+              ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              }`}
             autoFocus
           >
             <option value="">{placeholder || `Select ${label}`}</option>
@@ -213,11 +211,10 @@ function ReviewEditField({
           onChange={(e) => onValueChange(id, e.target.value)}
           onBlur={onBlur}
           placeholder={placeholder}
-          className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 bg-white placeholder:text-slate-400 outline-none transition-all ${
-            error
-              ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-              : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          }`}
+          className={`w-full rounded-lg border px-3 py-2 text-sm text-slate-800 bg-white placeholder:text-slate-400 outline-none transition-all ${error
+            ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            : "border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            }`}
           autoFocus
         />
       )}
@@ -239,11 +236,7 @@ function SuccessScreen({ tenantSlug }: SuccessScreenProps) {
   ];
 
   const handleGoToDashboard = () => {
-    if (tenantSlug) {
-      window.location.href = `/${tenantSlug}/login`;
-    } else {
-      window.location.href = "/";
-    }
+    window.location.href = "/login";
   };
 
   return (
@@ -281,12 +274,12 @@ function SuccessScreen({ tenantSlug }: SuccessScreenProps) {
 export default function SmartCafeLanding() {
   const [pageState, setPageState] = useState<"select_account" | "onboarding" | "success">("select_account");
   const [selectedOption, setSelectedOption] = useState<"new" | "existing">("new");
-  
+
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Record<string, string>>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
-  
+
   const [loading, setLoading] = useState(false);
   const [testMode, setTestMode] = useState(false);
   const [tenantSlug, setTenantSlug] = useState<string | null>(null);
@@ -361,7 +354,7 @@ export default function SmartCafeLanding() {
         setApiError(null);
         const result = await saveCreateNewAccout();
         console.log("Create New Account saved successfully");
-        
+
         const slug = result.data?.tenant_slug || result.data?.[0]?.tenant_slug || null;
         setTenantSlug(slug);
         setPageState("success");
@@ -436,16 +429,16 @@ export default function SmartCafeLanding() {
             </div>
             <span className="text-lg font-bold tracking-tight text-slate-800">Smart Cafe</span>
             <span className="inline-flex items-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 text-sm font-medium text-blue">
-      <QrCode size={18} />
-      <span>QR Ordering System</span>
-    </span>
+              <QrCode size={18} />
+              <span>QR Ordering System</span>
+            </span>
           </div>
 
           {/* Center: Title info */}
           <div className="relative z-10 max-w-lg my-auto py-16">
             <h1 className="text-4xl lg:text-[42px] font-extrabold leading-[1.15] text-slate-800 tracking-tight">
-              Join Thousands of Cafes that Trust Smart Cafe to{" "}
-              <span className="text-blue-600">Supercharge</span> their Business
+              Join the Growing Community of Cafes Powered by Smart Cafe{" "}
+              <span className="text-blue-600">Transforming</span> Your Business
             </h1>
           </div>
 
@@ -484,17 +477,15 @@ export default function SmartCafeLanding() {
               <button
                 type="button"
                 onClick={() => setSelectedOption("new")}
-                className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all ${
-                  isNewSelected
-                    ? "border-blue-600 bg-blue-50/10 ring-2 ring-blue-100"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 bg-white"
-                }`}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border text-left transition-all ${isNewSelected
+                  ? "border-blue-600 bg-blue-50/10 ring-2 ring-blue-100"
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 bg-white"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
-                      isNewSelected ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"
-                    }`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors ${isNewSelected ? "bg-blue-100 text-blue-600" : "bg-slate-100 text-slate-500"
+                      }`}
                   >
                     <UserPlus size={20} />
                   </div>
@@ -553,14 +544,31 @@ export default function SmartCafeLanding() {
                   setStep(0);
                 }
               }}
-              className={`w-full py-3.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                selectedOption === "new"
-                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 active:scale-[0.99]"
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
-              }`}
+              className={`w-full py-3.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${selectedOption === "new"
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 active:scale-[0.99]"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                }`}
             >
-              Continue
+              Continue to Create a new account
               <ArrowRight size={16} />
+            </button>
+          </div>
+
+          <div className="relative flex items-center justify-center w-full">
+            <div className="flex-grow border-t border-slate-300" />
+            <span className="mx-4 bg-white px-2 text-sm font-medium uppercase tracking-wider text-slate-500">
+              OR
+            </span>
+            <div className="flex-grow border-t border-slate-300" />
+          </div>
+
+          <div className="w-full max-w-[420px] flex flex-col gap-8">
+            <button
+              type="button"
+              onClick={() => window.location.href = "/login"}
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-green-700 active:scale-95"
+            >
+              Login as Admin
             </button>
           </div>
         </section>
@@ -612,20 +620,18 @@ export default function SmartCafeLanding() {
                 key={label}
                 type="button"
                 onClick={() => handleStepClick(idx)}
-                className={`flex items-center justify-between w-full p-2.5 rounded-lg text-left transition-all ${
-                  isActive
-                    ? "bg-slate-50 text-slate-800 font-bold shadow-sm"
-                    : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-700"
-                }`}
+                className={`flex items-center justify-between w-full p-2.5 rounded-lg text-left transition-all ${isActive
+                  ? "bg-slate-50 text-slate-800 font-bold shadow-sm"
+                  : "text-slate-500 hover:bg-slate-50/50 hover:text-slate-700"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {isCompleted ? (
                     <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
                   ) : (
                     <div
-                      className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        isActive ? "border-emerald-500 bg-emerald-50" : "border-slate-300"
-                      }`}
+                      className={`h-4 w-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isActive ? "border-emerald-500 bg-emerald-50" : "border-slate-300"
+                        }`}
                     >
                       {isActive && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
                     </div>
@@ -678,7 +684,7 @@ export default function SmartCafeLanding() {
 
         <div className="flex items-center justify-center p-6 lg:p-12 min-h-full relative z-10">
           <div className="w-full max-w-[580px] bg-white rounded-2xl border border-slate-100 p-8 lg:p-10 shadow-lg shadow-slate-100/50 flex flex-col gap-6">
-            
+
             {pageState === "success" ? (
               <SuccessScreen tenantSlug={tenantSlug} />
             ) : (
@@ -973,9 +979,8 @@ export default function SmartCafeLanding() {
                     type="button"
                     disabled={loading}
                     onClick={handleNext}
-                    className={`flex-1 py-3.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 ${
-                      loading ? "opacity-75 cursor-not-allowed" : ""
-                    }`}
+                    className={`flex-1 py-3.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 ${loading ? "opacity-75 cursor-not-allowed" : ""
+                      }`}
                   >
                     {step === 2 ? (
                       <>

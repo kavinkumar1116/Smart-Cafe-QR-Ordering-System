@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import bcrypt from "bcrypt";
 import { getTenantContextFromRequest } from "@/lib/tenant";
-import { fetchTenantsByEmail, insertCreateNewAccout, updateTenantBranch, fetchTenantsByTenantID } from "@/lib/supabase/crud";
+import { insertCreateNewAccout, updateTenantBranch, fetchTenantsByTenantID, insertCreateSettings, fetchTenantsDataByTenantID } from "@/lib/supabase/crud";
 
 async function generateTenantSlug(length = 10): Promise<string> {
   const numbers = "0123456789";
@@ -34,22 +34,28 @@ export async function GET(request: Request) {
     const { tenantId } = await getTenantContextFromRequest(request);
     const supabase = createServerSupabaseClient();
 
-    // Get the current tenant to know the brand/email
-    const { data: currentTenant, error: tenantError } = await supabase
+    // Get the current tenant details
+    const { data: currentTenant } = await supabase
       .from("tenants")
       .select("email, cafe_name")
-      .eq("parent_tenant_id", tenantId)
+      .eq("tenant_id", tenantId)
       .single();
 
-    if (tenantError) throw tenantError;
+    let query = supabase
+      .from("tenants")
+      .select("*");
 
-    if (!currentTenant?.email) {
-      return NextResponse.json({ branches: [] });
+    if (currentTenant?.email) {
+      query = query.or(`parent_tenant_id.eq.${tenantId},email.eq.${currentTenant.email}`);
+    } else {
+      query = query.eq("parent_tenant_id", tenantId);
     }
 
-    // Fetch all branches matching the parent email
-    const branches = await fetchTenantsByEmail(currentTenant.email);
-    return NextResponse.json({ branches });
+    const { data: branches, error } = await query.order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    return NextResponse.json({ branches: branches || [] });
   } catch (error) {
     return NextResponse.json(
       { error: "Unable to load branches", detail: getErrorMessage(error) },
@@ -66,10 +72,10 @@ export async function POST(request: Request) {
 
     const { tenantId } = await getTenantContextFromRequest(request);
     const body = await request.json();
-    const { branch_name, email, password, address, city, pincode, state, status } = body;
+    const { branch_name, password, address, city, pincode, state, status, phone } = body;
 
-    if (!branch_name || !email || !password) {
-      return NextResponse.json({ error: "Branch name, email, and password are required" }, { status: 400 });
+    if (!tenantId || !branch_name || !password) {
+      return NextResponse.json({ error: "Tenant ID, branch name, and password are required" }, { status: 400 });
     }
 
     const supabase = createServerSupabaseClient();
@@ -83,36 +89,9 @@ export async function POST(request: Request) {
 
     if (tenantError) throw tenantError;
 
-    // Check if the email already exists in tenants
-    const { data: existingTenant } = await supabase
-      .from("tenants")
-      .select("tenant_id")
-      .eq("email", email.trim())
-      .maybeSingle();
-
-    if (existingTenant) {
-      return NextResponse.json({ error: "A branch with this email already exists." }, { status: 400 });
-    }
-
-    // Create the user in Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          role: "admin",
-          cafe_name: currentTenant.cafe_name,
-        },
-      },
-    });
-
-    if (authError) {
-      return NextResponse.json({ error: "Auth creation failed", detail: authError.message }, { status: 400 });
-    }
-
     const tenant_slug = await generateTenantSlug();
 
-    // Generate numeric tenant ID
+    // Generate numeric tenant ID and password hash
     const new_tenant_id = Math.floor(10000000 + Math.random() * 90000000);
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -124,9 +103,9 @@ export async function POST(request: Request) {
       tenant_slug,
       tenant_name: `${currentTenant.cafe_name} - ${branch_name}`.trim(),
       owner_name: currentTenant.owner_name || "",
-      email: email.trim(),
+      email: null as any,
       password_hash: hashedPassword,
-      phone: currentTenant.phone || "",
+      phone: phone || currentTenant.phone || "",
       subscription_plan: currentTenant.subscription_plan || "Free Trial",
       status: status ? 1 : 0,
       cafe_name: currentTenant.cafe_name || "",
@@ -146,6 +125,26 @@ export async function POST(request: Request) {
       reset_otp_expiry: null,
     });
 
+    const existingTenantsData = await fetchTenantsDataByTenantID(Number(tenantId));
+    console.log("existingTenantsData===========", existingTenantsData)
+    if (existingTenantsData && existingTenantsData.length > 0) {
+      const parentTenant = existingTenantsData[0];
+      const settingsPayload = {
+        tenant_id: new_tenant_id,
+        restaurant_name: parentTenant.tenant_name || parentTenant.cafe_name || "",
+        branch_name: branch_name,
+        address: address || parentTenant.address || "",
+        contact_number: phone || parentTenant.phone || "",
+        email: parentTenant.email || null,
+        gst_number: parentTenant.gst || null,
+      };
+      try {
+        await insertCreateSettings(settingsPayload as any);
+      } catch (settingsError) {
+        console.error("Settings insert failed:", settingsError);
+      }
+    }
+
     return NextResponse.json({ success: true, branch: newBranch });
   } catch (error) {
     return NextResponse.json(
@@ -162,22 +161,28 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { tenant_id, branch_name, email, address, city, pincode, state, status } = body;
+    const { tenant_id, branch_name, password, address, city, pincode, state, status, phone } = body;
 
-    if (!tenant_id) {
-      return NextResponse.json({ error: "Tenant ID is required for editing" }, { status: 400 });
+    if (!tenant_id || !branch_name) {
+      return NextResponse.json({ error: "Tenant ID and branch name are required" }, { status: 400 });
     }
 
-    const updatedBranch = await updateTenantBranch(tenant_id, {
+    const updateData: any = {
       branch: branch_name,
-      email: email.trim(),
+      phone: phone || "",
       address: address || "",
       city: city || "",
       pincode: pincode || "",
       state: state || "",
       status: status ? 1 : 0,
       is_head_branch: false,
-    });
+    };
+
+    if (password && password.trim() !== "") {
+      updateData.password_hash = await bcrypt.hash(password, 10);
+    }
+
+    const updatedBranch = await updateTenantBranch(tenant_id, updateData);
 
     return NextResponse.json({ success: true, branch: updatedBranch });
   } catch (error) {
@@ -187,3 +192,5 @@ export async function PUT(request: Request) {
     );
   }
 }
+
+
