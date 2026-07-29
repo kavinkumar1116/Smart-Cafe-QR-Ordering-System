@@ -336,11 +336,12 @@ function CurrentCart({
   onClose,
 }: CurrentCartProps) {
   const subscriptionStatus = useCafeStore((state) => state.subscriptionStatus);
+  const storeGstPercentage = useCafeStore((state) => state.gstPercentage);
   const discount = 0;
   const isDineIn = customer.order_type === "Dine-In";
   const isExpired = subscriptionStatus === "Expired";
 
-  const gstRate = getGstRate();
+  const gstRate = getGstRate(storeGstPercentage);
   const tax = calcTax(grandTotal, gstRate);
   const finalTotal = calcGrandTotal(grandTotal, tax) - discount;
 
@@ -610,7 +611,7 @@ hover:shadow-lg
                 <span className="font-bold text-emerald-600">- {formatCurrency(discount)}</span>
               </div>
               <div className="flex justify-between text-[13px] text-slate-500">
-                <span>Tax ({Math.round(gstRate * 100)}%)</span>
+                <span>Tax ({Number((gstRate * 100).toFixed(2))}%)</span>
                 <span className="font-bold text-slate-800">{formatCurrency(tax)}</span>
               </div>
             </div>

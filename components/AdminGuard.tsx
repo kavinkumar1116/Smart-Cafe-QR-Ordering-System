@@ -21,8 +21,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     const isAuthenticated = document.cookie.includes("smart-cafe-admin=true"); // or localStorage
     
     if (!isAuthenticated) {
-      // Dynamically redirect back to the tenant's login page
-      router.replace(`/${tenantSlug}/admin`);
+      // Dynamically redirect back to the login page
+      router.replace("/login");
       return;
     }
     setReady(true);
