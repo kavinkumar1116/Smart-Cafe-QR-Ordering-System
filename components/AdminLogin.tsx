@@ -2,8 +2,25 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, LogIn, ArrowLeft, Mail, KeyRound, Eye, EyeOff } from "lucide-react";
+import { LockKeyhole, LogIn, ArrowLeft, Mail, KeyRound, Eye, EyeOff, Building2, Store, ChevronRight, MapPin } from "lucide-react";
 import type { FormEvent } from "react";
+
+// ─── Branch item type ────────────────────────────────────────────────────────
+interface BranchItem {
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_name?: string | null;
+  cafe_name?: string | null;
+  branch?: string | null;
+  is_head_branch?: boolean;
+  parent_tenant_id?: number | null;
+  city?: string | null;
+  state?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  outlet_type?: string | null;
+  status?: number;
+}
 
 // ─── Forgot-password step type ───────────────────────────────────────────────
 type ForgotStep = "email" | "otp" | "newPassword";
@@ -19,10 +36,15 @@ interface ForgotState {
 export default function AdminLogin() {
   const router = useRouter();
 
-  // ── Existing login state (unchanged) ──────────────────────────────────────
+  // ── Existing login state ──────────────────────────────────────────────────
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Branch selection state ────────────────────────────────────────────────
+  const [branches, setBranches] = useState<BranchItem[]>([]);
+  const [showBranchSelection, setShowBranchSelection] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   // ── Forgot-password state ─────────────────────────────────────────────────
   const [showForgot, setShowForgot] = useState(false);
@@ -41,7 +63,7 @@ export default function AdminLogin() {
     confirmPassword: "",
   });
 
-  // ── Existing submit handler (unchanged) ───────────────────────────────────
+  // ── Submit handler with Branch Selection post-login flow ──────────────────
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setError("");
@@ -64,20 +86,36 @@ export default function AdminLogin() {
         return;
       }
 
-      const tenantSlug = result.data.tenant_slug;
-
       const AUTH_KEY = "smart-cafe-admin=true";
       document.cookie = AUTH_KEY;
       localStorage.setItem(AUTH_KEY, "true");
 
-      router.refresh();
-      router.push(`/${tenantSlug}/admin/dashboard`);
+      const branchList: BranchItem[] = result.data.branches || [];
+
+      if (branchList.length === 0 && result.data.tenant_slug) {
+        branchList.push({
+          tenant_id: result.data.tenant_id,
+          tenant_slug: result.data.tenant_slug,
+          tenant_name: result.data.tenant_name,
+          is_head_branch: true,
+        });
+      }
+
+      setBranches(branchList);
+      setUserEmail(result.data.email || form.email.trim());
+      setShowBranchSelection(true);
     } catch (error) {
       console.error(error);
       setError("Something went wrong");
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleBranchSelect(tenantSlug: string) {
+    if (!tenantSlug) return;
+    router.refresh();
+    router.push(`/${tenantSlug}/admin/dashboard`);
   }
 
   // ── Forgot-password: Step 1 — send OTP to email ───────────────────────────
@@ -213,8 +251,88 @@ export default function AdminLogin() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
 
-      {/* ── Login Card (unchanged layout) ─────────────────────────────────── */}
-      {(!showForgot || showNewPassword || showConfirmPassword) && (
+      {/* ── Branch Selection Card ───────────────────────────────────────────── */}
+      {showBranchSelection ? (
+        <div className="relative z-10 w-full max-w-lg px-4">
+          <div className="rounded border border-white/20 bg-transparent p-6 shadow-2xl backdrop-blur-md">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
+              <Building2 size={24} aria-hidden="true" />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-semibold text-white">Select Branch</h2>
+
+            <p className="mt-2 text-sm leading-6 text-white/80">
+              Select a branch for <span className="font-medium text-emerald-400">{userEmail || form.email}</span> to access its admin dashboard.
+            </p>
+
+            <div className="mt-6 space-y-3 max-h-[360px] overflow-y-auto pr-1">
+              {branches.map((branch) => {
+                const isHead = branch.is_head_branch === true;
+                const branchName = branch.branch || branch.tenant_name || branch.cafe_name || "Branch";
+                const cafeTitle = branch.cafe_name || branch.tenant_name || "";
+
+                return (
+                  <button
+                    key={branch.tenant_id || branch.tenant_slug}
+                    type="button"
+                    onClick={() => handleBranchSelect(branch.tenant_slug)}
+                    className="group flex w-full items-center justify-between rounded-lg border border-white/20 bg-white/10 p-4 text-left transition hover:border-emerald-500 hover:bg-emerald-950/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  >
+                    <div className="flex-1 pr-3">
+                      <div className="flex items-center gap-2">
+                        <Store size={18} className="text-emerald-400 shrink-0" />
+                        <span className="font-semibold text-white group-hover:text-emerald-300 text-base">
+                          {branchName}
+                        </span>
+                        {isHead ? (
+                          <span className="inline-flex items-center rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
+                            Head Branch
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-semibold text-blue-300 border border-blue-500/30">
+                            Branch
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white/70">
+                        {cafeTitle && cafeTitle !== branchName && (
+                          <span className="font-medium text-white/90">{cafeTitle}</span>
+                        )}
+                        {branch.city && (
+                          <span className="flex items-center gap-0.5">
+                            <MapPin size={12} className="text-white/50" />
+                            {branch.city}
+                            {branch.state ? `, ${branch.state}` : ""}
+                          </span>
+                        )}
+                        {branch.outlet_type && (
+                          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/80">
+                            {branch.outlet_type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/70 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                      <ChevronRight size={18} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowBranchSelection(false)}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft size={16} />
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      ) : (!showForgot || showNewPassword || showConfirmPassword) && (
 
 
         <div className="relative z-10 w-full max-w-md px-4">
