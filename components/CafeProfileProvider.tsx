@@ -29,7 +29,7 @@ export default function CafeProfileProvider() {
             logo: data.settings.logo_url || "",
             gstNumber: data.settings.gst_number || "",
             contactNumber: data.settings.contact_number || "",
-            gstPercentage: data.settings.gst_percentage || "",
+            gstPercentage: data.settings.gst_percentage != null ? Number(data.settings.gst_percentage) : 0,
             subscriptionExpiringDate: data.subscriptionExpiringMessage || "",
             subscriptionStatus: data.subscriptionStatus || "",
             isHeadBranch: data.getStoreData[0].is_head_branch || false,

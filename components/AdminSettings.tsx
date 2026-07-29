@@ -8,6 +8,8 @@ import { useRef, useMemo } from "react";
 import {
   Building2,
   CheckCircle2,
+  Eye,
+  EyeOff,
   ReceiptText,
   Trash2,
   Upload,
@@ -123,6 +125,41 @@ function Field({
         onChange={(e) => onChange?.(e.target.value)}
         className="mt-2 w-full rounded-[5px] border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
       />
+    </label>
+  );
+}
+
+function PasswordField({
+  label,
+  value = "",
+  placeholder = "",
+  onChange,
+}: InputProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <label className="block">
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
+
+      <div className="relative mt-2">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full rounded-[5px] border border-slate-200 bg-white pl-3 pr-10 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
     </label>
   );
 }
@@ -313,7 +350,6 @@ export default function AdminSettings() {
   });
   const [getRequiredFields, setGetRequiredFields] = useState<RequiredFormData[]>([]);
   const [getRequiredSavedFields, setGetRequiredSavedFields] = useState<RequiredSaveFormData[]>([]);
-  console.log("getRequiredSavedFields====", getRequiredSavedFields)
 
   async function loadBranches() {
     setBranchesLoading(true);
@@ -351,7 +387,7 @@ export default function AdminSettings() {
           tenant_id: editingBranch.tenant_id,
           branch_name: branchForm.branch_name,
           phone: branchForm.phone,
-          email: branchForm.email,
+          password: branchForm.password,
           address: branchForm.address,
           city: branchForm.city,
           pincode: branchForm.pincode,
@@ -360,7 +396,6 @@ export default function AdminSettings() {
         } : {
           branch_name: branchForm.branch_name,
           phone: branchForm.phone,
-          email: branchForm.email,
           password: branchForm.password,
           address: branchForm.address,
           city: branchForm.city,
@@ -851,7 +886,6 @@ export default function AdminSettings() {
                         <tr>
                           <th className="px-5 py-3.5 font-semibold">Branch Name</th>
                           <th className="px-5 py-3.5 font-semibold">Tenant ID</th>
-                          <th className="px-5 py-3.5 font-semibold">Email</th>
                           <th className="px-5 py-3.5 font-semibold">Location</th>
                           <th className="px-5 py-3.5 font-semibold">Phone</th>
                           <th className="px-5 py-3.5 font-semibold">Status</th>
@@ -863,7 +897,6 @@ export default function AdminSettings() {
                           <tr key={b.tenant_id} className="hover:bg-slate-50/50 transition-colors">
                             <td className="px-5 py-3.5 font-semibold text-slate-900">{b.branch}</td>
                             <td className="px-5 py-3.5 text-slate-600">{b.tenant_slug}</td>
-                            <td className="px-5 py-3.5 text-slate-600">{b.email}</td>
                             <td className="px-5 py-3.5 text-slate-500">
                               {b.city ? `${b.city}, ${b.state || ""}` : "-"}
                             </td>
@@ -997,22 +1030,14 @@ export default function AdminSettings() {
                       onChange={(val) => setBranchForm({ ...branchForm, state: val })}
                     />
                   </div>
-                  <Field
-                    label="Email Address"
-                    type="email"
-                    value={branchForm.email}
-                    placeholder="e.g. indiranagar@cafe.com"
-                    onChange={(val) => setBranchForm({ ...branchForm, email: val })}
-                  />
-                  {!editingBranch && (
-                    <Field
+                  <div className="sm:col-span-2">
+                    <PasswordField
                       label="Login Password"
-                      type="password"
-                      value={branchForm.password}
-                      placeholder="Set account login password"
+                      value={branchForm.password || ""}
+                      placeholder={editingBranch ? "Leave blank to keep existing password" : "Set account login password"}
                       onChange={(val) => setBranchForm({ ...branchForm, password: val })}
                     />
-                  )}
+                  </div>
 
                   {activeSection !== "create_branches" && (
                     <div className="sm:col-span-2 py-2 border-t border-b border-slate-100 my-1">
